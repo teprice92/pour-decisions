@@ -1131,7 +1131,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const N = () => S.night;
   const playerById = (id, night = N()) => night.players.find((p) => p.id === id);
   const allGames = (night = N()) => night.players.flatMap((p) => p.games.filter((g) => g.title.trim()).map((g) => ({ id: g.id, title: g.title.trim(), by: p.id })));
-  const playedIds = (night = N()) => new Set(night.rounds.filter((r) => r.gameId).map((r) => r.gameId));
+  // only games that came off the wheel are crossed off; logged games never touch it
+  const playedIds = (night = N()) => new Set(night.rounds.filter((r) => r.gameId && !r.injected).map((r) => r.gameId));
   const remaining = (night = N()) => { const done = playedIds(night); return allGames(night).filter((g) => !done.has(g.id)); };
   const gameById = (id, night = N()) => allGames(night).find((g) => g.id === id) || (night.extras || []).find((g) => g.id === id);
   const spinner = () => N().players.length ? N().players[N().turn % N().players.length] : null;
@@ -1755,11 +1756,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const title = f.title.trim();
     if (!title) { $("#logTitle")?.focus(); return toast("Type or pick the game you played"); }
     if (!f.winner) return toast("Pick a winner (or Tie) first");
-    const hit = callable().find((g) => g.title.toLowerCase() === title.toLowerCase());
-    let game = hit;
-    if (!game) { game = { id: uid(), title, by: null }; (n.extras = n.extras || []).push(game); }
+    // always a separate entry, so a lineup game with the same name stays on the wheel
+    const game = { id: uid(), title, by: null };
+    (n.extras = n.extras || []).push(game);
     const drinks = Object.entries(f.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: game.by || null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks });
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks });
     save(); closeLog(); renderAll();
     toast(`${game.title} logged`);
     await pour(drinks);
