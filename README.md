@@ -14,7 +14,15 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 
 ## Games tab
 
-A built-in catalog of party-friendly multiplayer games for 23 consoles: Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Game Boy & DS, Genesis, Dreamcast, PlayStation 1–5, Xbox, Xbox 360, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. Pick a console, search, and tap **+ Add** to put a game on a player's list, or fill their empty slots at random. It's all built in, so it works offline.
+A catalog of about 62,000 games across 26 consoles, including single-player one-offs as well as party games.
+
+- **Complete libraries** for Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Game Boy, Game Boy Color, Game Boy Advance, DS, Genesis, Dreamcast, PlayStation 1–3, Xbox, and Xbox 360.
+- **Hand-picked lists** for PS4, PS5, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. For anything missing, use **Not listed? Type any game**.
+- **🎉 Party friendly only** narrows any console to the multiplayer, bet-friendly picks.
+
+Search across every console, tap **+ Add** to put a game on a player's list, or fill their empty slots at random. Each console's list loads the first time you open it. The installed app saves them all in the background so the catalog works offline.
+
+The complete lists come from the [No-Intro](https://no-intro.org) and [Redump](http://redump.org) databases (via [libretro-database](https://github.com/libretro/libretro-database)) and [titledb](https://github.com/blawar/titledb) for Switch. Betas, demos, prototypes, and regional duplicates are removed. To refresh them, run `tools/build_catalog.py` on fresh copies of those files.
 
 ## Party features
 

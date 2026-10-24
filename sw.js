@@ -2,7 +2,7 @@
 // The page is network-first: online, you always get the latest version from the site;
 // offline (or on a slow connection), the last saved copy opens instead.
 // Bump VERSION when the list of app files below changes.
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `pd-shell-${VERSION}`;
 const FONTS = "pd-fonts";
 const SHELL_FILES = [
@@ -16,6 +16,8 @@ const SHELL_FILES = [
   "./icons/favicon-32.png",
 ];
 const NETWORK_TIMEOUT_MS = 3500;
+// complete game lists for the Games tab; saved in the background after install
+const CATALOG_FILES = ["./catalog/atari.json", "./catalog/dreamcast.json", "./catalog/gb.json", "./catalog/gba.json", "./catalog/gbc.json", "./catalog/gc.json", "./catalog/genesis.json", "./catalog/n64.json", "./catalog/nds.json", "./catalog/nes.json", "./catalog/ps1.json", "./catalog/ps2.json", "./catalog/ps3.json", "./catalog/snes.json", "./catalog/switch.json", "./catalog/wii.json", "./catalog/wiiu.json", "./catalog/x360.json", "./catalog/xbox.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
@@ -26,9 +28,17 @@ self.addEventListener("activate", (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== FONTS).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
-      .then(() => { cacheThemeFonts(); }) // in the background; don't hold up activation
+      .then(() => { cacheThemeFonts(); cacheCatalog(); }) // in the background; don't hold up activation
   );
 });
+
+async function cacheCatalog() {
+  const cache = await caches.open(SHELL);
+  for (const f of CATALOG_FILES) {
+    if (await cache.match(f)) continue;
+    try { const r = await fetch(f); if (r.ok) await cache.put(f, r); } catch { /* offline; saved when opened later */ }
+  }
+}
 
 // Save every theme's fonts (latin subset) so all themes look right offline,
 // not just the ones already opened. The font list is read from the page itself.
