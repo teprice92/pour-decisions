@@ -14,7 +14,7 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 
 ## Party features
 
-- **Wild slices**: special slices on the wheel, such as Double or nothing, Everyone drinks, Spinner picks, Reverse, and Waterfall. You can set 0 to 3 of them in Settings.
+- **Wild slices**: special slices on the wheel, such as Double or nothing, Everyone drinks, Spinner picks, Reverse, and Waterfall. In Settings you can choose how many show up each round (0 to 3), read what each one does, and switch individual ones on or off.
 - **Side bets**: before you record a game, anyone can bet on who wins. Wrong guesses drink the stake, and right guesses hand it out.
 - **Rivalries and grudge matches**: when someone keeps beating the same person, the app points it out. One tap makes the next game a grudge match where the loser drinks double.
 - **Streaks**: three wins in a row puts you "on fire" 🔥. Whoever breaks a streak of 3 or more makes the streak holder drink a bonus.

@@ -957,6 +957,9 @@ html.tv footer { display: none; }
 details.bets summary { cursor: pointer; }
 .bet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px; margin-block: 8px; }
 .bet select { padding: 7px 9px; }
+.wild-list { display: grid; gap: 8px; }
+.wild-opt { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); cursor: pointer; font-size: .92rem; }
+.wild-opt input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); }
 .modal { width: min(640px, 100%); display: grid; gap: 16px; }
 .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .rng-stage { display: grid; place-items: center; min-height: 320px; position: relative; perspective: 900px; }
@@ -1850,21 +1853,31 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
 
   // ---------- Wild slices ----------
+  // desc: shown when the wheel lands on it. about: the longer explanation in Settings.
   const WILDS = {
-    double: { label: "Double or nothing", desc: "The next game's shots are doubled. Spin again." },
-    everyone: { label: "Everyone drinks", desc: "Everybody takes a half. Then spin again." },
-    picks: { label: "Spinner picks", desc: "Spinner, you choose the next game." },
-    reverse: { label: "Reverse!", desc: "Turn order flips direction. Spin again." },
-    waterfall: { label: "Waterfall", desc: "Everyone starts drinking with the spinner. Nobody stops until the person before them stops. Spin again when you're done." },
+    double: { label: "Double or nothing", desc: "The next game's shots are doubled. Spin again.",
+      about: "The same player spins again, and whatever game comes up next has double the shots on the line." },
+    everyone: { label: "Everyone drinks", desc: "Everybody takes a half. Then spin again.",
+      about: "Every player drinks ½ right away (it's added to the shot board), then the same player spins again." },
+    picks: { label: "Spinner picks", desc: "Spinner, you choose the next game.",
+      about: "No luck needed: the spinner chooses any game left on the wheel, and it's played like a normal spin." },
+    reverse: { label: "Reverse!", desc: "Turn order flips direction. Spin again.",
+      about: "Turn order flips direction for the rest of the night (until another Reverse), then the same player spins again." },
+    waterfall: { label: "Waterfall", desc: "Everyone starts drinking with the spinner. Nobody stops until the person before them stops. Spin again when you're done.",
+      about: "Everyone starts drinking at the same time. The spinner can stop whenever they want, and each person can only stop after the person before them has stopped. Not tracked on the shot board." },
   };
+  // which wild slices are allowed on the wheel (all on unless switched off in Settings)
+  const wildOn = (k) => (S.wildEnabled || {})[k] !== false;
+  const enabledWilds = () => Object.keys(WILDS).filter(wildOn);
   // seeded so the wild slices stay put between redraws and only reshuffle after each round
   function seeded(seed) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   function wildItems(count) {
     const n = N(), want = Math.min(S.wildSlices || 0, 3);
     if (!want || count < 3 || n.pending) return [];
     const rnd = seeded(n.rounds.length * 7919 + (n.created % 100000));
-    const keys = Object.keys(WILDS), out = [];
-    while (out.length < want) { const k = keys[Math.floor(rnd() * keys.length)]; if (!out.includes(k)) out.push(k); }
+    const keys = enabledWilds(), out = [];
+    if (!keys.length) return out;
+    while (out.length < Math.min(want, keys.length)) { const k = keys[Math.floor(rnd() * keys.length)]; if (!out.includes(k)) out.push(k); }
     return out;
   }
   function refreshWheel() {
@@ -1914,7 +1927,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <button type="button" data-pool="all" aria-pressed="${n.pool === "all"}">Everyone's games</button>
         <button type="button" data-pool="own" aria-pressed="${n.pool === "own"}">Spinner's games only</button>
       </div>
-      <span class="muted num">${remaining().length} of ${allGames().length} left</span>`;
+      <span class="muted num">${remaining().length} of ${allGames().length} left</span>
+      <span class="muted" style="flex-basis:100%;text-align:center;font-size:.85rem">${(S.wildSlices ?? 2) && enabledWilds().length ? `★ ${Math.min(S.wildSlices ?? 2, enabledWilds().length)} wild slice${Math.min(S.wildSlices ?? 2, enabledWilds().length) === 1 ? "" : "s"} each round, drawn from: ${enabledWilds().map((k) => WILDS[k].label.replace("!", "")).join(", ")}.` : "★ Wild slices are off."} <button class="btn small ghost" type="button" id="editWilds">Change</button></span>`;
 
     let side = `
       <div class="panel up-next">
@@ -2085,6 +2099,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.id === "recordBtn") return recordRound();
   });
   $("#poolCtl").addEventListener("click", (e) => {
+    if (e.target.closest("#editWilds")) { setTab("history"); $("#wildSettings")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" }); return; }
     const b = e.target.closest("[data-pool]"); if (!b) return;
     N().pool = b.dataset.pool; save(); renderSpin();
   });
@@ -2847,7 +2862,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
               <div class="muted" style="font-size:.85rem">Every new game starts with this much on the line. You can still change it per game.</div>
             </div>
             <label class="pick" style="align-self:flex-start"><input type="checkbox" id="defWinnerHalf" ${S.winnerHalf ? "checked" : ""}><span>Winner drinks half by default</span></label>
-            ${settingRow("Wild slices on the wheel", "wildSlices", [[0, "Off"], [1, "1"], [2, "2"], [3, "3"]], S.wildSlices ?? 2)}
+            <div class="stack" id="wildSettings" style="gap:8px">
+              ${settingRow("Wild slices on the wheel", "wildSlices", [[0, "Off"], [1, "1"], [2, "2"], [3, "3"]], S.wildSlices ?? 2)}
+              <div class="muted" style="font-size:.85rem">Wild slices sit on the wheel between the games. When the wheel lands on one, it shuffles things up instead of picking a game. They move to new spots after every round. Pick which ones can show up:</div>
+              <div class="wild-list">${Object.entries(WILDS).map(([k, w]) => `<label class="wild-opt"><input type="checkbox" data-wild="${k}" ${wildOn(k) ? "checked" : ""}><span><b>★ ${esc(w.label)}</b><br><span class="muted">${esc(w.about)}</span></span></label>`).join("")}</div>
+              ${(S.wildSlices ?? 2) > enabledWilds().length && enabledWilds().length ? `<div class="note">Only ${enabledWilds().length} wild slice${enabledWilds().length === 1 ? " is" : "s are"} switched on, so the wheel shows ${enabledWilds().length}.</div>` : ""}
+              ${!enabledWilds().length ? `<div class="note">All wild slices are switched off, so the wheel only has games.</div>` : ""}
+            </div>
             ${settingRow("Side bet stake", "betStake", [[0.25, "¼"], [0.5, "½"], [1, "1"]], S.betStake ?? 0.5)}
             ${settingRow("Streak-breaker bonus", "streakBonus", [[0, "Off"], [0.25, "¼"], [0.5, "½"], [1, "1"]], S.streakBonus ?? 0.5)}
             ${settingRow("Water round every", "waterEvery", [[0, "Off"], [2, "2 shots"], [3, "3 shots"], [5, "5 shots"]], S.waterEvery ?? 3)}
@@ -2941,6 +2962,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   });
   $("#view-history").addEventListener("change", (e) => {
     if (e.target.id === "defWinnerHalf") { S.winnerHalf = e.target.checked; save(); return; }
+    if (e.target.dataset.wild) { S.wildEnabled = Object.assign({}, S.wildEnabled, { [e.target.dataset.wild]: e.target.checked }); save(); renderHistory(); $("#wildSettings")?.scrollIntoView({ block: "nearest" }); return; }
     if (e.target.id !== "importFile" || !e.target.files[0]) return;
     const r = new FileReader(); r.onload = () => importBackup(String(r.result)); r.readAsText(e.target.files[0]);
   });
