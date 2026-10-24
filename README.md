@@ -23,3 +23,16 @@ Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, P
 ## Saving
 
 Everything is saved automatically in the browser you use (localStorage). Use **History → Backup** to copy or download a backup and restore it on another device.
+
+## Install on your phone
+
+Pour Decisions is a progressive web app, so you can install it from the live site and it works offline.
+
+- **iPhone (Safari):** open the site, tap Share, then **Add to Home Screen**.
+- **Android (Chrome):** open the site and tap **Install app** in History → Phone app, or use the browser menu's **Install app**.
+
+When you're online, the app always loads the newest version from the site. Offline, it opens the last version it saved, with all themes and fonts.
+
+On iPhone, the home screen app keeps its own saved data, separate from Safari. To bring nights you tracked in Safari over to the app, use **History → Backup → Copy backup** in Safari, then **Restore** in the app.
+
+When you change the list of app files (new icons and so on), bump `VERSION` in `sw.js`. Changes to `index.html` don't need a bump.

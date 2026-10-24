@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d1210">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pour Decisions">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!--ARTIFACT-START-->
 <title>Pour Decisions</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -830,12 +838,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </defs>
         <g clip-path="url(#logoClip)">
           <rect x="0" y="24" width="64" height="40" fill="var(--liquid)"/>
-          <g transform="translate(32 38)">
-            <path d="M0 0 L0 -14 A14 14 0 0 1 12.1 -7 Z" fill="var(--liquid-2)"/>
-            <path d="M0 0 L12.1 7 A14 14 0 0 1 0 14 Z" fill="var(--liquid-2)"/>
-            <path d="M0 0 L-12.1 7 A14 14 0 0 1 -12.1 -7 Z" fill="var(--liquid-2)"/>
-            <circle r="3" fill="var(--fg)"/>
-          </g>
+          <g transform="translate(32 37)"><circle r="13.5" fill="var(--liquid-2)"/><path d="M0 0 L0.00 -12.00 A12 12 0 0 1 8.49 -8.49 Z" fill="var(--liquid-2)"/><path d="M0 0 L8.49 -8.49 A12 12 0 0 1 12.00 0.00 Z" fill="var(--fg)"/><path d="M0 0 L12.00 0.00 A12 12 0 0 1 8.49 8.49 Z" fill="var(--liquid-2)"/><path d="M0 0 L8.49 8.49 A12 12 0 0 1 0.00 12.00 Z" fill="var(--fg)"/><path d="M0 0 L0.00 12.00 A12 12 0 0 1 -8.49 8.49 Z" fill="var(--liquid-2)"/><path d="M0 0 L-8.49 8.49 A12 12 0 0 1 -12.00 0.00 Z" fill="var(--fg)"/><path d="M0 0 L-12.00 0.00 A12 12 0 0 1 -8.49 -8.49 Z" fill="var(--liquid-2)"/><path d="M0 0 L-8.49 -8.49 A12 12 0 0 1 -0.00 -12.00 Z" fill="var(--fg)"/><circle r="2.6" fill="var(--accent)"/></g>
         </g>
         <path d="M11 10 L53 10 L47 54 L17 54 Z" fill="none" stroke="var(--fg)" stroke-width="3" stroke-linejoin="round"/>
         <rect x="16" y="54" width="32" height="5" rx="1.5" fill="var(--fg)"/>
@@ -2014,12 +2017,31 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <label class="field">Restore from a backup (paste it here)<textarea id="importBox" rows="3" placeholder='{"app":"pour-decisions", …}'></textarea></label>
             <div class="row"><button class="btn" type="button" id="importBtn">Restore</button><label class="btn ghost" for="importFile">Open file…</label><input type="file" id="importFile" accept="application/json,.json" hidden></div>
           </div>
+          ${installPanelHTML()}
           <div class="panel stack">
             <h3>Sound</h3>
             <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound on" : "Sound off"}</button></div>
           </div>
         </div>
       </div>`;
+  }
+  // ---------- Install as a phone app ----------
+  let installPrompt = null;
+  const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const embedded = (() => { try { return window.self !== window.top; } catch { return true; } })();
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; if (S.tab === "history") renderHistory(); });
+  window.addEventListener("appinstalled", () => { installPrompt = null; toast("Installed. Open Pour Decisions from your home screen."); if (S.tab === "history") renderHistory(); });
+  // ask the browser not to clear saved nights to free up space
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch { /* not supported */ }
+  function installPanelHTML() {
+    if (embedded) return "";
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    let body;
+    if (isStandalone()) body = `<div class="muted">You're using the installed app. It works offline and picks up updates automatically the next time you open it online.</div>`;
+    else if (installPrompt) body = `<div class="muted">Add Pour Decisions to your home screen. It opens full screen, works offline, and updates itself from the site.</div><div class="row"><button class="btn primary" type="button" id="installBtn">Install app</button></div>`;
+    else if (ios) body = `<div class="muted">On iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>. It works offline and updates itself from the site.</div>`;
+    else body = `<div class="muted">Open your browser's menu and choose <b>Install app</b> or <b>Add to Home screen</b>. It works offline and updates itself from the site.</div>`;
+    return `<div class="panel stack"><h3>Phone app</h3>${body}</div>`;
   }
   const backupJSON = () => JSON.stringify({ app: "pour-decisions", version: 1, exported: Date.now(), archive: S.archive, night: S.night }, null, 1);
   function importBackup(text) {
@@ -2060,6 +2082,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
     } else if (b.id === "importBtn") {
       importBackup($("#importBox").value);
+    } else if (b.id === "installBtn" && installPrompt) {
+      installPrompt.prompt();
+      try { await installPrompt.userChoice; } catch { /* dismissed */ }
+      installPrompt = null; renderHistory();
     } else if (b.id === "soundBtn") {
       S.sound = !S.sound; save(); renderHistory();
     }
@@ -2179,5 +2205,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 })();
 </script>
 <!--ARTIFACT-END-->
+<script>
+  // Offline support + installable app. Runs only on the hosted site.
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>
