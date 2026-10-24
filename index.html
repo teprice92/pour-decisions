@@ -777,6 +777,11 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .games-list input { padding: 7px 9px; font-size: .95rem; }
 .pcard.active { outline: 3px solid var(--accent); outline-offset: 2px; }
 .avatar-btn { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 3px solid var(--pc); background: var(--panel-2); font-size: 1.3rem; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.art-av { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
+.art-av svg, .emoji-grid button svg { width: 100%; height: 100%; display: block; }
+.emoji-grid button svg { width: 1.5em; height: 1.5em; margin: auto; }
+.avatar-btn .art-av { width: 30px; height: 30px; vertical-align: middle; }
+.scard .pname .art-av { width: 1.4em; height: 1.4em; }
 .avatar-pick { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
 .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; }
 .emoji-grid button { font-size: 1.2rem; border: 1px solid transparent; background: none; border-radius: 8px; padding: 4px; cursor: pointer; color: var(--fg); }
@@ -836,7 +841,7 @@ html[data-skin="metalgear"] .alert-mark { display: inline-block; color: var(--da
 .winner-grid, .drink-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .pick { cursor: pointer; user-select: none; }
 .pick input { position: absolute; opacity: 0; pointer-events: none; }
-.pick span { display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); font-weight: 700; }
+.pick > span { display: inline-flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); font-weight: 700; }
 .pick input:checked + span { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .pick input[type="checkbox"] + span::before { content: "○"; font-weight: 700; }
 .pick input[type="checkbox"]:checked + span::before { content: "✓"; }
@@ -1683,6 +1688,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const EMOJIS = ["😎", "🤠", "👻", "🐸", "🦊", "🐼", "🦄", "🐙", "🦖", "🐝", "🍕", "🌮", "🍺", "🍷", "🎮", "🃏", "🎲", "👑", "🔥", "⚡", "💀", "🤖", "👽", "🧙"];
   const PCOLORS = ["#e53935", "#fb8c00", "#fdd835", "#43a047", "#00acc1", "#1e88e5", "#8e24aa", "#d81b60", "#6d4c41", "#546e7a"];
   let avatarOpen = null;
+  // drawn avatars for animals with no emoji; text spots fall back to the emoji
+  const AVATAR_ART = {
+    husky: { emoji: "🐺", label: "Husky", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"> <path d="M9 32 L13 3 L29 17 Z" fill="#2a2d33"/> <path d="M14 10 L17 22 L24 17 Z" fill="#f4c7c7"/> <path d="M55 32 L51 3 L35 17 Z" fill="#2a2d33"/> <path d="M50 10 L47 22 L40 17 Z" fill="#f4c7c7"/> <ellipse cx="32" cy="37" rx="23" ry="22" fill="#2a2d33"/> <path d="M10 41 Q12 58 32 61 Q52 58 54 41 Q47 35 40.5 40 Q37 31 32 31 Q27 31 23.5 40 Q17 35 10 41 Z" fill="#ffffff"/> <path d="M29.5 15 Q32 13 34.5 15 L33.6 31 L30.4 31 Z" fill="#ffffff"/> <ellipse cx="21.5" cy="28" rx="4.2" ry="2.4" fill="#ffffff"/> <ellipse cx="42.5" cy="28" rx="4.2" ry="2.4" fill="#ffffff"/> <ellipse cx="23" cy="38" rx="4.6" ry="3.6" fill="#3aa8ff" stroke="#14161a" stroke-width="1.4"/> <ellipse cx="41" cy="38" rx="4.6" ry="3.6" fill="#3aa8ff" stroke="#14161a" stroke-width="1.4"/> <circle cx="23" cy="38" r="1.7" fill="#0a1a2e"/> <circle cx="41" cy="38" r="1.7" fill="#0a1a2e"/> <circle cx="24.2" cy="36.8" r="0.9" fill="#ffffff"/> <circle cx="42.2" cy="36.8" r="0.9" fill="#ffffff"/> <ellipse cx="32" cy="48" rx="4.4" ry="3.2" fill="#14161a"/> <ellipse cx="30.8" cy="47" rx="1.2" ry="0.7" fill="#5a5f6a"/> <path d="M32 51 Q29 55.5 25.5 53.5 M32 51 Q35 55.5 38.5 53.5" fill="none" stroke="#14161a" stroke-width="1.6" stroke-linecap="round"/></svg>` },
+  };
+  const avatarHTML = (p) => (p && p.art && AVATAR_ART[p.art] ? `<span class="art-av" aria-hidden="true">${AVATAR_ART[p.art].svg}</span>` : esc(p?.emoji || ""));
+  // player name with avatar, for HTML spots that can show the drawing
+  const pnameHTML = (p) => (p && p.art && AVATAR_ART[p.art] ? `${avatarHTML(p)} ${esc(p.name)}` : esc(pname(p)));
   function renderSetup() {
     const n = N();
     const done = playedIds();
@@ -1707,12 +1719,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         ${n.players.map((p, i) => `
           <div class="panel pcard ${p.id === activePid() ? "active" : ""}" data-pid="${p.id}">
             <div class="pcard-head">
-              <button type="button" class="avatar-btn" data-avatar="${p.id}" style="--pc:${colorOf(p, i)}" aria-label="Pick ${esc(p.name)}'s emoji and color">${p.emoji || "🙂"}</button>
+              <button type="button" class="avatar-btn" data-avatar="${p.id}" style="--pc:${colorOf(p, i)}" aria-label="Pick ${esc(p.name)}'s emoji and color">${p.art ? avatarHTML(p) : p.emoji || "🙂"}</button>
               <input type="text" id="pname-${p.id}" data-field="name" value="${esc(p.name)}" aria-label="Player name" placeholder="Player name">
               <button class="btn small danger" type="button" data-remove="${p.id}" aria-label="Remove ${esc(p.name)}">${removeArm === p.id ? "Sure?" : "✕"}</button>
             </div>
             ${avatarOpen === p.id ? `<div class="avatar-pick">
-              <div class="emoji-grid">${EMOJIS.map((e) => `<button type="button" data-emoji="${e}" aria-pressed="${p.emoji === e}">${e}</button>`).join("")}<button type="button" data-emoji="" aria-label="No emoji">✕</button></div>
+              <div class="emoji-grid">${Object.entries(AVATAR_ART).map(([k, a]) => `<button type="button" data-art="${k}" aria-label="${a.label}" aria-pressed="${p.art === k}">${a.svg}</button>`).join("")}${EMOJIS.map((e) => `<button type="button" data-emoji="${e}" aria-pressed="${!p.art && p.emoji === e}">${e}</button>`).join("")}<button type="button" data-emoji="" aria-label="No emoji">✕</button></div>
               <div class="color-row">${PCOLORS.map((c) => `<button type="button" data-pcolor="${c}" style="background:${c}" aria-label="Color ${c}" aria-pressed="${p.color === c}"></button>`).join("")}</div>
             </div>` : ""}
             <div class="eyebrow">Turn ${i + 1} · ${p.games.filter((g) => g.title.trim()).length}/${n.perPlayer} picked</div>
@@ -1795,10 +1807,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     const av = e.target.closest("[data-avatar]");
     if (av) { avatarOpen = avatarOpen === av.dataset.avatar ? null : av.dataset.avatar; renderSetup(); return; }
-    const em = e.target.closest("[data-emoji]"), pc = e.target.closest("[data-pcolor]");
-    if ((em || pc) && card) {
+    const em = e.target.closest("[data-emoji]"), pc = e.target.closest("[data-pcolor]"), art = e.target.closest("[data-art]");
+    if ((em || pc || art) && card) {
       const p = playerById(card.dataset.pid);
-      if (em) p.emoji = em.dataset.emoji || undefined;
+      if (em) { p.emoji = em.dataset.emoji || undefined; p.art = undefined; }
+      if (art) { p.art = art.dataset.art; p.emoji = AVATAR_ART[p.art].emoji; }
       if (pc) p.color = pc.dataset.pcolor;
       n.sample = false; save(); renderSetup(); return;
     }
@@ -2033,8 +2046,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     let side = `
       <div class="panel up-next">
         <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
-        <div class="who">${injected ? "Called shot" : esc(pend ? pnameById(n.pending.spunBy) : pname(sp))}</div>
-        <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${esc(pname(p))}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}</span>`).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
+        <div class="who">${injected ? "Called shot" : pnameHTML(pend ? playerById(n.pending.spunBy) : sp)}</div>
+        <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}</span>`).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
         ${n.nextMod?.double ? `<div class="note">★ Double or nothing: the next game's shots are doubled.</div>` : ""}
         ${n.nextMod?.grudge ? `<div class="note">⚔️ Next game is a grudge match: <b>${esc(pnameById(n.nextMod.grudge[0]))}</b> vs <b>${esc(pnameById(n.nextMod.grudge[1]))}</b>. Loser drinks double. <button class="btn small ghost" type="button" id="cancelGrudge">Cancel</button></div>` : ""}
         ${!pend && !n.wild && riv && !n.nextMod?.grudge ? `<div class="note">⚔️ Rivalry: <b>${esc(pnameById(riv.a))}</b> has beaten <b>${esc(pnameById(riv.b))}</b> ${riv.w}–${riv.l} tonight. <button class="btn small" type="button" id="grudgeBtn" data-a="${riv.a}" data-b="${riv.b}">Make the next game a grudge match</button></div>` : ""}
@@ -2085,7 +2098,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <div class="stack" style="gap:6px">
           <div class="eyebrow">Who won?</div>
           <div class="winner-grid" role="radiogroup" aria-label="Winner">
-            ${n.players.filter((p) => !form.grudge || form.grudge.includes(p.id)).map((p) => `<label class="pick"><input type="radio" name="winner" value="${p.id}" ${form.winner === p.id ? "checked" : ""}><span>${esc(pname(p))}</span></label>`).join("")}
+            ${n.players.filter((p) => !form.grudge || form.grudge.includes(p.id)).map((p) => `<label class="pick"><input type="radio" name="winner" value="${p.id}" ${form.winner === p.id ? "checked" : ""}><span>${pnameHTML(p)}</span></label>`).join("")}
             <label class="pick"><input type="radio" name="winner" value="tie" ${form.winner === "tie" ? "checked" : ""}><span>Tie / nobody</span></label>
           </div>
         </div>
@@ -2104,7 +2117,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           <div class="drink-grid">
             ${n.players.map((p) => { const d = form.drinks[p.id] || { on: false, amt: form.amount }; return `
               <div class="drinker ${d.on ? "" : "off"}" data-dpid="${p.id}">
-                <label><input type="checkbox" data-don="${p.id}" ${d.on ? "checked" : ""}> ${esc(pname(p))}</label>
+                <label><input type="checkbox" data-don="${p.id}" ${d.on ? "checked" : ""}> ${pnameHTML(p)}</label>
                 <button type="button" data-dstep="-0.25" aria-label="Less for ${esc(p.name)}">−</button>
                 <span class="mini-amt num">${fmtShots(d.amt)}</span>
                 <button type="button" data-dstep="0.25" aria-label="More for ${esc(p.name)}">+</button>
@@ -2424,7 +2437,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const n = N(), t = totals(), st = streaks();
     const rows = n.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins || t[a.id].shots - t[b.id].shots);
     box.innerHTML = `<div class="row" style="justify-content:space-between"><h3>Shot board</h3><span class="muted">wins · shots</span></div>
-      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh - Math.floor(sh + 1e-9); return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${esc(pname(p))}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
+      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh - Math.floor(sh + 1e-9); return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
   }
   $("#tvBtn").addEventListener("click", async () => {
     const root = document.documentElement, on = !root.classList.contains("tv");
@@ -2524,7 +2537,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           return `<div class="panel scard" data-sp="${p.id}" data-fill="${cur}" style="border-top:4px solid ${colorOf(p, n.players.indexOf(p))}">
             ${most > 0 && s === most ? `<span class="crown">Most poured</span>` : ""}
             ${topWins > 0 && t[p.id].wins === topWins ? `<span class="crown alt">Top winner</span>` : ""}
-            <div class="pname" style="margin-top:18px">${esc(pname(p))}${stk >= 3 ? ` <span title="${stk} wins in a row">🔥${stk}</span>` : ""}</div>
+            <div class="pname" style="margin-top:18px">${pnameHTML(p)}${stk >= 3 ? ` <span title="${stk} wins in a row">🔥${stk}</span>` : ""}</div>
             ${glassSVG(prevFill[p.id] ?? 0, { cls: "glass-big" })}
             <div class="total num">${fmtShots(s)}</div>
             <div class="minis" aria-label="${fmtShots(s)} shots">${Array.from({ length: shown }, () => glassSVG(1, { stat: true })).join("")}${part > 0.001 ? glassSVG(part, { stat: true }) : ""}${whole > shown ? `<span class="more">+${whole - shown}</span>` : ""}</div>
@@ -2580,6 +2593,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const key = p.name.trim().toLowerCase(); if (!key) return;
         const st = m[key] || (m[key] = { key, name: p.name.trim(), emoji: p.emoji, wins: 0, bestStreak: 0, maxNightShots: 0, untouchable: false, perfect: false, skinWins: new Set(), betsRight: 0, nights: 0, finales: 0, breaks: 0 });
         if (p.emoji) st.emoji = p.emoji;
+        if (p.art) st.art = p.art;
         st.nights++; st.wins += t[p.id].wins; st.maxNightShots = Math.max(st.maxNightShots, t[p.id].shots);
         if (t[p.id].wins >= 3 && t[p.id].shots <= 1) st.untouchable = true;
         const played = night.rounds.filter((r) => r.gameId && (r.winner === p.id || r.drinks.some((d) => d.pid === p.id)));
@@ -2627,7 +2641,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!st.length) return `${trophyLegendHTML(st, true)}<div class="muted">Trophies show up here once you start playing.</div>`;
     return `${trophyLegendHTML(st, legendOpen)}<div class="trophy-grid">${st.map((x) => {
       const got = TROPHIES.filter((t) => t.test(x)).length;
-      return `<div class="trophy-player"><div><b>${esc((x.emoji ? x.emoji + " " : "") + x.name)}</b> <span class="muted num">${got}/${TROPHIES.length}</span></div>
+      return `<div class="trophy-player"><div><b>${x.art ? avatarHTML(x) + " " + esc(x.name) : esc((x.emoji ? x.emoji + " " : "") + x.name)}</b> <span class="muted num">${got}/${TROPHIES.length}</span></div>
         <div class="trophies">${TROPHIES.map((t) => `<button type="button" class="trophy ${t.test(x) ? "" : "locked"}" title="${esc(t.desc)}" data-trophy="${t.id}" data-tname="${esc(x.name)}" data-got="${t.test(x) ? 1 : 0}"><span class="ti">${t.icon}</span>${esc(t.name)}</button>`).join("")}</div></div>`;
     }).join("")}</div>
     <div class="muted" style="font-size:.85rem">Tap any trophy to see what it takes.</div>`;
@@ -2697,7 +2711,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const d = recapData(night);
     return `<div class="recap">${recapLines(d).map(([ic, h, v]) => `<div class="recap-row"><span class="ic">${ic}</span><span><b>${esc(h)}</b><br>${esc(v)}</span></div>`).join("")}</div>
       <div class="eyebrow">Titles</div>
-      <div class="titles">${night.players.map((p) => `<div><b>${esc(pname(p))}</b><br><span class="muted">${esc(d.titles[p.id])}</span></div>`).join("")}</div>
+      <div class="titles">${night.players.map((p) => `<div><b>${pnameHTML(p)}</b><br><span class="muted">${esc(d.titles[p.id])}</span></div>`).join("")}</div>
       <div class="row"><button class="btn primary" type="button" id="recapShare">Share image</button><button class="btn" type="button" id="recapCopy">Copy text</button></div>`;
   }
   function recapText(night) {
@@ -3042,7 +3056,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       old.ended = Date.now(); old.pending = null;
       S.archive.push(old);
       const per = old.perPlayer;
-      const players = mode === "keep" ? old.players.map((p) => Object.assign(mkPlayer(p.name, [], per), { emoji: p.emoji, color: p.color })) : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
+      const players = mode === "keep" ? old.players.map((p) => Object.assign(mkPlayer(p.name, [], per), { emoji: p.emoji, color: p.color, art: p.art })) : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
       S.night = newNight(players); S.night.perPlayer = per; form = null;
       save(); toast("Night saved to the hall of fame"); setTab("setup");
       openSheet("recap", old);
