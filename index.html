@@ -946,6 +946,10 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .cat-game .t span[title] { font-size: .9em; }
 .cat-game { content-visibility: auto; contain-intrinsic-size: auto 58px; } /* keeps "Show all" fast on long lists */
 .cat-game .btn { white-space: nowrap; flex: none; }
+.tag-btns { display: inline-flex; gap: 2px; flex: none; margin-left: auto; }
+.icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid transparent; background: none; cursor: pointer; font-size: 1rem; filter: grayscale(1); opacity: .35; padding: 0; }
+.icon-btn[aria-pressed="true"] { filter: none; opacity: 1; border-color: var(--line); background: var(--panel); }
+.icon-btn:hover { opacity: .8; }
 .trophy { font: inherit; color: var(--fg); cursor: pointer; }
 .trophy.locked { opacity: .35; filter: grayscale(1); }
 .trophy-legend summary { cursor: pointer; }
@@ -1870,7 +1874,21 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const PARTY_KEYS = new Set(CATALOG.flatMap((c) => c.party.map(catKey)));
   const catFull = {}; // id -> [{ t, us, pl }] once loaded
   const catInfo = {}; // id -> Map(key -> { us, pl }) for looking up party picks
-  let catConsole = "all", catQuery = "", catSuffix = false, catPartyOnly = false, catUS = false, catPlayers = 0, catLimit = 150, catLoading = false;
+  let catConsole = "all", catQuery = "", catSuffix = false, catPartyOnly = false, catUS = false, catPlayers = 0, catFav = false, catLimit = 150, catLoading = false;
+  // your own tags, per console + game: { t: title, c: console id, fav: true, party: true/false (overrides the built-in pick) }
+  const tagKey = (cid, t) => cid + "|" + catKey(t);
+  const tags = () => S.tags || (S.tags = {});
+  function toggleTag(cid, t, field) {
+    const k = tagKey(cid, t), tag = tags()[k] || { t, c: cid };
+    if (field === "fav") tag.fav = !tag.fav || undefined;
+    else {
+      const builtin = PARTY_KEYS.has(catKey(t)), now = tag.party !== undefined ? tag.party : builtin;
+      tag.party = !now === builtin ? undefined : !now;
+    }
+    if (!tag.fav && tag.party === undefined) delete tags()[k]; else tags()[k] = tag;
+    save();
+    return tag;
+  }
   const catTitle = (g, c) => (catSuffix && c.id !== "party" ? `${g} (${c.name})` : g);
   async function loadFull(c) {
     if (!c.full || catFull[c.id]) return;
@@ -1882,16 +1900,19 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     } catch { catFull[c.id] = null; } // offline and not saved yet, or a preview without the files
   }
   // all titles for a console: its party picks first-class, then the complete list
-  function consoleGames(c) {
+  function consoleGames(c, withFull = true) {
     const seen = new Set(), outList = [];
     const add = (t, party, us, pl) => {
       const k = catKey(t); if (seen.has(k)) return; seen.add(k);
-      const info = catInfo[c.id]?.get(k);
-      outList.push({ g: t, c, party: party || PARTY_KEYS.has(k), us: info ? info.us : us, pl: info ? info.pl : pl });
+      const info = catInfo[c.id]?.get(k), tag = tags()[c.id + "|" + k];
+      const builtin = party || PARTY_KEYS.has(k);
+      outList.push({ g: t, c, builtin, party: tag && tag.party !== undefined ? tag.party : builtin, fav: !!tag?.fav, us: info ? info.us : us, pl: info ? info.pl : pl });
     };
     // party picks are US releases unless the full list says otherwise
     c.party.forEach((t) => add(t, true, true, 0));
-    if (!catPartyOnly && catFull[c.id]) catFull[c.id].forEach((e) => add(e.t, false, e.us, e.pl));
+    // games you tagged show up even before the console's full list has loaded
+    Object.values(tags()).forEach((x) => { if (x.c === c.id && (x.fav || x.party)) add(x.t, false, true, 0); });
+    if (withFull && !catPartyOnly && !catFav && catFull[c.id]) catFull[c.id].forEach((e) => add(e.t, false, e.us, e.pl));
     return outList;
   }
   const catTotal = () => CATALOG.reduce((a, c) => a + (c.full || c.party.length), 0);
@@ -1914,6 +1935,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </div>
         <div class="row">
           <input type="text" id="catSearch" value="${esc(catQuery)}" placeholder="${cur ? "Search " + esc(cur.name) + " games" : "Search every game"}" aria-label="Search the catalog" style="flex:1 1 220px">
+          <label class="pick"><input type="checkbox" id="catFav" ${catFav ? "checked" : ""}><span>⭐ Favorites only${Object.values(tags()).filter((x) => x.fav).length ? " (" + Object.values(tags()).filter((x) => x.fav).length + ")" : ""}</span></label>
           <label class="pick"><input type="checkbox" id="catParty" ${catPartyOnly ? "checked" : ""}><span>🎉 Party friendly only</span></label>
           <label class="pick"><input type="checkbox" id="catUS" ${catUS ? "checked" : ""}><span>🇺🇸 US releases only</span></label>
           <label class="field" style="flex-direction:row">Players<select id="catPlayers" aria-label="Number of players">${[[0, "Any"], [1, "1 player"], [2, "2+"], [3, "3+"], [4, "4+"]].map(([v, l]) => `<option value="${v}" ${catPlayers === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
@@ -1934,7 +1956,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const shown = cur ? [cur] : CATALOG;
     const q = catQuery.trim().toLowerCase();
     // full lists load on demand: one console when it's picked, or all of them for an all-console search
-    const need = catPartyOnly ? [] : shown.filter((c) => c.full && catFull[c.id] === undefined && (cur || q));
+    const need = catPartyOnly || catFav ? [] : shown.filter((c) => c.full && catFull[c.id] === undefined && (cur || q));
     if (need.length) {
       box.innerHTML = `<div class="muted">Loading ${cur ? esc(cur.name) : "every console"}'s games…</div>`;
       if (!catLoading) { catLoading = true; await Promise.all(need.map(loadFull)); catLoading = false; renderCatList(); }
@@ -1942,9 +1964,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     const taken = new Map();
     n.players.forEach((p) => p.games.forEach((g) => { const k = catKey(g.title); if (k) taken.set(k, p); }));
-    let rows = shown.flatMap((c) => (cur || q || catPartyOnly ? consoleGames(c) : c.party.map((t) => ({ g: t, c, party: true }))));
+    let rows = shown.flatMap((c) => consoleGames(c, !!(cur || q)));
     if (q) rows = rows.filter((r) => r.g.toLowerCase().includes(q) || r.c.name.toLowerCase().includes(q));
     if (catPartyOnly) rows = rows.filter((r) => r.party);
+    if (catFav) rows = rows.filter((r) => r.fav);
+    // favorites float to the top, everything else keeps its order
+    rows = [...rows.filter((r) => r.fav), ...rows.filter((r) => !r.fav)];
     if (catUS) rows = rows.filter((r) => r.us);
     // player filter uses the known max; party picks without a count are multiplayer by definition
     if (catPlayers === 1) rows = rows.filter((r) => r.pl === 1);
@@ -1955,12 +1980,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     box.innerHTML = `
       <div class="eyebrow">${cur ? esc(cur.name) : "All consoles"}${catPartyOnly ? " · party friendly" : ""}${catUS ? " · US" : ""}${catPlayers ? " · " + (catPlayers === 1 ? "1 player" : catPlayers + "+ players") : ""} · ${total.toLocaleString()} game${total === 1 ? "" : "s"}${total > list.length ? ` · showing ${list.length.toLocaleString()}` : ""}</div>
       ${catPlayers && shown.some((c) => c.full && !c.pl) ? `<div class="muted" style="font-size:.85rem">Player counts are known for ${CATALOG.filter((c) => c.pl).map((c) => esc(c.name)).join(", ")}. Games on other consoles only show up here if they're 🎉 party picks.</div>` : ""}
-      ${!cur && !q && !catPartyOnly ? `<div class="muted" style="font-size:.9rem">Showing the party picks. Pick a console to browse its whole library, or search to look through all ${catTotal().toLocaleString()} games.</div>` : ""}
+      ${!cur && !q && !catPartyOnly && !catFav ? `<div class="muted" style="font-size:.9rem">Showing the party picks and games you've tagged. Pick a console to browse its whole library, or search to look through all ${catTotal().toLocaleString()} games.</div>` : ""}
+      <div class="muted" style="font-size:.85rem">Tap ⭐ to favorite a game and 🎉 to mark it as a party game (or unmark one). Your tags are saved with your backups.</div>
+      ${catFav && !rows.length ? `<div class="note">No favorites ${cur ? "on " + esc(cur.name) + " " : ""}yet. Tap ⭐ on any game to add it.</div>` : ""}
       ${missing.length ? `<div class="note">${missing.map((c) => esc(c.name)).join(", ")}: the full list couldn't load (you may be offline). Showing the party picks for now.</div>` : ""}
       ${cur && !cur.full ? `<div class="note">There's no complete list for ${esc(cur.name)} yet, so these are hand-picked games. Use "Not listed? Type any game" to add anything else.</div>` : ""}
-      ${list.length ? `<div class="cat-list">${list.map(({ g, c, party, pl }) => {
+      ${list.length ? `<div class="cat-list">${list.map(({ g, c, party, builtin, fav, pl }) => {
         const t = catTitle(g, c), by = taken.get(catKey(t)) || taken.get(catKey(g));
-        return `<div class="cat-game ${by ? "added" : ""}"><span class="t">${party ? '<span title="Party friendly">🎉</span> ' : ""}${esc(g)}<small>${esc(c.name)}${pl ? ` · 👥 ${pl === 1 ? "1 player" : "up to " + pl + " players"}` : ""}${by ? " · on " + esc(by.name) + "'s list" : ""}</small></span>
+        return `<div class="cat-game ${by ? "added" : ""}"><span class="t">${esc(g)}<small>${esc(c.name)}${pl ? ` · 👥 ${pl === 1 ? "1 player" : "up to " + pl + " players"}` : ""}${by ? " · on " + esc(by.name) + "'s list" : ""}</small></span>
+          <span class="tag-btns"><button type="button" class="icon-btn" data-tag="fav" data-tc="${c.id}" data-tt="${esc(g)}" aria-pressed="${fav}" aria-label="${fav ? "Remove " + esc(g) + " from favorites" : "Favorite " + esc(g)}">⭐</button><button type="button" class="icon-btn" data-tag="party" data-tc="${c.id}" data-tt="${esc(g)}" aria-pressed="${party}" aria-label="${party ? "Unmark " + esc(g) + " as a party game" : "Mark " + esc(g) + " as a party game"}">🎉</button></span>
           <button class="btn small ${by ? "ghost" : ""}" type="button" data-catadd="${esc(t)}" ${by ? "disabled" : ""} aria-label="Add ${esc(g)}">${by ? "Added" : "+ Add"}</button></div>`;
       }).join("")}</div>` : `<div class="muted">No games match that search.</div>`}
       ${total > list.length ? `<div class="row" style="justify-content:center"><button class="btn" type="button" id="catMore">Show ${Math.min(300, total - list.length).toLocaleString()} more</button><button class="btn" type="button" id="catAll">Show all ${total.toLocaleString()}</button></div>` : ""}`;
@@ -1983,6 +2011,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (b.dataset.console) { catConsole = b.dataset.console; catLimit = 150; renderGames(); return; }
     if (b.id === "catMore") { catLimit += 300; renderCatList(); return; }
     if (b.id === "catAll") { catLimit = Infinity; b.textContent = "Loading…"; setTimeout(renderCatList, 30); return; }
+    if (b.dataset.tag) {
+      const tag = toggleTag(b.dataset.tc, b.dataset.tt, b.dataset.tag);
+      const y = window.scrollY; renderCatList(); window.scrollTo(0, y);
+      if (b.dataset.tag === "fav") toast(tag.fav ? `⭐ ${b.dataset.tt} added to favorites` : `${b.dataset.tt} removed from favorites`);
+      else { const now = tag.party !== undefined ? tag.party : PARTY_KEYS.has(catKey(b.dataset.tt)); toast(now ? `🎉 ${b.dataset.tt} marked as a party game` : `${b.dataset.tt} is no longer a party game`); }
+      const favCount = Object.values(tags()).filter((x) => x.fav).length;
+      const fl = $("label.pick:has(#catFav) span"); if (fl) fl.textContent = "⭐ Favorites only" + (favCount ? ` (${favCount})` : "");
+      return;
+    }
     if (b.dataset.catadd) { if (addToActive(b.dataset.catadd)) { save(); renderCatList(); refreshSlots(); toast(`Added ${b.dataset.catadd} to ${playerById(activePid()).name}'s list`); } return; }
     if (b.id === "catCustomAdd") {
       const t = $("#catCustom").value.trim(); if (!t) { $("#catCustom").focus(); return toast("Type a game first"); }
@@ -1994,7 +2031,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const shown = catConsole === "all" ? CATALOG : CATALOG.filter((c) => c.id === catConsole);
       if (!catPartyOnly) await Promise.all(shown.map(loadFull));
       const have = new Set(n.players.flatMap((x) => x.games.map((g) => catKey(g.title))));
-      const src = shown.flatMap(consoleGames).filter((r) => (!catPartyOnly || r.party) && (!catUS || r.us)).map((r) => catTitle(r.g, r.c)).filter((t) => !have.has(catKey(t)));
+      const src = shown.flatMap((c) => consoleGames(c)).filter((r) => (!catPartyOnly || r.party) && (!catFav || r.fav) && (!catUS || r.us)).map((r) => catTitle(r.g, r.c)).filter((t) => !have.has(catKey(t)));
       let added = 0;
       while (src.length && p.games.some((g) => !g.title.trim())) { const t = src.splice(randInt(src.length), 1)[0]; if (addToActive(t)) added++; }
       save(); renderCatList(); refreshSlots();
@@ -2012,6 +2049,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (e.target.id === "catPlayer") { activeId = e.target.value; refreshSlots(); renderCatList(); }
     if (e.target.id === "catSuffix") { catSuffix = e.target.checked; renderCatList(); }
     if (e.target.id === "catParty") { catPartyOnly = e.target.checked; catLimit = 150; renderCatList(); }
+    if (e.target.id === "catFav") { catFav = e.target.checked; catLimit = 150; renderCatList(); }
     if (e.target.id === "catUS") { catUS = e.target.checked; catLimit = 150; renderCatList(); }
     if (e.target.id === "catPlayers") { catPlayers = parseInt(e.target.value, 10) || 0; catLimit = 150; renderCatList(); }
   });
@@ -3101,7 +3139,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else body = `<div class="muted">Open your browser's menu and choose <b>Install app</b> or <b>Add to Home screen</b>. It works offline and updates itself from the site.</div>`;
     return `<div class="panel stack"><h3>Phone app</h3>${body}</div>`;
   }
-  const backupJSON = () => JSON.stringify({ app: "pour-decisions", version: 1, exported: Date.now(), archive: S.archive, night: S.night }, null, 1);
+  const backupJSON = () => JSON.stringify({ app: "pour-decisions", version: 1, exported: Date.now(), archive: S.archive, night: S.night, tags: S.tags || {} }, null, 1);
   function importBackup(text) {
     try {
       const d = JSON.parse(text);
@@ -3109,6 +3147,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const have = new Set(S.archive.map((x) => x.id));
       let added = 0;
       d.archive.forEach((x) => { if (!have.has(x.id)) { S.archive.push(x); added++; } });
+      if (d.tags && typeof d.tags === "object") S.tags = Object.assign({}, d.tags, S.tags || {});
       S.archive.sort((a, b) => (a.started || a.created) - (b.started || b.created));
       if (d.night && d.night.started && !have.has(d.night.id) && d.night.id !== S.night.id && (!S.night.started || S.night.sample)) S.night = d.night;
       save(); renderAll(); toast(`Restored ${added} night${added === 1 ? "" : "s"}`);

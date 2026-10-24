@@ -21,6 +21,7 @@ A catalog of about 62,000 games across 26 consoles, including single-player one-
 - **🎉 Party friendly only** narrows any console to the multiplayer, bet-friendly picks.
 - **🇺🇸 US releases only** hides Japan-only and Europe-only games.
 - **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Counts are available for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch.
+- **Your own tags**: tap ⭐ on any game to favorite it, and 🎉 to mark it as a party game or unmark a built-in one. **⭐ Favorites only** shows just your favorites, which also sort to the top of every list. Tags are included in backups.
 - **Show all** lists every matching game at once. **Show more** pages through 300 at a time.
 
 Search across every console, tap **+ Add** to put a game on a player's list, or fill their empty slots at random. Each console's list loads the first time you open it. The installed app saves them all in the background so the catalog works offline.
