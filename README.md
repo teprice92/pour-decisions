@@ -6,11 +6,11 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 
 ## How a night works
 
-1. **Lineup**: add players and have each one pick 10 games (the number is adjustable). Shuffle the turn order if you like.
-2. **Spin**: the player whose turn it is spins the wheel. Choose whether the wheel holds everyone's remaining games or only the spinner's.
+1. **Lineup**: add players and have each one pick 10 games (the number is adjustable). Shuffle the turn order if you like. Games you've played before show up in a library you can tap to fill in lists instead of typing.
+2. **Spin**: the player whose turn it is spins the wheel. Choose whether the wheel holds everyone's remaining games or only the spinner's. Want a specific game? Use **Play a specific game instead** to skip the wheel. It doesn't use up anyone's turn.
 3. **Record**: pick the winner (or tie), set the shots on the line (¼, ½, ¾, 1, 1½, 2, 3, or any quarter amount), and fine-tune who drinks and how much. Hit **Pour it** and the shot glass fills up.
 4. **Shots**: the shot board shows each player's glass, total shots, and wins. Penalty buttons add ¼, ½, or 1 shot at any time.
-5. **History**: wrap up the night to save it. The hall of fame tracks wins and shots across every night, matched by player name.
+5. **History**: wrap up the night to save it. The hall of fame tracks wins and shots across every night, matched by player name. **Game history** lists every game you've played, how many times, and who won it, and each past night shows its games in order with the winner.
 
 ## Chaos roll
 

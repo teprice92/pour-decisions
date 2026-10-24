@@ -292,6 +292,18 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .games-list li::before { counter-increment: g; content: counter(g); font-size: .78rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 .games-list li.played input { text-decoration: line-through; opacity: .55; }
 .games-list input { padding: 7px 9px; font-size: .95rem; }
+.pcard.active { outline: 3px solid var(--accent); outline-offset: 2px; }
+.lib-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; }
+.lib-chip { display: inline-flex; align-items: stretch; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+.lib-chip button { font: 600 .88rem/1.2 var(--font-body); background: none; border: 0; color: var(--fg); cursor: pointer; padding: 7px 4px 7px 12px; }
+.lib-chip button.x { color: var(--muted); padding: 7px 10px 7px 6px; }
+.lib-chip .ct { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
+.lib-chip.used { opacity: .45; }
+.tag { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; color: var(--muted); vertical-align: 1px; font-family: var(--font-body); font-weight: 700; }
+details.inject summary { cursor: pointer; color: var(--muted); font-weight: 700; }
+details.inject[open] summary { margin-bottom: 8px; }
+details.inject .row input { flex: 1 1 200px; }
+.win-name { color: var(--accent); font-weight: 700; }
 
 /* Spin */
 .spin-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -668,7 +680,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const allGames = (night = N()) => night.players.flatMap((p) => p.games.filter((g) => g.title.trim()).map((g) => ({ id: g.id, title: g.title.trim(), by: p.id })));
   const playedIds = (night = N()) => new Set(night.rounds.filter((r) => r.gameId).map((r) => r.gameId));
   const remaining = (night = N()) => { const done = playedIds(night); return allGames(night).filter((g) => !done.has(g.id)); };
+  const gameById = (id, night = N()) => allGames(night).find((g) => g.id === id) || (night.extras || []).find((g) => g.id === id);
   const spinner = () => N().players.length ? N().players[N().turn % N().players.length] : null;
+  // every game you've actually played, across all saved nights and tonight
+  function gameLibrary() {
+    const m = new Map();
+    const add = (night) => night.rounds.forEach((r) => {
+      if (!r.gameId || !r.title) return;
+      const key = r.title.trim().toLowerCase();
+      const e = m.get(key) || { key, title: r.title.trim(), plays: 0, last: 0, wins: {} };
+      e.plays++; e.last = Math.max(e.last, r.ts);
+      const w = r.winner && playerById(r.winner, night)?.name.trim();
+      if (w) e.wins[w] = (e.wins[w] || 0) + 1;
+      m.set(key, e);
+    });
+    S.archive.forEach(add); add(N());
+    return [...m.values()].sort((a, b) => b.plays - a.plays || b.last - a.last);
+  }
+  const winsText = (wins) => Object.entries(wins).sort((a, b) => b[1] - a[1]).map(([n, c]) => esc(n) + (c > 1 ? " ×" + c : "")).join(", ") || "<span class=\"muted\">no winner yet</span>";
   function totals(night = N()) {
     const t = {};
     night.players.forEach((p) => (t[p.id] = { shots: 0, wins: 0 }));
@@ -883,9 +912,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </div>
         ${n.sample ? `<div class="note" style="flex-basis:100%">This is an example lineup so you can see how it works. Rename the players and swap in your own games, or <button class="btn small ghost" type="button" id="clearSample">clear it out</button>.</div>` : ""}
       </div>
+      ${libraryPanelHTML()}
       <div class="players-grid">
         ${n.players.map((p, i) => `
-          <div class="panel pcard" data-pid="${p.id}">
+          <div class="panel pcard ${p.id === activePid() ? "active" : ""}" data-pid="${p.id}">
             <div class="pcard-head">
               <span class="dot" style="background:${playerColor(i)}"></span>
               <input type="text" id="pname-${p.id}" data-field="name" value="${esc(p.name)}" aria-label="Player name" placeholder="Player name">
@@ -893,16 +923,46 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             </div>
             <div class="eyebrow">Turn ${i + 1} · ${p.games.filter((g) => g.title.trim()).length}/${n.perPlayer} picked</div>
             <ol class="games-list">
-              ${p.games.map((g) => `<li class="${done.has(g.id) ? "played" : ""}"><input type="text" id="g-${g.id}" data-gid="${g.id}" value="${esc(g.title)}" placeholder="Pick a game" aria-label="Game pick"></li>`).join("")}
+              ${p.games.map((g) => `<li class="${done.has(g.id) ? "played" : ""}"><input type="text" id="g-${g.id}" data-gid="${g.id}" value="${esc(g.title)}" placeholder="Pick a game" aria-label="Game pick" list="gameLib" autocomplete="off"></li>`).join("")}
             </ol>
           </div>`).join("")}
       </div>
+      <datalist id="gameLib">${gameLibrary().map((g) => `<option value="${esc(g.title)}"></option>`).join("")}</datalist>
       <div class="muted" style="text-align:center">${count} games in the pot · ${n.players.length} players</div>`;
   }
-  let removeArm = null;
+  let removeArm = null, activeId = null, libQuery = "";
+  const activePid = () => (playerById(activeId) ? activeId : N().players[0]?.id);
+  function libraryPanelHTML() {
+    const hidden = new Set(S.libHidden || []);
+    const lib = gameLibrary().filter((g) => !hidden.has(g.key));
+    const who = playerById(activePid());
+    const mine = new Set((who?.games || []).map((g) => g.title.trim().toLowerCase()));
+    if (!lib.length) return `<div class="panel note">Every game you play gets saved to your library. Next time you build a lineup, you can tap games from it instead of typing them in.</div>`;
+    return `<div class="panel stack" id="libPanel">
+      <div class="row" style="justify-content:space-between">
+        <div class="stack" style="gap:2px"><h3>Games you've played</h3><div class="muted" style="font-size:.9rem">Tap a game to add it to <b>${esc(who?.name || "?")}</b>'s list. Tap a player's card to switch who you're filling.</div></div>
+        <input type="text" id="libSearch" value="${esc(libQuery)}" placeholder="Search ${lib.length} games" aria-label="Search played games" style="max-width:240px">
+      </div>
+      <div class="lib-chips">${lib.map((g) => `<span class="lib-chip ${mine.has(g.key) ? "used" : ""}" data-key="${esc(g.key)}" ${libQuery && !g.key.includes(libQuery.toLowerCase()) ? "hidden" : ""}><button type="button" data-libadd="${esc(g.title)}">${esc(g.title)}<span class="ct">×${g.plays}</span></button><button type="button" class="x" data-libhide="${esc(g.key)}" aria-label="Remove ${esc(g.title)} from the library">✕</button></span>`).join("")}</div>
+    </div>`;
+  }
+  $("#view-setup").addEventListener("focusin", (e) => {
+    const card = e.target.closest("[data-pid]");
+    if (!card || card.dataset.pid === activePid()) return;
+    activeId = card.dataset.pid;
+    $$("#view-setup .pcard").forEach((c) => c.classList.toggle("active", c.dataset.pid === activeId));
+    const lp = $("#libPanel b"); if (lp) lp.textContent = playerById(activeId).name || "?";
+    const mine = new Set(playerById(activeId).games.map((g) => g.title.trim().toLowerCase()));
+    $$("#view-setup .lib-chip").forEach((c) => c.classList.toggle("used", mine.has(c.dataset.key)));
+  });
   $("#view-setup").addEventListener("input", (e) => {
     const el = e.target, n = N();
     const card = el.closest("[data-pid]");
+    if (el.id === "libSearch") {
+      libQuery = el.value.trim();
+      $$("#view-setup .lib-chip").forEach((c) => (c.hidden = !!libQuery && !c.dataset.key.includes(libQuery.toLowerCase())));
+      return;
+    }
     if (el.id === "perPlayer") return;
     if (!card) return;
     const p = playerById(card.dataset.pid);
@@ -935,6 +995,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   $("#view-setup").addEventListener("click", (e) => {
     const n = N();
+    const card = e.target.closest(".pcard");
+    if (card && card.dataset.pid !== activePid() && !e.target.closest("button, input")) {
+      activeId = card.dataset.pid; renderSetup(); return;
+    }
+    if (e.target.closest("[data-libadd]")) {
+      const title = e.target.closest("[data-libadd]").dataset.libadd;
+      const p = playerById(activePid()); if (!p) return;
+      if (p.games.some((g) => g.title.trim().toLowerCase() === title.toLowerCase())) return toast(`${p.name} already has ${title}`);
+      const slot = p.games.find((g) => !g.title.trim());
+      if (!slot) return toast(`${p.name}'s list is full`);
+      slot.title = title; n.sample = false; save(); renderSetup();
+      return;
+    }
+    if (e.target.closest("[data-libhide]")) {
+      S.libHidden = [...new Set([...(S.libHidden || []), e.target.closest("[data-libhide]").dataset.libhide])];
+      save(); renderSetup(); toast("Removed from the library");
+      return;
+    }
     if (e.target.closest("#addPlayer")) {
       n.players.push(mkPlayer("Player " + (n.players.length + 1), [], n.perPlayer));
       n.sample = false; save(); renderSetup();
@@ -969,6 +1047,31 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Spin ----------
   const mainWheel = new Wheel($("#mainWheel"), $("#mainPointer"));
   let form = null; // record-result form state while a game is pending
+  let injectOpen = false;
+
+  // Call in a game without spinning. A lineup game gets crossed off; anything else is a one-off extra.
+  function injectGame() {
+    const n = N(), input = $("#injectTitle");
+    const title = (input?.value || "").trim();
+    if (!title) { input?.focus(); return toast("Type the game you want to play"); }
+    const hit = remaining().find((g) => g.title.toLowerCase() === title.toLowerCase());
+    let gameId;
+    if (hit) gameId = hit.id;
+    else {
+      const extra = { id: uid(), title, by: null };
+      (n.extras = n.extras || []).push(extra);
+      gameId = extra.id;
+    }
+    n.pending = { gameId, spunBy: null, by: hit ? hit.by : null, injected: true };
+    injectOpen = false; mainWheel._parked = false;
+    save(); blip(660, 0.12, "triangle", 0.05); renderSpin();
+    $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+  }
+  function dropUnusedExtra() {
+    const n = N(), id = n.pending && n.pending.gameId;
+    if (!id || !n.extras) return;
+    if (!n.rounds.some((r) => r.gameId === id)) n.extras = n.extras.filter((g) => g.id !== id);
+  }
 
   function refreshWheel() {
     if (mainWheel.spinning) return;
@@ -998,7 +1101,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     const sp = spinner();
     const { list, fallback } = wheelPool();
-    const pend = n.pending && allGames().find((g) => g.id === n.pending.gameId);
+    const pend = n.pending && gameById(n.pending.gameId);
+    const injected = !!(n.pending && n.pending.injected);
     $("#hubSpin").disabled = !!pend || !list.length || mainWheel.spinning;
     $("#poolCtl").innerHTML = `
       <div class="seg" role="group" aria-label="What goes on the wheel">
@@ -1009,15 +1113,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
     let side = `
       <div class="panel up-next">
-        <div class="eyebrow">${pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
-        <div class="who">${esc(pend ? (playerById(n.pending.spunBy)?.name || "?") : sp?.name)}</div>
+        <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
+        <div class="who">${injected ? "Called shot" : esc(pend ? (playerById(n.pending.spunBy)?.name || "?") : sp?.name)}</div>
         <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${esc(p.name)}</span>`).join("")}</div>
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
         ${!pend ? `<div class="row">
           <button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>
           <button class="btn ghost" type="button" id="skipTurn">Skip turn</button>
         </div>` : ""}
-        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, or wrap up the night from History.</div>` : ""}
+        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, call one in below, or wrap up the night from History.</div>` : ""}
+        ${!pend ? `<details class="inject" ${injectOpen ? "open" : ""}>
+          <summary>Play a specific game instead</summary>
+          <div class="row">
+            <input type="text" id="injectTitle" list="injectList" autocomplete="off" placeholder="Type a game or pick one" aria-label="Game to play">
+            <button class="btn primary" type="button" id="injectBtn">Play this game</button>
+          </div>
+          <datalist id="injectList">${[...new Set([...remaining().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+          <div class="muted" style="font-size:.85rem;margin-top:6px">Skips the wheel and doesn't use up anyone's turn. If the game is on tonight's lineup, it gets crossed off.</div>
+        </details>` : ""}
       </div>`;
 
     if (pend) side += recordFormHTML(pend);
@@ -1033,13 +1146,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       n.players.forEach((p) => (form.drinks[p.id] = { on: true, amt: 1 }));
     }
     const picker = playerById(g.by);
+    const injected = !!(n.pending && n.pending.injected);
     const amounts = [0.25, 0.5, 0.75, 1, 1.5, 2, 3];
     return `
       <div class="panel landed" id="landed">
         <div class="row" style="gap:12px;align-items:flex-start">
           <span class="alert-mark" aria-hidden="true">!</span>
           <div style="min-width:0">
-            <div class="eyebrow">${esc(SKINS[S.skin].landed)} · picked by ${esc(picker?.name || "?")}</div>
+            <div class="eyebrow">${esc(SKINS[S.skin].landed)} · ${injected ? "called in" : "picked by " + esc(picker?.name || "?")}</div>
             <div class="game-title">${esc(g.title)}</div>
           </div>
         </div>
@@ -1073,7 +1187,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </div>
         <div class="row">
           <button class="btn big primary" type="button" id="recordBtn">Pour it</button>
-          <button class="btn ghost" type="button" id="respinBtn">Put it back &amp; respin</button>
+          <button class="btn ghost" type="button" id="respinBtn">${injected ? "Cancel, back to the wheel" : "Put it back &amp; respin"}</button>
         </div>
       </div>`;
   }
@@ -1085,6 +1199,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     });
   }
 
+  $("#spinSide").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "injectTitle") { e.preventDefault(); injectGame(); } });
+  $("#spinSide").addEventListener("toggle", (e) => { if (e.target.classList?.contains("inject")) injectOpen = e.target.open; }, true);
   $("#spinSide").addEventListener("change", (e) => {
     if (!form) return;
     const t = e.target;
@@ -1112,7 +1228,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       d.amt = q4(d.amt + parseFloat(t.dataset.dstep)); if (d.amt > 0) d.on = true;
       return renderSpin();
     }
-    if (t.id === "respinBtn") { n.pending = null; form = null; mainWheel._parked = false; save(); renderSpin(); return; }
+    if (t.id === "respinBtn") { dropUnusedExtra(); n.pending = null; form = null; mainWheel._parked = false; save(); renderSpin(); return; }
+    if (t.id === "injectBtn") return injectGame();
     if (t.id === "recordBtn") return recordRound();
   });
   $("#poolCtl").addEventListener("click", (e) => {
@@ -1140,10 +1257,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   async function recordRound() {
     const n = N();
     if (!form.winner) return toast("Pick a winner (or Tie) first");
-    const g = allGames().find((x) => x.id === n.pending.gameId);
+    const g = gameById(n.pending.gameId);
+    const injected = !!n.pending.injected;
     const drinks = Object.entries(form.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, winner: form.winner === "tie" ? null : form.winner, drinks });
-    n.turn = (n.turn + 1) % n.players.length;
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, injected, winner: form.winner === "tie" ? null : form.winner, drinks });
+    if (!injected) n.turn = (n.turn + 1) % n.players.length;
     n.pending = null; form = null; mainWheel._parked = false;
     save(); renderSpin();
     await pour(drinks, form?.winner);
@@ -1162,14 +1280,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const drinkers = r.drinks.map((d) => `${esc(playerById(d.pid)?.name || "?")} ${fmtShots(d.amt)}`).join(", ");
         const total = r.drinks.reduce((a, d) => a + d.amt, 0);
         return `<li><span class="rn num">${r.gameId ? num : "+"}</span>
-          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b> · ${r.winner ? "won by " + esc(playerById(r.winner)?.name || "?") : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
+          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">called in</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
           <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}</span></li>`;
       }).join("")}</ol>` : `<div class="muted">No rounds yet. Spin the wheel to play the first game.</div>`}`;
   }
   $("#roundLog").addEventListener("click", (e) => {
     if (!e.target.closest("#undoRound")) return;
     const n = N(); const r = n.rounds.pop();
-    if (r && r.gameId) n.turn = (n.turn - 1 + n.players.length) % n.players.length;
+    if (r && r.gameId && !r.injected) n.turn = (n.turn - 1 + n.players.length) % n.players.length;
     save(); renderAll(); toast("Last round undone");
   });
 
@@ -1283,6 +1401,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const lb = allTime();
     const n = N();
     const nights = S.archive.slice().reverse();
+    const games = gameLibrary();
     $("#view-history").innerHTML = `
       <div class="hist-grid">
         <div class="panel stack">
@@ -1294,6 +1413,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <thead><tr><th>Player</th><th class="n">Nights</th><th class="n">Wins</th><th class="n">Shots</th><th class="n">Shots / night</th></tr></thead>
             <tbody>${lb.map((m) => `<tr><td><b>${esc(m.name)}</b></td><td class="n">${m.nights}</td><td class="n">${m.wins}</td><td class="n">${fmtShots(m.shots)}</td><td class="n">${fmtShots(m.shots / m.nights)}</td></tr>`).join("")}</tbody>
           </table></div>` : `<div class="muted">Start a night and the all-time standings show up here. Players are matched by name across nights.</div>`}
+          <h3 style="margin-top:8px">Game history</h3>
+          ${games.length ? `<div class="table-wrap"><table>
+            <thead><tr><th>Game</th><th class="n">Played</th><th>Won by</th><th>Last played</th></tr></thead>
+            <tbody>${games.map((g) => `<tr><td><b>${esc(g.title)}</b></td><td class="n">${g.plays}</td><td>${winsText(g.wins)}</td><td>${fmtDate(g.last)}</td></tr>`).join("")}</tbody>
+          </table></div>` : `<div class="muted">Every game you play shows up here with who won it.</div>`}
           <h3 style="margin-top:8px">Past nights</h3>
           ${nights.length ? nights.map((night) => {
             const s = nightSummary(night);
@@ -1303,7 +1427,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
                 <div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Shots</th></tr></thead><tbody>
                   ${night.players.map((p) => `<tr><td>${esc(p.name)}</td><td class="n">${s.t[p.id].wins}</td><td class="n">${fmtShots(s.t[p.id].shots)}</td></tr>`).join("")}
                 </tbody></table></div>
-                <ol class="log">${night.rounds.map((r, i) => `<li><span class="rn num">${r.gameId ? i + 1 : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.gameId ? " · " + (r.winner ? esc(playerById(r.winner, night)?.name || "?") : "tie") : ""}</span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join("")}</ol>
+                <div class="eyebrow">Games played, in order</div>
+                ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
+                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">called in</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
                 ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
                 <div><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
               </div>
