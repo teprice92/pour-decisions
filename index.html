@@ -930,7 +930,12 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .trophies { display: flex; flex-wrap: wrap; gap: 6px; }
 .trophy { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: .85rem; background: var(--panel-2); }
 .trophy .ti { font-size: 1.1rem; }
+.trophy { font: inherit; color: var(--fg); cursor: pointer; }
 .trophy.locked { opacity: .35; filter: grayscale(1); }
+.trophy-legend summary { cursor: pointer; }
+.legend-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; margin-top: 8px; }
+.legend-item { display: grid; grid-template-columns: 1.8em minmax(0, 1fr); gap: 8px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); font-size: .9rem; }
+.legend-item .ti { font-size: 1.3rem; line-height: 1.2; }
 .bracket { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 14px; overflow-x: auto; padding-bottom: 6px; }
 .bround { display: grid; gap: 10px; align-content: center; }
 .match { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--panel-2); display: grid; gap: 8px; }
@@ -2458,18 +2463,18 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
   // ---------- Trophies ----------
   const TROPHIES = [
-    { id: "first", icon: "🥇", name: "First win", desc: "Win a game", test: (st) => st.wins >= 1 },
-    { id: "hat", icon: "🎩", name: "Hat trick", desc: "Win 3 games in a row", test: (st) => st.bestStreak >= 3 },
-    { id: "survivor", icon: "🛟", name: "Survivor", desc: "Take 10 shots in one night", test: (st) => st.maxNightShots >= 10 },
-    { id: "untouchable", icon: "🛡️", name: "Untouchable", desc: "Win 3+ games in a night and drink 1 shot or less", test: (st) => st.untouchable },
-    { id: "perfect", icon: "💎", name: "Perfect night", desc: "Win every game you played in a night (3 or more)", test: (st) => st.perfect },
-    { id: "breaker", icon: "🧊", name: "Streak breaker", desc: "End someone's 3+ win streak", test: (st) => st.breaks >= 1 },
-    { id: "oracle", icon: "🔮", name: "Oracle", desc: "Call 5 side bets right", test: (st) => st.betsRight >= 5 },
-    { id: "console", icon: "🎮", name: "Console warrior", desc: "Win on the Xbox, PlayStation, and Nintendo themes", test: (st) => ["xbox", "playstation", "nintendo"].every((k) => st.skinWins.has(k)) },
-    { id: "tourist", icon: "🗺️", name: "Theme tourist", desc: "Win on 8 different themes", test: (st) => st.skinWins.size >= 8 },
-    { id: "champ", icon: "👑", name: "Champion", desc: "Win a finale bracket", test: (st) => st.finales >= 1 },
-    { id: "regular", icon: "🍻", name: "Regular", desc: "Play 5 nights", test: (st) => st.nights >= 5 },
-    { id: "legend", icon: "🏆", name: "Legend", desc: "Win 50 games all-time", test: (st) => st.wins >= 50 },
+    { id: "first", icon: "🥇", name: "First win", desc: "Win your first game, on any night", test: (st) => st.wins >= 1 },
+    { id: "hat", icon: "🎩", name: "Hat trick", desc: "Win 3 games in a row in one night, with nobody else winning in between", test: (st) => st.bestStreak >= 3 },
+    { id: "survivor", icon: "🛟", name: "Survivor", desc: "Drink 10 or more shots in a single night", test: (st) => st.maxNightShots >= 10 },
+    { id: "untouchable", icon: "🛡️", name: "Untouchable", desc: "Win at least 3 games in one night while drinking 1 shot or less in total", test: (st) => st.untouchable },
+    { id: "perfect", icon: "💎", name: "Perfect night", desc: "Win every game you played in a night, with at least 3 games played", test: (st) => st.perfect },
+    { id: "breaker", icon: "🧊", name: "Streak breaker", desc: "Win the game that ends someone else's streak of 3 or more wins", test: (st) => st.breaks >= 1 },
+    { id: "oracle", icon: "🔮", name: "Oracle", desc: "Guess the winner correctly on 5 side bets, counted across all nights", test: (st) => st.betsRight >= 5 },
+    { id: "console", icon: "🎮", name: "Console warrior", desc: "Win at least one game while the Xbox theme is on, one on PlayStation, and one on Nintendo", test: (st) => ["xbox", "playstation", "nintendo"].every((k) => st.skinWins.has(k)) },
+    { id: "tourist", icon: "🗺️", name: "Theme tourist", desc: "Win games while 8 different themes are on, counted across all nights", test: (st) => st.skinWins.size >= 8 },
+    { id: "champ", icon: "👑", name: "Champion", desc: "Win the final match of a finale bracket", test: (st) => st.finales >= 1 },
+    { id: "regular", icon: "🍻", name: "Regular", desc: "Show up for 5 nights (saved nights plus tonight)", test: (st) => st.nights >= 5 },
+    { id: "legend", icon: "🏆", name: "Legend", desc: "Win 50 games in total, counted across all nights", test: (st) => st.wins >= 50 },
   ];
   const nightsForStats = () => [...S.archive, ...(N().started ? [N()] : [])];
   function playerStats(nights = nightsForStats()) {
@@ -2512,15 +2517,32 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     });
     return out;
   }
-  function trophyCaseHTML() {
+  // what each trophy means, with how many players have it
+  function trophyLegendHTML(st, open) {
+    return `<details class="trophy-legend" ${open ? "open" : ""}>
+      <summary class="eyebrow">How to earn each trophy</summary>
+      <div class="legend-list">${TROPHIES.map((t) => {
+        const who = st.filter((x) => t.test(x)).map((x) => (x.emoji ? x.emoji + " " : "") + x.name);
+        return `<div class="legend-item"><span class="ti">${t.icon}</span><span><b>${esc(t.name)}</b><br>${esc(t.desc)}.${who.length ? `<br><span class="muted">Earned by ${esc(who.join(", "))}</span>` : ""}</span></div>`;
+      }).join("")}</div>
+    </details>`;
+  }
+  function trophyCaseHTML(legendOpen = false) {
     const st = Object.values(playerStats()).sort((a, b) => b.wins - a.wins);
-    if (!st.length) return `<div class="muted">Trophies show up here once you start playing.</div>`;
-    return `<div class="trophy-grid">${st.map((x) => {
+    if (!st.length) return `${trophyLegendHTML(st, true)}<div class="muted">Trophies show up here once you start playing.</div>`;
+    return `${trophyLegendHTML(st, legendOpen)}<div class="trophy-grid">${st.map((x) => {
       const got = TROPHIES.filter((t) => t.test(x)).length;
       return `<div class="trophy-player"><div><b>${esc((x.emoji ? x.emoji + " " : "") + x.name)}</b> <span class="muted num">${got}/${TROPHIES.length}</span></div>
-        <div class="trophies">${TROPHIES.map((t) => `<span class="trophy ${t.test(x) ? "" : "locked"}" title="${esc(t.desc)}"><span class="ti">${t.icon}</span>${esc(t.name)}</span>`).join("")}</div></div>`;
-    }).join("")}</div>`;
+        <div class="trophies">${TROPHIES.map((t) => `<button type="button" class="trophy ${t.test(x) ? "" : "locked"}" title="${esc(t.desc)}" data-trophy="${t.id}" data-tname="${esc(x.name)}" data-got="${t.test(x) ? 1 : 0}"><span class="ti">${t.icon}</span>${esc(t.name)}</button>`).join("")}</div></div>`;
+    }).join("")}</div>
+    <div class="muted" style="font-size:.85rem">Tap any trophy to see what it takes.</div>`;
   }
+  // tapping a trophy explains it
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-trophy]"); if (!b) return;
+    const t = TROPHIES.find((x) => x.id === b.dataset.trophy); if (!t) return;
+    toast(`${t.icon} ${t.name}: ${t.desc}. ${b.dataset.got === "1" ? b.dataset.tname + " has it!" : "Not earned yet."}`);
+  });
 
   // ---------- Night recap ----------
   function recapData(night) {
@@ -2715,7 +2737,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
-    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML() : sheetKind === "import" ? importHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : finaleHTML();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
   $("#sheet").addEventListener("click", async (e) => {

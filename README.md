@@ -21,7 +21,7 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 - **Water rounds**: a 💧 reminder every few shots for each player. Set it in Settings.
 - **Finale bracket**: under Shots → Finale bracket, the top players by tonight's wins play a knockout. The loser of each match drinks.
 - **Night recap**: MVP, most shots, biggest upset, most played game, and a funny title for each player. Share it as an image or copy it as text. It also pops up when you wrap up a night.
-- **Trophy case**: achievements that carry across every night, like Hat trick, Untouchable, Perfect night, Console warrior, and Champion.
+- **Trophy case**: achievements that carry across every night, like Hat trick, Untouchable, Perfect night, Console warrior, and Champion. "How to earn each trophy" explains every one, and tapping a trophy shows what it takes.
 - **Avatars and colors**: tap a player's circle in the Lineup to give them an emoji and a color.
 - **TV mode**: a big-screen layout with the wheel and a live shot board. Use it on a laptop hooked to the TV, or mirror your phone.
 - **Send tonight to another phone**: History → Send tonight makes a link that opens the night on another phone. It's a copy, so the two phones don't stay in sync.
