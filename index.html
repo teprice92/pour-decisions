@@ -352,9 +352,9 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .lib-chip .ct { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
 .lib-chip.used { opacity: .45; }
 .tag { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; color: var(--muted); vertical-align: 1px; font-family: var(--font-body); font-weight: 700; }
-details.inject summary { cursor: pointer; color: var(--muted); font-weight: 700; }
-details.inject[open] summary { margin-bottom: 8px; }
-details.inject .row input { flex: 1 1 200px; }
+.inject { border-top: 1px solid var(--line); padding-top: 12px; }
+.inject .row input { flex: 1 1 200px; }
+.lib-chip button[data-call] { padding-right: 12px; }
 .win-name { color: var(--accent); font-weight: 700; }
 
 /* Spin */
@@ -560,6 +560,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="scores" id="tab-scores">Shots</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
+      <button class="btn small" id="callGame" type="button">Call a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
     </nav>
   </div>
@@ -1116,11 +1117,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   let injectOpen = false;
 
   // Call in a game without spinning. A lineup game gets crossed off; anything else is a one-off extra.
-  function injectGame() {
+  function injectGame(byId) {
     const n = N(), input = $("#injectTitle");
-    const title = (input?.value || "").trim();
+    const title = byId ? (remaining().find((g) => g.id === byId)?.title || "") : (input?.value || "").trim();
     if (!title) { input?.focus(); return toast("Type the game you want to play"); }
-    const hit = remaining().find((g) => g.title.toLowerCase() === title.toLowerCase());
+    const hit = remaining().find((g) => (byId ? g.id === byId : g.title.toLowerCase() === title.toLowerCase()));
     let gameId;
     if (hit) gameId = hit.id;
     else {
@@ -1185,18 +1186,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
         ${!pend ? `<div class="row">
           <button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>
+          <button class="btn big" type="button" id="injectToggle" aria-expanded="${injectOpen}">Call a game</button>
           <button class="btn ghost" type="button" id="skipTurn">Skip turn</button>
         </div>` : ""}
-        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, call one in below, or wrap up the night from History.</div>` : ""}
-        ${!pend ? `<details class="inject" ${injectOpen ? "open" : ""}>
-          <summary>Play a specific game instead</summary>
+        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, call a game, or wrap up the night from History.</div>` : ""}
+        ${!pend && injectOpen ? `<div class="inject stack" style="gap:8px">
+          <div class="eyebrow">Call a game · skips the wheel, doesn't use up anyone's turn</div>
           <div class="row">
-            <input type="text" id="injectTitle" list="injectList" autocomplete="off" placeholder="Type a game or pick one" aria-label="Game to play">
+            <input type="text" id="injectTitle" list="injectList" autocomplete="off" placeholder="Type any game" aria-label="Game to play">
             <button class="btn primary" type="button" id="injectBtn">Play this game</button>
           </div>
           <datalist id="injectList">${[...new Set([...remaining().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
-          <div class="muted" style="font-size:.85rem;margin-top:6px">Skips the wheel and doesn't use up anyone's turn. If the game is on tonight's lineup, it gets crossed off.</div>
-        </details>` : ""}
+          ${remaining().length ? `<div class="muted" style="font-size:.85rem">Or tap one from tonight's lineup:</div>
+          <div class="lib-chips">${remaining().map((g) => `<span class="lib-chip"><button type="button" data-call="${g.id}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
+        </div>` : ""}
       </div>`;
 
     if (pend) side += recordFormHTML(pend);
@@ -1266,7 +1269,6 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
 
   $("#spinSide").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "injectTitle") { e.preventDefault(); injectGame(); } });
-  $("#spinSide").addEventListener("toggle", (e) => { if (e.target.classList?.contains("inject")) injectOpen = e.target.open; }, true);
   $("#spinSide").addEventListener("change", (e) => {
     if (!form) return;
     const t = e.target;
@@ -1286,6 +1288,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.dataset.go) return setTab(t.dataset.go);
     if (t.id === "spinBtn") return doSpin();
     if (t.id === "skipTurn") { n.turn = (n.turn + 1) % n.players.length; save(); renderSpin(); return; }
+    if (t.id === "injectBtn") return injectGame();
+    if (t.id === "injectToggle") { injectOpen = !injectOpen; renderSpin(); if (injectOpen) $("#injectTitle")?.focus(); return; }
+    if (t.dataset.call) return injectGame(t.dataset.call);
     if (!form) return;
     if (t.dataset.amt) return setAmount(parseFloat(t.dataset.amt));
     if (t.dataset.step) return setAmount(form.amount + parseFloat(t.dataset.step));
@@ -1295,7 +1300,6 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       return renderSpin();
     }
     if (t.id === "respinBtn") { dropUnusedExtra(); n.pending = null; form = null; mainWheel._parked = false; save(); renderSpin(); return; }
-    if (t.id === "injectBtn") return injectGame();
     if (t.id === "recordBtn") return recordRound();
   });
   $("#poolCtl").addEventListener("click", (e) => {
@@ -1303,6 +1307,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     N().pool = b.dataset.pool; save(); renderSpin();
   });
   $("#hubSpin").addEventListener("click", () => doSpin());
+  $("#callGame").addEventListener("click", () => {
+    const n = N();
+    if (!n.started) { setTab("setup"); return toast("Start the night first, then you can call any game"); }
+    if (n.pending) { setTab("spin"); return toast("Record the game in progress first"); }
+    injectOpen = true; setTab("spin");
+    $("#injectTitle")?.focus();
+    $(".inject")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+  });
 
   async function doSpin() {
     const n = N();
