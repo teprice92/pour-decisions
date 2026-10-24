@@ -19,10 +19,13 @@ A catalog of about 62,000 games across 26 consoles, including single-player one-
 - **Complete libraries** for Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Game Boy, Game Boy Color, Game Boy Advance, DS, Genesis, Dreamcast, PlayStation 1–3, Xbox, and Xbox 360.
 - **Hand-picked lists** for PS4, PS5, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. For anything missing, use **Not listed? Type any game**.
 - **🎉 Party friendly only** narrows any console to the multiplayer, bet-friendly picks.
+- **🇺🇸 US releases only** hides Japan-only and Europe-only games.
+- **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Counts are available for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch.
+- **Show all** lists every matching game at once. **Show more** pages through 300 at a time.
 
 Search across every console, tap **+ Add** to put a game on a player's list, or fill their empty slots at random. Each console's list loads the first time you open it. The installed app saves them all in the background so the catalog works offline.
 
-The complete lists come from the [No-Intro](https://no-intro.org) and [Redump](http://redump.org) databases (via [libretro-database](https://github.com/libretro/libretro-database)) and [titledb](https://github.com/blawar/titledb) for Switch. Betas, demos, prototypes, and regional duplicates are removed. To refresh them, run `tools/build_catalog.py` on fresh copies of those files.
+The complete lists and player counts come from the [No-Intro](https://no-intro.org) and [Redump](http://redump.org) databases (via [libretro-database](https://github.com/libretro/libretro-database)) and [titledb](https://github.com/blawar/titledb) for Switch. Betas, demos, prototypes, and regional duplicates are removed. To refresh them, run `tools/build_catalog.py` on fresh copies of those files.
 
 ## Party features
 
