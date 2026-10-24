@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -163,6 +163,58 @@ html[data-skin="castlevania"] {
   --shadow: 0 0 0 1px var(--line), 0 0 0 4px rgba(0,0,0,.4), 0 20px 50px rgba(0,0,0,.6);
   color-scheme: dark;
 }
+html[data-skin="zelda"] {
+  --bg: #0c1f14;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 120 104'%3E%3Cg fill='%23e8c65a' fill-opacity='.05'%3E%3Cpath d='M60 8 L72 29 L48 29 Z M48 29 L60 50 L36 50 Z M72 29 L84 50 L60 50 Z'/%3E%3C/g%3E%3C/svg%3E"), radial-gradient(1000px 600px at 50% -10%, rgba(232, 198, 90, .18), transparent 65%), linear-gradient(180deg, #12301d 0%, #0c1f14 60%, #08150d 100%);
+  --panel: rgba(16, 42, 26, .85);
+  --panel-2: #143322;
+  --fg: #f3ecd2;
+  --muted: #a9b88f;
+  --accent: #e8c65a;
+  --accent-fg: #1f1600;
+  --accent-2: #2f8f4e;
+  --danger: #ff6b5e;
+  --line: rgba(232, 198, 90, .3);
+  --liquid: #e8343a;
+  --liquid-2: #8e0f1a;
+  --glass: rgba(240, 250, 230, .09);
+  --glass-edge: rgba(232, 220, 170, .6);
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .08em;
+  --display-weight: 800;
+  --radius: 10px;
+  --shadow: 0 0 0 1px var(--line), 0 0 0 4px rgba(0,0,0,.2), 0 18px 40px rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+html[data-skin="halo"] {
+  --bg: #0a1116;
+  --bg-art: radial-gradient(140% 60% at 50% 125%, transparent 58%, rgba(120, 200, 255, .16) 59%, rgba(120, 200, 255, .05) 61.5%, transparent 63%), radial-gradient(900px 500px at 85% -10%, rgba(242, 169, 0, .16), transparent 65%), linear-gradient(180deg, #111c24 0%, #0a1116 100%);
+  --panel: rgba(18, 30, 38, .84);
+  --panel-2: #16252f;
+  --fg: #e6eef2;
+  --muted: #8ea4b0;
+  --accent: #f2a900;
+  --accent-fg: #1a1100;
+  --accent-2: #3fa9d6;
+  --danger: #ff5a4a;
+  --line: rgba(120, 200, 255, .25);
+  --liquid: #6fd6ff;
+  --liquid-2: #1f74c4;
+  --glass: rgba(200, 235, 255, .08);
+  --glass-edge: rgba(200, 235, 255, .55);
+  --font-display: "Teko", "Arial Narrow", sans-serif;
+  --font-body: "Rajdhani", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .06em;
+  --display-weight: 600;
+  --radius: 3px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
+html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -618,6 +670,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       wheel: ["#5c0010", "#d4a24c", "#2a0f33", "#8f0f22", "#f1e3d0", "#1d0a10"],
       landed: "Die monster, you don't belong in this world", spin: "Spin",
       quips: ["What is a man? A miserable little pile of shots.", "Have at you!", "The night is young, and so is your liver."],
+    },
+    zelda: {
+      label: "Zelda", dot: "#e8c65a",
+      tagline: "Bet list night · It's dangerous to drink alone",
+      wheel: ["#2f8f4e", "#e8c65a", "#14482a", "#3a6fb0", "#f3ecd2", "#8e0f1a"],
+      landed: "You found a game!", spin: "Spin",
+      quips: ["It's dangerous to go alone! Take this.", "You got a Red Potion! Drink it now?", "Hey! Listen! You're drinking.", "Hyah!"],
+    },
+    halo: {
+      label: "Halo", dot: "#f2a900",
+      tagline: "Bet list night · Finish the fight. Finish the drink.",
+      wheel: ["#f2a900", "#1f3440", "#3fa9d6", "#5b6b3a", "#e6eef2", "#7a1f2b"],
+      landed: "Prepare to drop", spin: "Spin",
+      quips: ["Double kill!", "Wake me when you need me.", "Shields recharging…", "Spartans never die. They're just missing in action."],
     },
   };
 

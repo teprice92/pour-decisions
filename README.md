@@ -18,7 +18,7 @@ The **Chaos roll** button in the header opens a random number picker you can use
 
 ## Themes
 
-Xbox, PlayStation, Metal Gear, Card night, Nintendo, and Castlevania. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
+Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, and Halo. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
 
 ## Saving
 
