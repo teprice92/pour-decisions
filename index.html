@@ -1291,11 +1291,16 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   let injectOpen = false;
 
   // Call in a game without spinning. A lineup game gets crossed off; anything else is a one-off extra.
+  // games that are "on deck" (pending or paused) aren't offered again
+  const onDeck = () => new Set([N().pending?.gameId, ...(N().paused || []).map((x) => x.pending.gameId)].filter(Boolean));
+  const callable = () => { const busy = onDeck(); return remaining().filter((g) => !busy.has(g.id)); };
   function injectGame(byId) {
     const n = N(), input = $("#injectTitle");
-    const title = byId ? (remaining().find((g) => g.id === byId)?.title || "") : (input?.value || "").trim();
+    if (mainWheel.spinning) return toast("Let the wheel stop first");
+    const title = byId ? (callable().find((g) => g.id === byId)?.title || "") : (input?.value || "").trim();
     if (!title) { input?.focus(); return toast("Type the game you want to play"); }
-    const hit = remaining().find((g) => (byId ? g.id === byId : g.title.toLowerCase() === title.toLowerCase()));
+    if (n.pending && gameById(n.pending.gameId)?.title.toLowerCase() === title.toLowerCase()) return toast("That game is already up");
+    const hit = callable().find((g) => (byId ? g.id === byId : g.title.toLowerCase() === title.toLowerCase()));
     let gameId;
     if (hit) gameId = hit.id;
     else {
@@ -1303,10 +1308,21 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       (n.extras = n.extras || []).push(extra);
       gameId = extra.id;
     }
+    // pause whatever was up (with its half-filled result form) so it comes back after this game
+    if (n.pending) (n.paused = n.paused || []).push({ pending: n.pending, form });
+    form = null;
     n.pending = { gameId, spunBy: null, by: hit ? hit.by : null, injected: true };
     injectOpen = false; mainWheel._parked = false;
     save(); blip(660, 0.12, "triangle", 0.05); renderSpin();
     $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+  }
+  // bring back the game that was paused when this one was called in, if any
+  function resumePaused() {
+    const n = N(), back = (n.paused || []).pop();
+    n.pending = back ? back.pending : null;
+    form = back && back.form && back.form.gameId === back.pending.gameId ? back.form : null;
+    mainWheel._parked = false;
+    if (back) toast(`Back to ${gameById(back.pending.gameId)?.title || "the paused game"}`);
   }
   function dropUnusedExtra() {
     const n = N(), id = n.pending && n.pending.gameId;
@@ -1358,21 +1374,22 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <div class="who">${injected ? "Called shot" : esc(pend ? (playerById(n.pending.spunBy)?.name || "?") : sp?.name)}</div>
         <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${esc(p.name)}</span>`).join("")}</div>
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
-        ${!pend ? `<div class="row">
-          <button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>
-          <button class="btn big" type="button" id="injectToggle" aria-expanded="${injectOpen}">Call a game</button>
-          <button class="btn ghost" type="button" id="skipTurn">Skip turn</button>
-        </div>` : ""}
+        ${(n.paused || []).length ? `<div class="note">Paused: ${n.paused.slice().reverse().map((x) => `<b>${esc(gameById(x.pending.gameId)?.title || "?")}</b>`).join(", then ")}. It comes back once this game is recorded.</div>` : ""}
+        <div class="row">
+          ${!pend ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>` : ""}
+          <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle" aria-expanded="${injectOpen}">${pend ? "Call a different game now" : "Call a game"}</button>
+          ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
+        </div>
         ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, call a game, or wrap up the night from History.</div>` : ""}
-        ${!pend && injectOpen ? `<div class="inject stack" style="gap:8px">
-          <div class="eyebrow">Call a game · skips the wheel, doesn't use up anyone's turn</div>
+        ${injectOpen ? `<div class="inject stack" style="gap:8px">
+          <div class="eyebrow">Call a game · skips the wheel, doesn't use up anyone's turn${pend ? ". The current game gets paused and comes back after." : ""}</div>
           <div class="row">
             <input type="text" id="injectTitle" list="injectList" autocomplete="off" placeholder="Type any game" aria-label="Game to play">
             <button class="btn primary" type="button" id="injectBtn">Play this game</button>
           </div>
           <datalist id="injectList">${[...new Set([...remaining().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
-          ${remaining().length ? `<div class="muted" style="font-size:.85rem">Or tap one from tonight's lineup:</div>
-          <div class="lib-chips">${remaining().map((g) => `<span class="lib-chip"><button type="button" data-call="${g.id}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
+          ${callable().length ? `<div class="muted" style="font-size:.85rem">Or tap one from tonight's lineup:</div>
+          <div class="lib-chips">${callable().map((g) => `<span class="lib-chip"><button type="button" data-call="${g.id}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
         </div>` : ""}
       </div>`;
 
@@ -1430,7 +1447,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </div>
         <div class="row">
           <button class="btn big primary" type="button" id="recordBtn">Pour it</button>
-          <button class="btn ghost" type="button" id="respinBtn">${injected ? "Cancel, back to the wheel" : "Put it back &amp; respin"}</button>
+          <button class="btn ghost" type="button" id="respinBtn">${injected ? ((n.paused || []).length ? "Cancel, back to " + esc(gameById(n.paused[n.paused.length - 1].pending.gameId)?.title || "the paused game") : "Cancel, back to the wheel") : "Put it back &amp; respin"}</button>
         </div>
       </div>`;
   }
@@ -1473,7 +1490,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       d.amt = q4(d.amt + parseFloat(t.dataset.dstep)); if (d.amt > 0) d.on = true;
       return renderSpin();
     }
-    if (t.id === "respinBtn") { dropUnusedExtra(); n.pending = null; form = null; mainWheel._parked = false; save(); renderSpin(); return; }
+    if (t.id === "respinBtn") { dropUnusedExtra(); form = null; if (n.pending?.injected) resumePaused(); else n.pending = null; mainWheel._parked = false; save(); renderSpin(); return; }
     if (t.id === "recordBtn") return recordRound();
   });
   $("#poolCtl").addEventListener("click", (e) => {
@@ -1484,7 +1501,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#callGame").addEventListener("click", () => {
     const n = N();
     if (!n.started) { setTab("setup"); return toast("Start the night first, then you can call any game"); }
-    if (n.pending) { setTab("spin"); return toast("Record the game in progress first"); }
+    if (mainWheel.spinning) return toast("Let the wheel stop first");
     injectOpen = true; setTab("spin");
     $("#injectTitle")?.focus();
     $(".inject")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
@@ -1514,7 +1531,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const drinks = Object.entries(form.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
     n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, injected, winner: form.winner === "tie" ? null : form.winner, drinks });
     if (!injected) n.turn = (n.turn + 1) % n.players.length;
-    n.pending = null; form = null; mainWheel._parked = false;
+    form = null; resumePaused();
     save(); renderSpin();
     await pour(drinks, form?.winner);
   }
