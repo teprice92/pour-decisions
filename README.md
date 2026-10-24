@@ -20,7 +20,7 @@ A catalog of about 62,000 games across 26 consoles, including single-player one-
 - **Hand-picked lists** for PS4, PS5, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. For anything missing, use **Not listed? Type any game**.
 - **🎉 Party friendly only** narrows any console to the multiplayer, bet-friendly picks.
 - **🇺🇸 US releases only** hides Japan-only and Europe-only games.
-- **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Counts are available for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch.
+- **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Every 🎉 party pick has a count: the number who can play on one console, or an online count for online-only games like Among Us. Beyond those, counts come from the databases for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch.
 - **Your own tags**: tap ⭐ on any game to favorite it, and 🎉 to mark it as a party game or unmark a built-in one. **⭐ Favorites only** shows just your favorites, which also sort to the top of every list. Tags are included in backups.
 - **Show all** lists every matching game at once. **Show more** pages through 300 at a time.
 
