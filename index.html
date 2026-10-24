@@ -16,7 +16,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -510,6 +510,136 @@ html[data-skin="divebar"] {
 }
 html[data-skin="divebar"] h2, html[data-skin="divebar"] .up-next .who, html[data-skin="divebar"] .brand-name { color: #ffd6e5; text-shadow: 0 0 6px #ff3c78, 0 0 18px #ff3c78, 0 0 36px rgba(255, 60, 120, .6); }
 html[data-skin="divebar"] .landed .game-title { color: #d8f4ff; text-shadow: 0 0 6px #3cc8ff, 0 0 18px #3cc8ff; }
+html[data-skin="starwars"] {
+  --bg: #000000;
+  --bg-art: radial-gradient(1px 1px at 25px 35px, #fff, transparent), radial-gradient(1.5px 1.5px at 120px 90px, #fff, transparent), radial-gradient(1px 1px at 180px 160px, #dfe8ff, transparent), radial-gradient(2px 2px at 60px 190px, #fff, transparent), radial-gradient(1px 1px at 150px 20px, #fff, transparent);
+  --panel: rgba(12, 12, 16, .88);
+  --panel-2: #15161c;
+  --fg: #f4f1e8;
+  --muted: #9a9686;
+  --accent: #ffe81f;
+  --accent-fg: #000000;
+  --accent-2: #3fa9ff;
+  --danger: #ff3b30;
+  --line: rgba(255, 232, 31, .28);
+  --liquid: #8fd4ff;
+  --liquid-2: #1f7cff;
+  --glass: rgba(200, 225, 255, .07);
+  --glass-edge: rgba(220, 230, 255, .6);
+  --font-display: "Orbitron", "Arial Black", sans-serif;
+  --font-body: "Exo 2", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .08em;
+  --display-weight: 900;
+  --radius: 4px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.7);
+  color-scheme: dark;
+}
+html[data-skin="starwars"] body { background-size: 220px 220px; }
+html[data-skin="starwars"] .glass .liq { filter: drop-shadow(0 0 6px #3fa9ff); }
+html[data-skin="sakura"] {
+  --bg: #fff4f6;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='%23f48fb1' fill-opacity='.22'%3E%3Cellipse cx='30' cy='40' rx='7' ry='4' transform='rotate(30 30 40)'/%3E%3Cellipse cx='120' cy='25' rx='6' ry='3.5' transform='rotate(-20 120 25)'/%3E%3Cellipse cx='150' cy='120' rx='7' ry='4' transform='rotate(60 150 120)'/%3E%3Cellipse cx='70' cy='140' rx='5' ry='3' transform='rotate(-45 70 140)'/%3E%3Cellipse cx='95' cy='85' rx='4' ry='2.5' transform='rotate(10 95 85)'/%3E%3C/g%3E%3C/svg%3E"), radial-gradient(900px 500px at 100% 0%, rgba(244, 143, 177, .25), transparent 70%), linear-gradient(180deg, #fff0f3 0%, #fff8f5 100%);
+  --panel: rgba(255, 255, 255, .9);
+  --panel-2: #fff0f4;
+  --fg: #3a2430;
+  --muted: #8a6a78;
+  --accent: #d6336c;
+  --accent-fg: #ffffff;
+  --accent-2: #5c3d2e;
+  --danger: #c2255c;
+  --line: rgba(214, 51, 108, .22);
+  --liquid: #ffb3c8;
+  --liquid-2: #e0607e;
+  --glass: rgba(255, 200, 215, .12);
+  --glass-edge: rgba(90, 50, 65, .5);
+  --font-display: "Shippori Mincho", "Times New Roman", serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .04em;
+  --display-weight: 700;
+  --radius: 14px;
+  --shadow: 0 0 0 1px var(--line), 0 12px 30px rgba(214, 51, 108, .12);
+  color-scheme: light;
+}
+html[data-skin="cruise"] {
+  --bg: #e8f7fb;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'%3E%3Cpath d='M0 20 Q15 10 30 20 T60 20 T90 20 T120 20' fill='none' stroke='%230a6fa8' stroke-opacity='.10' stroke-width='3'/%3E%3C/svg%3E"), linear-gradient(180deg, #bfefff 0%, #e8f7fb 45%, #c9eef7 100%);
+  --panel: #ffffff;
+  --panel-2: #f0faff;
+  --fg: #0b2e4f;
+  --muted: #557089;
+  --accent: #0a6fa8;
+  --accent-fg: #ffffff;
+  --accent-2: #ff5a36;
+  --danger: #d63a1c;
+  --line: rgba(11, 46, 79, .2);
+  --liquid: #ffd166;
+  --liquid-2: #ff5e62;
+  --glass: rgba(10, 111, 168, .07);
+  --glass-edge: rgba(11, 46, 79, .55);
+  --font-display: "Righteous", "Arial Black", sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .03em;
+  --display-weight: 400;
+  --radius: 16px;
+  --shadow: 0 0 0 2px #0b2e4f, 0 0 0 6px #ffffff, 0 0 0 8px #ff5a36;
+  color-scheme: light;
+}
+html[data-skin="pride"] {
+  --bg: #15111f;
+  --bg-art: radial-gradient(800px 500px at 0% 0%, rgba(255, 80, 160, .18), transparent 65%), radial-gradient(800px 500px at 100% 100%, rgba(80, 160, 255, .18), transparent 65%), linear-gradient(180deg, #1b1528 0%, #15111f 100%);
+  --panel: rgba(30, 24, 44, .88);
+  --panel-2: #261e38;
+  --fg: #fbf7ff;
+  --muted: #b3a6cc;
+  --accent: #ff4fa3;
+  --accent-fg: #ffffff;
+  --accent-2: #3fa9ff;
+  --danger: #ff5a5a;
+  --line: rgba(255, 255, 255, .16);
+  --liquid: #ff4fa3;
+  --liquid-2: #7b3cff;
+  --glass: rgba(255, 240, 255, .08);
+  --glass-edge: rgba(255, 240, 255, .6);
+  --font-display: "Baloo 2", "Arial Rounded MT Bold", sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .01em;
+  --display-weight: 800;
+  --radius: 18px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.45);
+  color-scheme: dark;
+}
+html[data-skin="pride"] .top { border-bottom: 0; box-shadow: 0 4px 0 0 transparent; background-image: linear-gradient(90deg, #e40303, #ff8c00, #ffed00, #008026, #24408e, #732982); background-size: 100% 5px; background-repeat: no-repeat; background-position: bottom; }
+html[data-skin="pride"] .up-next .who, html[data-skin="pride"] .brand-name { background: linear-gradient(90deg, #ff5a5a, #ffa63d, #ffe14d, #4fd06b, #4f8cff, #b05cff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-skin="wedding"] {
+  --bg: #fbf7f2;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z' fill='none' stroke='%23c9a45c' stroke-opacity='.10' stroke-width='1'/%3E%3C/svg%3E"), radial-gradient(900px 500px at 50% -10%, rgba(240, 200, 200, .35), transparent 70%), linear-gradient(180deg, #fdf9f4 0%, #f8f1ea 100%);
+  --panel: #ffffff;
+  --panel-2: #fbf4ee;
+  --fg: #3b3030;
+  --muted: #8b7b74;
+  --accent: #b08a3e;
+  --accent-fg: #ffffff;
+  --accent-2: #d99a9a;
+  --danger: #b3423a;
+  --line: rgba(176, 138, 62, .3);
+  --liquid: #f6e2a6;
+  --liquid-2: #d9b45a;
+  --glass: rgba(255, 250, 240, .4);
+  --glass-edge: rgba(150, 120, 80, .55);
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .02em;
+  --display-weight: 600;
+  --radius: 6px;
+  --shadow: 0 0 0 1px var(--line), 0 0 0 5px #ffffff, 0 0 0 6px var(--line), 0 18px 36px rgba(120, 90, 60, .12);
+  color-scheme: light;
+}
+html[data-skin="wedding"] h2, html[data-skin="wedding"] .up-next .who, html[data-skin="wedding"] .landed .game-title, html[data-skin="wedding"] .brand-name { font-style: italic; }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1077,6 +1207,42 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "Bartender's choice", spin: "Spin",
       quips: ["Last call!", "Put it on my tab.", "The jukebox is judging you.", "Cash only."],
     },
+    starwars: {
+      label: "Star Wars", dot: "#ffe81f",
+      tagline: "Bet list night · A long time ago, in a living room far, far away",
+      wheel: ["#ffe81f", "#15161c", "#3fa9ff", "#ff3b30", "#5cff5c", "#9a9686"],
+      landed: "The Force has chosen", spin: "Spin",
+      quips: ["Do or do not. There is no sip.", "May the shots be with you.", "I have a bad feeling about this.", "It's a trap!"],
+    },
+    sakura: {
+      label: "Sakura", dot: "#f48fb1",
+      tagline: "Bet list night · Kanpai under the cherry blossoms",
+      wheel: ["#f48fb1", "#ffffff", "#d6336c", "#ffd6e2", "#5c3d2e", "#9bc48a"],
+      landed: "A game blooms", spin: "Spin",
+      quips: ["Kanpai!", "Ichigo ichie: this shot happens only once.", "Petals fall. Shots rise.", "Hanami mode: on."],
+    },
+    cruise: {
+      label: "Cruise", dot: "#0a6fa8",
+      tagline: "Bet list night · All aboard the shot ship",
+      wheel: ["#0a6fa8", "#ffffff", "#ff5a36", "#ffd166", "#35c4d8", "#0b2e4f"],
+      landed: "Next port of call", spin: "Spin",
+      quips: ["Captain's orders.", "Man overboard! Drink.", "The buffet can't save you now.", "Land ho!"],
+    },
+    pride: {
+      label: "Pride", dot: "#ff4fa3",
+      tagline: "Bet list night · Love is love, shots are shots",
+      wheel: ["#e40303", "#ff8c00", "#ffed00", "#008026", "#24408e", "#732982", "#5bcefa", "#f5a9b8"],
+      liquidStops: ["#ff5a5a", "#ffa63d", "#ffe14d", "#4fd06b", "#4f8cff", "#b05cff"],
+      landed: "It's giving game night", spin: "Spin",
+      quips: ["Slay.", "Love is love. Shots are shots.", "Living your truth, one shot at a time.", "Werk!"],
+    },
+    wedding: {
+      label: "Wedding", dot: "#d9b45a",
+      tagline: "Bet list night · To have and to pour",
+      wheel: ["#b08a3e", "#ffffff", "#d99a9a", "#f6e2a6", "#8b7b74", "#fbe9e4"],
+      landed: "Dearly beloved, we gather to play", spin: "Spin",
+      quips: ["Speak now or forever hold your shot.", "Cheers to the happy couple!", "Til death do us pour.", "Something old, something new, something poured for you."],
+    },
   };
 
   // ---------- Utilities ----------
@@ -1291,12 +1457,18 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Shot glass SVG ----------
   let glassSeq = 0;
   const liquidY = (f) => 108 - Math.max(0, Math.min(1, f)) * 99;
+  // a theme can give the liquid several colors (Pride pours a rainbow)
+  function liquidStopsSVG() {
+    const stops = SKINS[S.skin].liquidStops;
+    if (!stops) return `<stop offset="0" stop-color="var(--liquid)"/><stop offset="1" stop-color="var(--liquid-2)"/>`;
+    return stops.map((c, i) => `<stop offset="${(i / (stops.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join("");
+  }
   function glassSVG(fill, { cls = "", stat = false } = {}) {
     const id = "gl" + (++glassSeq);
     return `<svg class="glass ${stat ? "static" : ""} ${cls}" viewBox="0 0 100 130" aria-hidden="true">
       <defs>
         <clipPath id="${id}c"><path d="M15 12 L85 12 L76 106 L24 106 Z"/></clipPath>
-        <linearGradient id="${id}g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--liquid)"/><stop offset="1" stop-color="var(--liquid-2)"/></linearGradient>
+        <linearGradient id="${id}g" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="3" y2="97">${liquidStopsSVG()}</linearGradient>
       </defs>
       <path d="M10 6 L90 6 L80 112 L20 112 Z" fill="var(--glass)"/>
       <g clip-path="url(#${id}c)">

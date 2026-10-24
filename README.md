@@ -22,7 +22,7 @@ The **Chaos roll** button in the header opens a random number picker you can use
 
 ## Themes
 
-Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, Pokémon, Synthwave, Street Fighter, Minecraft, Fallout, Mario Kart, Mortal Kombat, Skyrim, GTA, Among Us, and Dive Bar. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
+Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, Pokémon, Synthwave, Street Fighter, Minecraft, Fallout, Mario Kart, Mortal Kombat, Skyrim, GTA, Among Us, Dive Bar, Star Wars, Sakura, Cruise, Pride, and Wedding. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
 
 ## Saving
 
