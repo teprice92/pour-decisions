@@ -8,7 +8,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -343,6 +343,165 @@ html[data-skin="fallout"] {
   --shadow: 0 0 0 3px #ffd23f, 0 18px 40px rgba(0,0,0,.45);
   color-scheme: dark;
 }
+html[data-skin="mariokart"] {
+  --bg: #bfe6ff;
+  --bg-art: linear-gradient(180deg, #7cc8ff 0%, #bfe6ff 55%, #e9f7ff 100%);
+  --panel: #ffffff;
+  --panel-2: #eef7ff;
+  --fg: #14213d;
+  --muted: #55607a;
+  --accent: #e4000f;
+  --accent-fg: #ffffff;
+  --accent-2: #ffd400;
+  --danger: #c0000c;
+  --line: rgba(20, 33, 61, .25);
+  --liquid: #ffd400;
+  --liquid-2: #e5007e;
+  --glass: rgba(20, 100, 200, .08);
+  --glass-edge: rgba(20, 33, 61, .6);
+  --font-display: "Lilita One", "Arial Black", sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .02em;
+  --display-weight: 400;
+  --radius: 16px;
+  --shadow: 0 0 0 3px #14213d, 0 6px 0 3px #14213d;
+  color-scheme: light;
+}
+html[data-skin="mariokart"] body { background: repeating-conic-gradient(#14213d 0 25%, #ffffff 0 50%) 0 0 / 24px 24px repeat-x, var(--bg-art); background-attachment: fixed; }
+html[data-skin="mariokart"] .up-next .who, html[data-skin="mariokart"] .brand-name { color: #ffd400; -webkit-text-stroke: 2px #e4000f; paint-order: stroke fill; text-shadow: 3px 3px 0 #14213d; }
+html[data-skin="mortalkombat"] {
+  --bg: #080404;
+  --bg-art: radial-gradient(1100px 500px at 50% 110%, rgba(193, 18, 31, .4), transparent 65%), radial-gradient(600px 400px at 50% -10%, rgba(212, 160, 23, .14), transparent 70%), linear-gradient(180deg, #120606 0%, #080404 100%);
+  --panel: rgba(20, 10, 8, .88);
+  --panel-2: #1f100c;
+  --fg: #f2e6c9;
+  --muted: #a8906a;
+  --accent: #d4a017;
+  --accent-fg: #1a1000;
+  --accent-2: #c1121f;
+  --danger: #ff4b3e;
+  --line: rgba(212, 160, 23, .32);
+  --liquid: #c1121f;
+  --liquid-2: #4d0006;
+  --glass: rgba(255, 230, 200, .07);
+  --glass-edge: rgba(230, 200, 150, .55);
+  --font-display: "Metal Mania", "Impact", serif;
+  --font-body: "Saira", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .04em;
+  --display-weight: 400;
+  --radius: 4px;
+  --shadow: 0 0 0 1px var(--line), 0 0 0 4px rgba(0,0,0,.5), 0 20px 50px rgba(0,0,0,.7);
+  color-scheme: dark;
+}
+html[data-skin="mortalkombat"] h2, html[data-skin="mortalkombat"] .up-next .who, html[data-skin="mortalkombat"] .landed .game-title { text-shadow: 0 0 14px rgba(193, 18, 31, .7), 2px 2px 0 #000; }
+html[data-skin="skyrim"] {
+  --bg: #121518;
+  --bg-art: linear-gradient(170deg, transparent 60%, rgba(220, 230, 240, .05) 60.2%, transparent 75%), linear-gradient(195deg, transparent 52%, rgba(220, 230, 240, .06) 52.2%, transparent 70%), radial-gradient(900px 500px at 50% -10%, rgba(180, 200, 220, .16), transparent 70%), linear-gradient(180deg, #1b2026 0%, #121518 100%);
+  --panel: rgba(22, 26, 30, .88);
+  --panel-2: #20262c;
+  --fg: #e8e6e0;
+  --muted: #9aa3a8;
+  --accent: #d9d3c4;
+  --accent-fg: #15181b;
+  --accent-2: #7f9bb3;
+  --danger: #e06a55;
+  --line: rgba(217, 211, 196, .25);
+  --liquid: #d98e2b;
+  --liquid-2: #7a4310;
+  --glass: rgba(230, 240, 250, .07);
+  --glass-edge: rgba(220, 225, 230, .55);
+  --font-display: "Marcellus SC", "Times New Roman", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .08em;
+  --display-weight: 400;
+  --radius: 2px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+html[data-skin="skyrim"] .panel { border-top: 1px solid rgba(217, 211, 196, .5); border-bottom: 1px solid rgba(217, 211, 196, .5); }
+html[data-skin="gta"] {
+  --bg: #0e0f0e;
+  --bg-art: linear-gradient(155deg, rgba(255, 150, 60, .12) 0%, transparent 35%), radial-gradient(800px 500px at 100% 100%, rgba(87, 166, 74, .2), transparent 70%), linear-gradient(180deg, #171917 0%, #0e0f0e 100%);
+  --panel: rgba(22, 24, 22, .9);
+  --panel-2: #1f221f;
+  --fg: #f5f5f5;
+  --muted: #a3aaa2;
+  --accent: #57a64a;
+  --accent-fg: #071205;
+  --accent-2: #f0c419;
+  --danger: #e03131;
+  --line: rgba(255, 255, 255, .14);
+  --liquid: #e6a520;
+  --liquid-2: #8a5a07;
+  --glass: rgba(240, 255, 240, .07);
+  --glass-edge: rgba(240, 240, 240, .55);
+  --font-display: "Anton", "Impact", sans-serif;
+  --font-body: "Rajdhani", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .03em;
+  --display-weight: 400;
+  --radius: 0px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+html[data-skin="gta"] h2, html[data-skin="gta"] .up-next .who, html[data-skin="gta"] .brand-name, html[data-skin="gta"] .landed .game-title { -webkit-text-stroke: 1.5px #000; paint-order: stroke fill; text-shadow: 3px 3px 0 #000; }
+html[data-skin="gta"] .landed .eyebrow { color: var(--accent-2); }
+html[data-skin="amongus"] {
+  --bg: #0b0d24;
+  --bg-art: radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent), radial-gradient(1px 1px at 90px 80px, #cfe, transparent), radial-gradient(2px 2px at 160px 20px, #fff, transparent), radial-gradient(1px 1px at 130px 150px, #fff, transparent), radial-gradient(1.5px 1.5px at 40px 170px, #bdf, transparent);
+  --panel: rgba(22, 26, 56, .9);
+  --panel-2: #20264f;
+  --fg: #f1f4ff;
+  --muted: #9aa3cc;
+  --accent: #c51111;
+  --accent-fg: #ffffff;
+  --accent-2: #38fedc;
+  --danger: #ff5050;
+  --line: rgba(150, 170, 230, .28);
+  --liquid: #9ad7f0;
+  --liquid-2: #4b8fb3;
+  --glass: rgba(200, 220, 255, .08);
+  --glass-edge: rgba(220, 230, 255, .6);
+  --font-display: "Fredoka", "Arial Rounded MT Bold", sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .03em;
+  --display-weight: 700;
+  --radius: 22px;
+  --shadow: 0 0 0 3px #000, 0 12px 30px rgba(0,0,0,.5);
+  color-scheme: dark;
+}
+html[data-skin="amongus"] body { background-size: 200px 200px; }
+html[data-skin="divebar"] {
+  --bg: #1a0e0c;
+  --bg-art: radial-gradient(700px 400px at 50% 0%, rgba(255, 60, 120, .18), transparent 70%), repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 3px, transparent 3px 34px), repeating-linear-gradient(90deg, rgba(0,0,0,.25) 0 3px, transparent 3px 70px), linear-gradient(180deg, #3a1a14 0%, #1a0e0c 100%);
+  --panel: rgba(22, 12, 10, .9);
+  --panel-2: #2a1612;
+  --fg: #fbeee0;
+  --muted: #c09a82;
+  --accent: #ff3c78;
+  --accent-fg: #1a0008;
+  --accent-2: #3cc8ff;
+  --danger: #ff6a4a;
+  --line: rgba(255, 60, 120, .3);
+  --liquid: #f2a03d;
+  --liquid-2: #9a5410;
+  --glass: rgba(255, 245, 230, .08);
+  --glass-edge: rgba(255, 240, 220, .55);
+  --font-display: "Pacifico", "Brush Script MT", cursive;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: 0;
+  --display-weight: 400;
+  --radius: 10px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.55);
+  color-scheme: dark;
+}
+html[data-skin="divebar"] h2, html[data-skin="divebar"] .up-next .who, html[data-skin="divebar"] .brand-name { color: #ffd6e5; text-shadow: 0 0 6px #ff3c78, 0 0 18px #ff3c78, 0 0 36px rgba(255, 60, 120, .6); }
+html[data-skin="divebar"] .landed .game-title { color: #d8f4ff; text-shadow: 0 0 6px #3cc8ff, 0 0 18px #3cc8ff; }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -413,12 +572,10 @@ html[data-skin="metalgear"] .brand-name { font-size: 2.1rem; }
   border: 1px solid var(--line); background: transparent; color: var(--muted);
   display: inline-flex; align-items: center; gap: 6px;
 }
-.skin-select { display: none; align-items: center; gap: 8px; }
+/* 19 themes is too many for a button row, so the picker is a dropdown */
+.skins { display: none; }
+.skin-select { display: flex; align-items: center; gap: 8px; }
 .skin-select select { width: auto; padding: 7px 10px; font-weight: 700; }
-@media (max-width: 700px) {
-  .skins { display: none; }
-  .skin-select { display: flex; }
-}
 .skin-btn i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .skin-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
@@ -857,6 +1014,48 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       wheel: ["#ffd23f", "#173a72", "#c8102e", "#3d7be0", "#fff6d6", "#0d2347"],
       landed: "Vault-Tec approves", spin: "Spin",
       quips: ["War. War never changes.", "+1 Nuka-Cola. +5 Rads.", "You feel… S.P.E.C.I.A.L.", "Please stand by."],
+    },
+    mariokart: {
+      label: "Mario Kart", dot: "#e4000f",
+      tagline: "Bet list night · 150cc of pure regret",
+      wheel: ["#e4000f", "#ffd400", "#1e6fe0", "#36b030", "#ffffff", "#14213d"],
+      landed: "3… 2… 1… GO!", spin: "Spin",
+      quips: ["Blue shell incoming!", "Lap 2. Shot 2.", "Mushroom boost!", "Rainbow Road has no guardrails. Neither does this night."],
+    },
+    mortalkombat: {
+      label: "Mortal Kombat", dot: "#d4a017",
+      tagline: "Bet list night · Test your might",
+      wheel: ["#c1121f", "#d4a017", "#1f100c", "#4aa3df", "#f2e6c9", "#5c0a10"],
+      landed: "Fight!", spin: "Spin",
+      quips: ["Finish him!", "Fatality.", "Flawless victory.", "Get over here!", "Toasty!"],
+    },
+    skyrim: {
+      label: "Skyrim", dot: "#d9d3c4",
+      tagline: "Bet list night · Hey, you. You're finally drunk.",
+      wheel: ["#3b4652", "#d9d3c4", "#7f9bb3", "#2a3138", "#d98e2b", "#5e6b52"],
+      landed: "A new quest begins", spin: "Spin",
+      quips: ["I used to be sober like you, then I took a shot to the knee.", "FUS RO DAH!", "Your drinking skill has increased.", "Hey, you. You're finally awake."],
+    },
+    gta: {
+      label: "GTA", dot: "#57a64a",
+      tagline: "Bet list night · Respect +",
+      wheel: ["#57a64a", "#1f221f", "#f0c419", "#e03131", "#f5f5f5", "#2d6a25"],
+      landed: "Mission start", spin: "Spin",
+      quips: ["Wasted.", "Ah, here we go again.", "Mission passed! Respect +", "All we had to do was follow the damn train."],
+    },
+    amongus: {
+      label: "Among Us", dot: "#c51111",
+      tagline: "Bet list night · Someone here is sus",
+      wheel: ["#c51111", "#132ed1", "#117f2d", "#ed54ba", "#ef7d0e", "#f6f658", "#38fedc", "#6b2fbb"],
+      landed: "Emergency meeting!", spin: "Spin",
+      quips: ["Sus.", "That was not the impostor.", "Where? Electrical.", "Voted out. Drink up."],
+    },
+    divebar: {
+      label: "Dive Bar", dot: "#ff3c78",
+      tagline: "Bet list night · Cash only, no regrets",
+      wheel: ["#ff3c78", "#2a1612", "#3cc8ff", "#f2a03d", "#5a2a20", "#fbeee0"],
+      landed: "Bartender's choice", spin: "Spin",
+      quips: ["Last call!", "Put it on my tab.", "The jukebox is judging you.", "Cash only."],
     },
   };
 
