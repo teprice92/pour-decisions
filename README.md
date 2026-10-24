@@ -12,9 +12,24 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 4. **Shots**: the shot board shows each player's glass, total shots, and wins. Penalty buttons add ¼, ½, or 1 shot at any time.
 5. **History**: wrap up the night to save it. The hall of fame tracks wins and shots across every night, matched by player name. **Game history** lists every game you've played, how many times, and who won it, and each past night shows its games in order with the winner.
 
+## Party features
+
+- **Wild slices**: special slices on the wheel, such as Double or nothing, Everyone drinks, Spinner picks, Reverse, and Waterfall. You can set 0 to 3 of them in Settings.
+- **Side bets**: before you record a game, anyone can bet on who wins. Wrong guesses drink the stake, and right guesses hand it out.
+- **Rivalries and grudge matches**: when someone keeps beating the same person, the app points it out. One tap makes the next game a grudge match where the loser drinks double.
+- **Streaks**: three wins in a row puts you "on fire" 🔥. Whoever breaks a streak of 3 or more makes the streak holder drink a bonus.
+- **Water rounds**: a 💧 reminder every few shots for each player. Set it in Settings.
+- **Finale bracket**: under Shots → Finale bracket, the top players by tonight's wins play a knockout. The loser of each match drinks.
+- **Night recap**: MVP, most shots, biggest upset, most played game, and a funny title for each player. Share it as an image or copy it as text. It also pops up when you wrap up a night.
+- **Trophy case**: achievements that carry across every night, like Hat trick, Untouchable, Perfect night, Console warrior, and Champion.
+- **Avatars and colors**: tap a player's circle in the Lineup to give them an emoji and a color.
+- **TV mode**: a big-screen layout with the wheel and a live shot board. Use it on a laptop hooked to the TV, or mirror your phone.
+- **Send tonight to another phone**: History → Send tonight makes a link that opens the night on another phone. It's a copy, so the two phones don't stay in sync.
+- **Theme sound packs**: many themes have their own sounds, like the Zelda secret jingle, the Mario coin, a lightsaber hum, and the Metal Gear alert.
+
 ## Settings
 
-Under **History → Settings** you can set the default shots on the line for every new game, and whether the winner drinks half by default.
+Under **History → Settings** you can set the default shots on the line, whether the winner drinks half by default, the number of wild slices, the side bet stake, the streak-breaker bonus, and how often water rounds come up.
 
 ## Chaos roll
 

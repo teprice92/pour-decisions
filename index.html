@@ -776,6 +776,14 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .games-list li.played input { text-decoration: line-through; opacity: .55; }
 .games-list input { padding: 7px 9px; font-size: .95rem; }
 .pcard.active { outline: 3px solid var(--accent); outline-offset: 2px; }
+.avatar-btn { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 3px solid var(--pc); background: var(--panel-2); font-size: 1.3rem; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.avatar-pick { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+.emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; }
+.emoji-grid button { font-size: 1.2rem; border: 1px solid transparent; background: none; border-radius: 8px; padding: 4px; cursor: pointer; color: var(--fg); }
+.emoji-grid button[aria-pressed="true"] { border-color: var(--accent); background: var(--panel); }
+.color-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.color-row button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--panel); cursor: pointer; box-shadow: 0 0 0 1px var(--line); }
+.color-row button[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--fg); }
 .lib-chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 220px; overflow-y: auto; }
 .lib-chip { display: inline-flex; align-items: stretch; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-2); overflow: hidden; }
 .lib-chip button { font: 600 .88rem/1.2 var(--font-body); background: none; border: 0; color: var(--fg); cursor: pointer; padding: 7px 4px 7px 12px; }
@@ -902,12 +910,53 @@ details.night .body { padding: 10px 0 0 18px; display: grid; gap: 10px; }
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   overflow-y: auto;
 }
+#pour { z-index: 70; } /* the pour always plays on top, even over the bracket or recap */
 .pour-card { display: grid; justify-items: center; gap: 10px; text-align: center; max-width: 440px; cursor: pointer; }
 .pour-card .glass { width: 200px; height: 260px; }
 .pour-card .count { font-family: var(--font-display); font-size: 4rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--accent); }
 html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .pour-card .who { font-size: 1.15rem; }
 .pour-card .quip { font-style: italic; color: var(--muted); }
+.sheet-modal { width: min(760px, 100%); }
+.recap { display: grid; gap: 10px; }
+.recap-row { display: grid; grid-template-columns: 2.2em minmax(0, 1fr); gap: 10px; align-items: baseline; padding-block: 8px; border-top: 1px solid var(--line); }
+.recap-row:first-child { border-top: 0; }
+.recap-row .ic { font-size: 1.4rem; }
+.recap-row b { font-family: var(--font-display); text-transform: var(--display-case); letter-spacing: var(--display-track); }
+.titles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 8px; }
+.titles div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel-2); }
+.trophy-grid { display: grid; gap: 12px; }
+.trophy-player { display: grid; gap: 6px; }
+.trophies { display: flex; flex-wrap: wrap; gap: 6px; }
+.trophy { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: .85rem; background: var(--panel-2); }
+.trophy .ti { font-size: 1.1rem; }
+.trophy.locked { opacity: .35; filter: grayscale(1); }
+.bracket { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr); gap: 14px; overflow-x: auto; padding-bottom: 6px; }
+.bround { display: grid; gap: 10px; align-content: center; }
+.match { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: var(--panel-2); display: grid; gap: 8px; }
+.match .vs { font-weight: 700; }
+.match .row input { flex: 1 1 120px; }
+.champion { text-align: center; font-family: var(--font-display); font-size: 1.8rem; color: var(--accent); }
+/* TV mode: one big screen with the wheel and the shot board, for casting or mirroring */
+.tv-board { display: grid; gap: 8px; }
+.tv-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding-block: 6px; border-top: 1px solid var(--line); }
+.tv-row:first-child { border-top: 0; }
+.tv-row svg { width: 40px; height: 52px; }
+.tv-row .nm { font-family: var(--font-display); font-size: 1.3rem; overflow-wrap: anywhere; }
+.tv-row .num { font-size: 1.3rem; font-weight: 700; }
+html.tv body { font-size: 19px; }
+html.tv .skin-select, html.tv .tabs .tab, html.tv #callGame { display: none; }
+html.tv .wrap, html.tv .top-inner { max-width: none; }
+html.tv .spin-layout { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+html.tv .wheel-box { max-width: min(78vh, 900px); }
+html.tv #roundLog { display: none; }
+html.tv footer { display: none; }
+@media (max-width: 860px) { .tv-toggle { display: none; } }
+.pour-card .pour-note { font-weight: 700; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+.wild-card .game-title { color: var(--accent); }
+details.bets summary { cursor: pointer; }
+.bet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 8px; margin-block: 8px; }
+.bet select { padding: 7px 9px; }
 .modal { width: min(640px, 100%); display: grid; gap: 16px; }
 .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .rng-stage { display: grid; place-items: center; min-height: 320px; position: relative; perspective: 900px; }
@@ -991,6 +1040,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="scores" id="tab-scores">Shots</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
+      <button class="btn small ghost tv-toggle" id="tvBtn" type="button">TV mode</button>
       <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
     </nav>
@@ -1010,7 +1060,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </div>
         <div class="row" style="justify-content:center;margin-top:12px" id="poolCtl"></div>
       </div>
-      <div class="stack" id="spinSide"></div>
+      <div class="stack">
+        <div class="stack" id="spinSide"></div>
+        <div class="panel" id="tvBoard" hidden></div>
+      </div>
     </div>
     <div class="panel" id="roundLog"></div>
   </section>
@@ -1034,6 +1087,19 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="btn small ghost" id="closeLog" type="button">Close</button>
     </div>
     <div class="stack" id="logBody" style="gap:16px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="sheet" hidden>
+  <div class="panel modal sheet-modal" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow" id="sheetEyebrow"></div>
+        <h2 id="sheetTitle"></h2>
+      </div>
+      <button class="btn small ghost" id="closeSheet" type="button">Close</button>
+    </div>
+    <div class="stack" id="sheetBody" style="gap:14px"></div>
   </div>
 </div>
 
@@ -1281,6 +1347,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   });
   const fresh = () => ({
     skin: "xbox", tab: "setup", sound: true, defaultShots: 1, winnerHalf: false,
+    wildSlices: 2, betStake: 0.5, waterEvery: 3, streakBonus: 0.5,
     night: newNight(SAMPLE.map(([n, g]) => mkPlayer(n, g)), true),
     archive: [],
   });
@@ -1307,6 +1374,37 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const remaining = (night = N()) => { const done = playedIds(night); return allGames(night).filter((g) => !done.has(g.id)); };
   const gameById = (id, night = N()) => allGames(night).find((g) => g.id === id) || (night.extras || []).find((g) => g.id === id);
   const spinner = () => N().players.length ? N().players[N().turn % N().players.length] : null;
+  // name with the player's emoji, for display
+  const pname = (p) => (p ? (p.emoji ? p.emoji + " " : "") + p.name : "?");
+  const pnameById = (id, night = N()) => pname(playerById(id, night));
+  // turns go around the table; a Reverse wild slice flips the direction
+  function advanceTurn(n, step = 1) {
+    const len = n.players.length; if (!len) return;
+    n.turn = (((n.turn + step * (n.dir || 1)) % len) + len) % len;
+  }
+  // current win streak for each player: consecutive most recent games won
+  function streaks(night = N(), rounds = night.rounds) {
+    const st = {}; night.players.forEach((p) => (st[p.id] = 0));
+    rounds.forEach((r) => {
+      if (!r.gameId) return;
+      night.players.forEach((p) => (st[p.id] = r.winner === p.id ? st[p.id] + 1 : 0));
+    });
+    return st;
+  }
+  // head-to-head tonight: winner beats everyone who drank that game
+  function rivalry(night = N()) {
+    const h = {};
+    night.rounds.forEach((r) => {
+      if (!r.gameId || !r.winner || r.finale) return;
+      r.drinks.forEach((d) => { if (d.pid !== r.winner) { const k = r.winner + "|" + d.pid; h[k] = (h[k] || 0) + 1; } });
+    });
+    let best = null;
+    Object.entries(h).forEach(([k, w]) => {
+      const [a, b] = k.split("|"); const l = h[b + "|" + a] || 0;
+      if (w >= 3 && w - l >= 2 && playerById(a, night) && playerById(b, night) && (!best || w - l > best.w - best.l)) best = { a, b, w, l };
+    });
+    return best;
+  }
   // every game you've actually played, across all saved nights and tonight
   function gameLibrary() {
     const m = new Map();
@@ -1355,7 +1453,42 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
     } catch { /* audio unavailable */ }
   }
-  const fanfare = () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => blip(f, 0.12, "triangle", 0.06), i * 90));
+  function noise(dur = 0.12, vol = 0.06) {
+    if (!S.sound) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const buf = actx.createBuffer(1, Math.floor(actx.sampleRate * dur), actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = actx.createBufferSource(), g = actx.createGain(); g.gain.value = vol;
+      src.buffer = buf; src.connect(g).connect(actx.destination); src.start();
+    } catch { /* audio unavailable */ }
+  }
+  // per-theme sound packs: [frequency, seconds, delay ms] notes, oscillator type, wheel tick
+  const SOUND_PACKS = {
+    zelda: { type: "square", land: [[784, .1, 0], [740, .1, 110], [622, .1, 220], [440, .1, 330], [415, .1, 440], [659, .1, 550], [831, .1, 660], [1047, .3, 770]] },
+    nintendo: { type: "square", land: [[988, .08, 0], [1319, .4, 80]], tick: [1500, "square"] },
+    mariokart: { type: "square", land: [[523, .12, 0], [523, .12, 400], [523, .12, 800], [1047, .4, 1200]], tick: [1500, "square"] },
+    metalgear: { type: "square", land: [[1760, .07, 0], [1760, .3, 100]], tick: [900, "square"] },
+    starwars: { type: "sawtooth", land: [[90, .8, 0], [93, .8, 0], [180, .5, 0]], tick: [300, "sawtooth"], pour: "sawtooth" },
+    halo: { type: "triangle", land: [[220, .7, 0], [277, .7, 0], [330, .7, 0], [440, .9, 300]], tick: [700, "triangle"] },
+    castlevania: { type: "square", land: [[440, .12, 0], [523, .12, 120], [659, .12, 240], [880, .35, 360]], tick: [600, "square"] },
+    pokemon: { type: "square", land: [[1047, .1, 0], [1319, .1, 110], [1568, .1, 220], [2093, .3, 330]] },
+    synthwave: { type: "sawtooth", land: [[220, .15, 0], [330, .15, 150], [440, .15, 300], [660, .4, 450]], tick: [1100, "sawtooth"] },
+    streetfighter: { type: "square", land: [[130, .15, 0], [98, .3, 150]], hit: true },
+    mortalkombat: { type: "square", land: [[110, .2, 0], [82, .45, 200]], hit: true },
+    minecraft: { type: "square", land: [[392, .08, 0], [523, .08, 90], [659, .2, 180]], tick: [800, "square"] },
+    amongus: { type: "triangle", land: [[880, .15, 0], [660, .15, 0], [880, .15, 300], [660, .15, 300]] },
+    divebar: { type: "triangle", land: [[392, .15, 0], [494, .15, 120], [587, .4, 240]], tick: [500, "triangle"] },
+    wedding: { type: "sine", land: [[523, .3, 0], [659, .3, 250], [784, .3, 500], [1047, .6, 750]], tick: [1800, "sine"] },
+    sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
+  };
+  const pack = () => SOUND_PACKS[S.skin] || {};
+  function fanfare() {
+    const sp = pack();
+    if (sp.hit) noise(0.15, 0.08);
+    (sp.land || [[523, .12, 0], [659, .12, 90], [784, .12, 180], [1047, .12, 270]]).forEach(([f, d, t]) => setTimeout(() => blip(f, d, sp.type || "triangle", 0.06), t));
+  }
+  const tickSound = () => { const t = pack().tick || [1200, "square"]; blip(t[0], 0.02, t[1], 0.025); };
 
   // ---------- Wheel ----------
   class Wheel {
@@ -1436,7 +1569,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           this.draw();
           const idx = this.indexAt(this.rot);
           if (idx !== last) {
-            last = idx; blip(1200, 0.02, "square", 0.025);
+            last = idx; tickSound();
             if (this.pointer) { this.pointer.classList.remove("tick"); void this.pointer.offsetWidth; this.pointer.classList.add("tick"); }
           }
           if (p < 1) requestAnimationFrame(step);
@@ -1458,17 +1591,18 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   let glassSeq = 0;
   const liquidY = (f) => 108 - Math.max(0, Math.min(1, f)) * 99;
   // a theme can give the liquid several colors (Pride pours a rainbow)
-  function liquidStopsSVG() {
+  function liquidStopsSVG(water) {
+    if (water) return `<stop offset="0" stop-color="#d6f3ff"/><stop offset="1" stop-color="#4fb3f0"/>`;
     const stops = SKINS[S.skin].liquidStops;
     if (!stops) return `<stop offset="0" stop-color="var(--liquid)"/><stop offset="1" stop-color="var(--liquid-2)"/>`;
     return stops.map((c, i) => `<stop offset="${(i / (stops.length - 1)).toFixed(2)}" stop-color="${c}"/>`).join("");
   }
-  function glassSVG(fill, { cls = "", stat = false } = {}) {
+  function glassSVG(fill, { cls = "", stat = false, water = false } = {}) {
     const id = "gl" + (++glassSeq);
     return `<svg class="glass ${stat ? "static" : ""} ${cls}" viewBox="0 0 100 130" aria-hidden="true">
       <defs>
         <clipPath id="${id}c"><path d="M15 12 L85 12 L76 106 L24 106 Z"/></clipPath>
-        <linearGradient id="${id}g" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="3" y2="97">${liquidStopsSVG()}</linearGradient>
+        <linearGradient id="${id}g" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="3" y2="97">${liquidStopsSVG(water)}</linearGradient>
       </defs>
       <path d="M10 6 L90 6 L80 112 L20 112 Z" fill="var(--glass)"/>
       <g clip-path="url(#${id}c)">
@@ -1526,6 +1660,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
   // ---------- Lineup (setup) ----------
   const playerColor = (i) => skinColors()[i % skinColors().length];
+  const colorOf = (p, i) => p.color || playerColor(i);
+  const EMOJIS = ["😎", "🤠", "👻", "🐸", "🦊", "🐼", "🦄", "🐙", "🦖", "🐝", "🍕", "🌮", "🍺", "🍷", "🎮", "🃏", "🎲", "👑", "🔥", "⚡", "💀", "🤖", "👽", "🧙"];
+  const PCOLORS = ["#e53935", "#fb8c00", "#fdd835", "#43a047", "#00acc1", "#1e88e5", "#8e24aa", "#d81b60", "#6d4c41", "#546e7a"];
+  let avatarOpen = null;
   function renderSetup() {
     const n = N();
     const done = playedIds();
@@ -1550,10 +1688,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         ${n.players.map((p, i) => `
           <div class="panel pcard ${p.id === activePid() ? "active" : ""}" data-pid="${p.id}">
             <div class="pcard-head">
-              <span class="dot" style="background:${playerColor(i)}"></span>
+              <button type="button" class="avatar-btn" data-avatar="${p.id}" style="--pc:${colorOf(p, i)}" aria-label="Pick ${esc(p.name)}'s emoji and color">${p.emoji || "🙂"}</button>
               <input type="text" id="pname-${p.id}" data-field="name" value="${esc(p.name)}" aria-label="Player name" placeholder="Player name">
               <button class="btn small danger" type="button" data-remove="${p.id}" aria-label="Remove ${esc(p.name)}">${removeArm === p.id ? "Sure?" : "✕"}</button>
             </div>
+            ${avatarOpen === p.id ? `<div class="avatar-pick">
+              <div class="emoji-grid">${EMOJIS.map((e) => `<button type="button" data-emoji="${e}" aria-pressed="${p.emoji === e}">${e}</button>`).join("")}<button type="button" data-emoji="" aria-label="No emoji">✕</button></div>
+              <div class="color-row">${PCOLORS.map((c) => `<button type="button" data-pcolor="${c}" style="background:${c}" aria-label="Color ${c}" aria-pressed="${p.color === c}"></button>`).join("")}</div>
+            </div>` : ""}
             <div class="eyebrow">Turn ${i + 1} · ${p.games.filter((g) => g.title.trim()).length}/${n.perPlayer} picked</div>
             <ol class="games-list">
               ${p.games.map((g) => `<li class="${done.has(g.id) ? "played" : ""}"><input type="text" id="g-${g.id}" data-gid="${g.id}" value="${esc(g.title)}" placeholder="Pick a game" aria-label="Game pick" list="gameLib" autocomplete="off"></li>`).join("")}
@@ -1632,6 +1774,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (card && card.dataset.pid !== activePid() && !e.target.closest("button, input")) {
       activeId = card.dataset.pid; renderSetup(); return;
     }
+    const av = e.target.closest("[data-avatar]");
+    if (av) { avatarOpen = avatarOpen === av.dataset.avatar ? null : av.dataset.avatar; renderSetup(); return; }
+    const em = e.target.closest("[data-emoji]"), pc = e.target.closest("[data-pcolor]");
+    if ((em || pc) && card) {
+      const p = playerById(card.dataset.pid);
+      if (em) p.emoji = em.dataset.emoji || undefined;
+      if (pc) p.color = pc.dataset.pcolor;
+      n.sample = false; save(); renderSetup(); return;
+    }
     if (e.target.closest("[data-libadd]")) {
       const title = e.target.closest("[data-libadd]").dataset.libadd;
       const p = playerById(activePid()); if (!p) return;
@@ -1698,6 +1849,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!n.rounds.some((r) => r.gameId === id)) n.extras = n.extras.filter((g) => g.id !== id);
   }
 
+  // ---------- Wild slices ----------
+  const WILDS = {
+    double: { label: "Double or nothing", desc: "The next game's shots are doubled. Spin again." },
+    everyone: { label: "Everyone drinks", desc: "Everybody takes a half. Then spin again." },
+    picks: { label: "Spinner picks", desc: "Spinner, you choose the next game." },
+    reverse: { label: "Reverse!", desc: "Turn order flips direction. Spin again." },
+    waterfall: { label: "Waterfall", desc: "Everyone starts drinking with the spinner. Nobody stops until the person before them stops. Spin again when you're done." },
+  };
+  // seeded so the wild slices stay put between redraws and only reshuffle after each round
+  function seeded(seed) { return () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function wildItems(count) {
+    const n = N(), want = Math.min(S.wildSlices || 0, 3);
+    if (!want || count < 3 || n.pending) return [];
+    const rnd = seeded(n.rounds.length * 7919 + (n.created % 100000));
+    const keys = Object.keys(WILDS), out = [];
+    while (out.length < want) { const k = keys[Math.floor(rnd() * keys.length)]; if (!out.includes(k)) out.push(k); }
+    return out;
+  }
   function refreshWheel() {
     if (mainWheel.spinning) return;
     const n = N();
@@ -1705,7 +1874,17 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const list = wheelPool().list;
     const colors = skinColors();
     const idx = new Map(n.players.map((p, i) => [p.id, i]));
-    mainWheel.setItems(list.map((g, i) => ({ id: g.id, label: g.title, color: colors[(i + (idx.get(g.by) || 0)) % colors.length] })));
+    const items = list.map((g, i) => {
+      const e = playerById(g.by)?.emoji;
+      return { id: g.id, label: (e ? e + " " : "") + g.title, color: colors[(i + (idx.get(g.by) || 0)) % colors.length] };
+    });
+    const wild = wildItems(items.length);
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#ffcc00";
+    wild.forEach((k, j) => {
+      const at = Math.floor(((j + 0.5) * (items.length + wild.length)) / wild.length);
+      items.splice(Math.min(at, items.length), 0, { id: "wild:" + k, wild: k, label: "★ " + WILDS[k].label, color: accent });
+    });
+    mainWheel.setItems(items);
     // if a pending game exists, park the wheel on it
     if (n.pending && !mainWheel._parked) {
       const k = mainWheel.items.findIndex((x) => x.id === n.pending.gameId);
@@ -1728,7 +1907,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const { list, fallback } = wheelPool();
     const pend = n.pending && gameById(n.pending.gameId);
     const injected = !!(n.pending && n.pending.injected);
-    $("#hubSpin").disabled = !!pend || !list.length || mainWheel.spinning;
+    const st = streaks(), riv = rivalry();
+    $("#hubSpin").disabled = !!pend || !!n.wild || !list.length || mainWheel.spinning;
     $("#poolCtl").innerHTML = `
       <div class="seg" role="group" aria-label="What goes on the wheel">
         <button type="button" data-pool="all" aria-pressed="${n.pool === "all"}">Everyone's games</button>
@@ -1739,19 +1919,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     let side = `
       <div class="panel up-next">
         <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
-        <div class="who">${injected ? "Called shot" : esc(pend ? (playerById(n.pending.spunBy)?.name || "?") : sp?.name)}</div>
-        <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${esc(p.name)}</span>`).join("")}</div>
+        <div class="who">${injected ? "Called shot" : esc(pend ? pnameById(n.pending.spunBy) : pname(sp))}</div>
+        <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${esc(pname(p))}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}</span>`).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
+        ${n.nextMod?.double ? `<div class="note">★ Double or nothing: the next game's shots are doubled.</div>` : ""}
+        ${n.nextMod?.grudge ? `<div class="note">⚔️ Next game is a grudge match: <b>${esc(pnameById(n.nextMod.grudge[0]))}</b> vs <b>${esc(pnameById(n.nextMod.grudge[1]))}</b>. Loser drinks double. <button class="btn small ghost" type="button" id="cancelGrudge">Cancel</button></div>` : ""}
+        ${!pend && !n.wild && riv && !n.nextMod?.grudge ? `<div class="note">⚔️ Rivalry: <b>${esc(pnameById(riv.a))}</b> has beaten <b>${esc(pnameById(riv.b))}</b> ${riv.w}–${riv.l} tonight. <button class="btn small" type="button" id="grudgeBtn" data-a="${riv.a}" data-b="${riv.b}">Make the next game a grudge match</button></div>` : ""}
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
         ${(n.paused || []).length ? `<div class="note">Paused: ${n.paused.slice().reverse().map((x) => `<b>${esc(gameById(x.pending.gameId)?.title || "?")}</b>`).join(", then ")}. It comes back once this game is recorded.</div>` : ""}
         <div class="row">
-          ${!pend ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>` : ""}
+          ${!pend && !n.wild ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>` : ""}
           <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle">Log a played game</button>
           ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
         </div>
         ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, log a game you played, or wrap up the night from History.</div>` : ""}
       </div>`;
 
-    if (pend) side += recordFormHTML(pend);
+    renderTvBoard();
+    if (n.wild) side += wildCardHTML();
+    else if (pend) side += recordFormHTML(pend);
     $("#spinSide").innerHTML = side;
     renderRoundLog();
     refreshWheel();
@@ -1760,7 +1945,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function recordFormHTML(g) {
     const n = N();
     if (!form || form.gameId !== g.id) {
-      form = newResultForm({ gameId: g.id });
+      form = newResultForm({ gameId: g.id, bets: {} });
+      const mod = n.nextMod || {};
+      if (!n.pending?.injected && (mod.double || mod.grudge)) {
+        if (mod.double) form.amount *= 2;
+        if (mod.grudge) { form.grudge = mod.grudge.slice(); form.amount *= 2; }
+        Object.values(form.drinks).forEach((d) => (d.amt = form.amount));
+        applyWinnerRule(form);
+      }
     }
     const picker = playerById(g.by);
     const injected = !!(n.pending && n.pending.injected);
@@ -1774,10 +1966,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="game-title">${esc(g.title)}</div>
           </div>
         </div>
+        ${form.grudge ? `<div class="note">⚔️ Grudge match: ${esc(pnameById(form.grudge[0]))} vs ${esc(pnameById(form.grudge[1]))}. Loser drinks double.</div>` : ""}
+        ${n.nextMod?.double && !injected ? `<div class="note">★ Double or nothing: shots on the line are doubled.</div>` : ""}
         <div class="stack" style="gap:6px">
           <div class="eyebrow">Who won?</div>
           <div class="winner-grid" role="radiogroup" aria-label="Winner">
-            ${n.players.map((p) => `<label class="pick"><input type="radio" name="winner" value="${p.id}" ${form.winner === p.id ? "checked" : ""}><span>${esc(p.name)}</span></label>`).join("")}
+            ${n.players.filter((p) => !form.grudge || form.grudge.includes(p.id)).map((p) => `<label class="pick"><input type="radio" name="winner" value="${p.id}" ${form.winner === p.id ? "checked" : ""}><span>${esc(pname(p))}</span></label>`).join("")}
             <label class="pick"><input type="radio" name="winner" value="tie" ${form.winner === "tie" ? "checked" : ""}><span>Tie / nobody</span></label>
           </div>
         </div>
@@ -1796,13 +1990,19 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           <div class="drink-grid">
             ${n.players.map((p) => { const d = form.drinks[p.id] || { on: false, amt: form.amount }; return `
               <div class="drinker ${d.on ? "" : "off"}" data-dpid="${p.id}">
-                <label><input type="checkbox" data-don="${p.id}" ${d.on ? "checked" : ""}> ${esc(p.name)}</label>
+                <label><input type="checkbox" data-don="${p.id}" ${d.on ? "checked" : ""}> ${esc(pname(p))}</label>
                 <button type="button" data-dstep="-0.25" aria-label="Less for ${esc(p.name)}">−</button>
                 <span class="mini-amt num">${fmtShots(d.amt)}</span>
                 <button type="button" data-dstep="0.25" aria-label="More for ${esc(p.name)}">+</button>
               </div>`; }).join("")}
           </div>
         </div>
+        ${!injected ? `<details class="bets" ${Object.values(form.bets || {}).some(Boolean) ? "open" : ""}>
+          <summary class="eyebrow">Side bets · wrong guesses drink ${fmtShots(S.betStake ?? 0.5)}</summary>
+          <div class="bet-grid">${n.players.map((p) => `<label class="field bet">${esc(pname(p))} bets on
+            <select data-bet="${p.id}" aria-label="${esc(p.name)}'s pick"><option value="">No bet</option>${n.players.filter((q) => !form.grudge || form.grudge.includes(q.id)).map((q) => `<option value="${q.id}" ${form.bets?.[p.id] === q.id ? "selected" : ""}>${esc(pname(q))}</option>`).join("")}</select></label>`).join("")}</div>
+          <div class="muted" style="font-size:.85rem">Right guesses get to hand out ${fmtShots(S.betStake ?? 0.5)} to anyone.</div>
+        </details>` : ""}
         <div class="row">
           <button class="btn big primary" type="button" id="recordBtn">Pour it</button>
           <button class="btn ghost" type="button" id="respinBtn">${injected ? ((n.paused || []).length ? "Cancel, back to " + esc(gameById(n.paused[n.paused.length - 1].pending.gameId)?.title || "the paused game") : "Cancel, back to the wheel") : "Put it back &amp; respin"}</button>
@@ -1821,6 +2021,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function applyWinnerRule(f) {
     N().players.forEach((p) => {
       const d = f.drinks[p.id] || (f.drinks[p.id] = { on: true, amt: f.amount });
+      if (f.grudge && !f.grudge.includes(p.id)) { d.on = false; return; }
       if (f.winner && f.winner !== "tie" && p.id === f.winner) { d.on = f.winnerHalf; d.amt = winnerPour(f); }
       else { d.on = true; }
     });
@@ -1847,6 +2048,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.name === "winner") { form.winner = t.value; syncDrinkersToWinner(); renderSpin(); }
     else if (t.dataset.don) { form.drinks[t.dataset.don].on = t.checked; renderSpin(); }
     else if (t.id === "winnerHalf") { form.winnerHalf = t.checked; applyWinnerRule(form); renderSpin(); }
+    else if (t.dataset.bet) { form.bets = form.bets || {}; form.bets[t.dataset.bet] = t.value; }
     else if (t.id === "amtInput") { /* handled live on input */ }
   });
   function setAmount(a) {
@@ -1861,7 +2063,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const n = N();
     if (t.dataset.go) return setTab(t.dataset.go);
     if (t.id === "spinBtn") return doSpin();
-    if (t.id === "skipTurn") { n.turn = (n.turn + 1) % n.players.length; save(); renderSpin(); return; }
+    if (t.id === "skipTurn") { advanceTurn(n); save(); renderSpin(); return; }
+    if (t.id === "wildDone") { n.wild = null; save(); renderSpin(); return; }
+    if (t.dataset.pickgame) {
+      const g = gameById(t.dataset.pickgame);
+      n.pending = { gameId: g.id, spunBy: n.wild?.spunBy || spinner().id, by: g.by };
+      n.wild = null; mainWheel._parked = false; save(); fanfare(); renderSpin(); return;
+    }
+    if (t.id === "grudgeBtn") { n.nextMod = Object.assign({}, n.nextMod, { grudge: [t.dataset.a, t.dataset.b] }); save(); renderSpin(); toast("Grudge match set for the next game"); return; }
+    if (t.id === "cancelGrudge") { if (n.nextMod) delete n.nextMod.grudge; save(); renderSpin(); return; }
     if (t.id === "injectToggle") return openLog();
     if (!form) return;
     if (t.dataset.amt) return setAmount(parseFloat(t.dataset.amt));
@@ -1954,10 +2164,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const game = { id: uid(), title, by: null };
     (n.extras = n.extras || []).push(game);
     const drinks = Object.entries(f.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks });
+    const before = totals(), trophiesBefore = trophyKeys();
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks, skin: S.skin });
     save(); closeLog(); renderAll();
     toast(`${game.title} logged`);
-    await pour(drinks);
+    await pour(drinks, { notes: trophyNotes(trophiesBefore) });
+    await waterCheck(before);
   }
   $("#callGame").addEventListener("click", openLog);
   $("#closeLog").addEventListener("click", closeLog);
@@ -2001,10 +2213,38 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const sb = $("#spinBtn"); if (sb) sb.disabled = true;
     await mainWheel.spinTo(k);
     const g = items[k];
+    if (g.wild) return landWild(g.wild);
     n.pending = { gameId: g.id, spunBy: spinner().id, by: allGames().find((x) => x.id === g.id)?.by };
     mainWheel._parked = true;
     save(); fanfare(); renderSpin();
     $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+  }
+
+  async function landWild(k) {
+    const n = N();
+    n.wild = { k, spunBy: spinner()?.id };
+    if (k === "double") n.nextMod = Object.assign({}, n.nextMod, { double: true });
+    if (k === "reverse") n.dir = -(n.dir || 1);
+    save(); fanfare(); renderSpin();
+    if (k === "everyone") {
+      const amt = 0.5;
+      const drinks = n.players.map((p) => ({ pid: p.id, amt }));
+      n.rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Wild: Everyone drinks", winner: null, drinks });
+      save(); renderSpin();
+      await pour(drinks, { notes: ["Wild slice! Everybody drinks."] });
+    }
+  }
+  function wildCardHTML() {
+    const n = N(), w = n.wild; if (!w) return "";
+    const info = WILDS[w.k];
+    const choices = w.k === "picks" ? callable() : [];
+    return `<div class="panel landed wild-card">
+      <div class="eyebrow">Wild slice · ${esc(pnameById(w.spunBy))} spun it</div>
+      <div class="game-title">★ ${esc(info.label)}</div>
+      <div>${esc(info.desc)}</div>
+      ${w.k === "picks" ? `<div class="lib-chips">${choices.map((g) => `<span class="lib-chip"><button type="button" data-pickgame="${g.id}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
+      <div class="row"><button class="btn ${w.k === "picks" ? "" : "primary big"}" type="button" id="wildDone">${w.k === "picks" ? "Skip, spin again" : "Spin again"}</button></div>
+    </div>`;
   }
 
   async function recordRound() {
@@ -2012,13 +2252,76 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!form.winner) return toast("Pick a winner (or Tie) first");
     const g = gameById(n.pending.gameId);
     const injected = !!n.pending.injected;
+    const winner = form.winner === "tie" ? null : form.winner;
     const drinks = Object.entries(form.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, injected, winner: form.winner === "tie" ? null : form.winner, drinks });
-    if (!injected) n.turn = (n.turn + 1) % n.players.length;
+    const notes = [];
+    // side bets: wrong guesses drink the stake, right guesses hand it out
+    const bets = Object.entries(form.bets || {}).filter(([, pick]) => pick).map(([pid, pick]) => ({ pid, pick, right: !!winner && pick === winner }));
+    if (winner && bets.length) {
+      const stake = S.betStake ?? 0.5;
+      bets.filter((b) => !b.right).forEach((b) => addDrink(drinks, b.pid, stake));
+      const right = bets.filter((b) => b.right).map((b) => pnameById(b.pid));
+      const wrong = bets.filter((b) => !b.right).map((b) => pnameById(b.pid));
+      if (right.length) notes.push(`🔮 ${right.join(", ")} called it. Hand out ${fmtShots(stake)}.`);
+      if (wrong.length) notes.push(`🎲 ${wrong.join(", ")} bet wrong: +${fmtShots(stake)}.`);
+    }
+    notes.push(...streakNotes(winner, drinks));
+    const before = totals(), trophiesBefore = trophyKeys();
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined });
+    if (!injected) { advanceTurn(n); n.nextMod = null; }
     form = null; resumePaused();
     save(); renderSpin();
-    await pour(drinks, form?.winner);
+    notes.push(...trophyNotes(trophiesBefore));
+    await pour(drinks, { notes });
+    await waterCheck(before);
   }
+
+  function addDrink(drinks, pid, amt) {
+    const d = drinks.find((x) => x.pid === pid);
+    if (d) d.amt = q4(d.amt + amt); else drinks.push({ pid, amt });
+  }
+  // On-fire callouts, and a bonus pour for anyone whose 3+ streak just got broken
+  function streakNotes(winner, drinks) {
+    const prev = streaks(), out = [];
+    if (!winner) return out;
+    const broke = Object.keys(prev).filter((pid) => pid !== winner && prev[pid] >= 3);
+    broke.forEach((pid) => {
+      addDrink(drinks, pid, S.streakBonus ?? 0.5);
+      out.push(`🧊 Streak breaker! ${pnameById(winner)} ended ${pnameById(pid)}'s ${prev[pid]}-win streak. ${pnameById(pid)} drinks +${fmtShots(S.streakBonus ?? 0.5)}.`);
+    });
+    if (form) form._broke = broke.length ? broke : undefined;
+    const now = (prev[winner] || 0) + 1;
+    if (now >= 3) out.push(`🔥 ${pnameById(winner)} is on fire: ${now} wins in a row!`);
+    return out;
+  }
+  // water round when someone crosses every Nth shot
+  async function waterCheck(before) {
+    const every = S.waterEvery || 0; if (!every) return;
+    const after = totals();
+    const who = N().players.filter((p) => Math.floor((after[p.id]?.shots || 0) / every) > Math.floor((before[p.id]?.shots || 0) / every));
+    if (!who.length) return;
+    await pour([], { water: true, names: who.map(pname) });
+  }
+
+  function renderTvBoard() {
+    const box = $("#tvBoard"), on = document.documentElement.classList.contains("tv");
+    box.hidden = !on; if (!on) return;
+    const n = N(), t = totals(), st = streaks();
+    const rows = n.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins || t[a.id].shots - t[b.id].shots);
+    box.innerHTML = `<div class="row" style="justify-content:space-between"><h3>Shot board</h3><span class="muted">wins · shots</span></div>
+      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh - Math.floor(sh + 1e-9); return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${esc(pname(p))}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
+  }
+  $("#tvBtn").addEventListener("click", async () => {
+    const root = document.documentElement, on = !root.classList.contains("tv");
+    root.classList.toggle("tv", on);
+    $("#tvBtn").textContent = on ? "Exit TV mode" : "TV mode";
+    try { if (on && root.requestFullscreen) await root.requestFullscreen(); else if (!on && document.fullscreenElement) await document.exitFullscreen(); } catch { /* fullscreen not allowed here */ }
+    setTab("spin");
+    setTimeout(() => mainWheel.resize(), 300);
+  });
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && document.documentElement.classList.contains("tv")) { document.documentElement.classList.remove("tv"); $("#tvBtn").textContent = "TV mode"; renderAll(); setTimeout(() => mainWheel.resize(), 300); }
+  });
 
   function renderRoundLog() {
     const n = N();
@@ -2040,20 +2343,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#roundLog").addEventListener("click", (e) => {
     if (!e.target.closest("#undoRound")) return;
     const n = N(); const r = n.rounds.pop();
-    if (r && r.gameId && !r.injected) n.turn = (n.turn - 1 + n.players.length) % n.players.length;
+    if (r && r.gameId && !r.injected) advanceTurn(n, -1);
     save(); renderAll(); toast("Last round undone");
   });
 
   // ---------- Pour animation ----------
   let pourSkip = false;
-  async function pour(drinks) {
-    if (!drinks.length) return;
-    const max = Math.max(...drinks.map((d) => d.amt));
+  async function pour(drinks, { notes = [], water = false, names = [] } = {}) {
+    if (!drinks.length && !water && !notes.length) return;
+    const max = water ? 1 : drinks.length ? Math.max(...drinks.map((d) => d.amt)) : 0;
     const groups = {};
-    drinks.forEach((d) => (groups[d.amt] = groups[d.amt] || []).push(playerById(d.pid)?.name || "?"));
-    const who = Object.entries(groups).map(([a, names]) => `${names.map(esc).join(", ")} · ${fmtShots(+a)}`).join("<br>");
+    drinks.forEach((d) => (groups[d.amt] = groups[d.amt] || []).push(pnameById(d.pid)));
+    const who = water ? `💧 ${names.map(esc).join(", ")}: grab a glass of water.` : Object.entries(groups).map(([a, ns]) => `${ns.map(esc).join(", ")} · ${fmtShots(+a)}`).join("<br>");
     const ov = $("#pour"), card = $("#pourCard");
-    card.innerHTML = `<div class="eyebrow">Bottoms up</div>${glassSVG(0)}<div class="count num" id="pourCount">0</div><div class="who">${who}</div><div class="quip">${esc(pickOne(SKINS[S.skin].quips))}</div><div class="muted" style="font-size:.8rem">Tap to close</div>`;
+    card.innerHTML = `<div class="eyebrow">${water ? "Water round" : "Bottoms up"}</div>${glassSVG(0, { water })}<div class="count num" id="pourCount">${water ? "💧" : "0"}</div><div class="who">${who}</div>${notes.map((t) => `<div class="pour-note">${esc(t)}</div>`).join("")}<div class="quip">${water ? "Hydrate or die-drate." : esc(pickOne(SKINS[S.skin].quips))}</div><div class="muted" style="font-size:.8rem">Tap to close</div>`;
     ov.hidden = false; pourSkip = false;
     const svg = card.querySelector("svg");
     await wait(60);
@@ -2063,14 +2366,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const f = Math.min(1, left);
       const ms = (fast ? 450 : 900) * f + 250;
       setGlass(svg, f, ms);
-      blip(300 + 400 * f, ms / 1000, "sine", 0.03);
+      if (water) blip(500 + 300 * f, ms / 1000, "sine", 0.03); else blip(300 + 400 * f, ms / 1000, pack().pour || "sine", 0.03);
       await wait(ms);
       count += f; left -= f;
-      $("#pourCount").textContent = fmtShots(count);
+      if (!water) $("#pourCount").textContent = fmtShots(count);
       if (left > 0.001 && !pourSkip) { await wait(fast ? 120 : 260); setGlass(svg, 0, fast ? 220 : 380); await wait(fast ? 240 : 400); }
     }
-    $("#pourCount").textContent = fmtShots(max);
-    if (!pourSkip) await wait(1600);
+    if (!water && max) $("#pourCount").textContent = fmtShots(max);
+    if (!pourSkip) await wait(1600 + notes.length * 900);
     ov.hidden = true;
   }
   $("#pour").addEventListener("click", () => { pourSkip = true; $("#pour").hidden = true; });
@@ -2088,17 +2391,25 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           <div class="eyebrow">${n.started ? "Started " + fmtDate(n.started) : "Not started yet"}</div>
           <h2>Shot board</h2>
         </div>
-        <div class="muted num">${fmtShots(Object.values(t).reduce((a, x) => a + x.shots, 0))} shots poured · ${n.rounds.filter((r) => r.gameId).length} games played</div>
+        <div class="stack" style="gap:8px;justify-items:end">
+          <div class="muted num">${fmtShots(Object.values(t).reduce((a, x) => a + x.shots, 0))} shots poured · ${n.rounds.filter((r) => r.gameId).length} games played</div>
+          <div class="row">
+            <button class="btn small" type="button" data-sheet="finale">${n.finale?.champion ? "👑 Finale" : "Finale bracket"}</button>
+            <button class="btn small" type="button" data-sheet="recap">Night recap</button>
+            <button class="btn small" type="button" data-sheet="trophies">Trophy case</button>
+          </div>
+        </div>
       </div>
       <div class="score-grid">
         ${n.players.map((p) => {
           const s = t[p.id].shots, whole = Math.floor(s + 1e-9), part = s - whole;
           const cur = part > 0.001 ? part : (whole > 0 ? 1 : 0);
           const shown = Math.min(whole, 20);
-          return `<div class="panel scard" data-sp="${p.id}" data-fill="${cur}">
+          const stk = streaks()[p.id] || 0;
+          return `<div class="panel scard" data-sp="${p.id}" data-fill="${cur}" style="border-top:4px solid ${colorOf(p, n.players.indexOf(p))}">
             ${most > 0 && s === most ? `<span class="crown">Most poured</span>` : ""}
             ${topWins > 0 && t[p.id].wins === topWins ? `<span class="crown alt">Top winner</span>` : ""}
-            <div class="pname" style="margin-top:18px">${esc(p.name)}</div>
+            <div class="pname" style="margin-top:18px">${esc(pname(p))}${stk >= 3 ? ` <span title="${stk} wins in a row">🔥${stk}</span>` : ""}</div>
             ${glassSVG(prevFill[p.id] ?? 0, { cls: "glass-big" })}
             <div class="total num">${fmtShots(s)}</div>
             <div class="minis" aria-label="${fmtShots(s)} shots">${Array.from({ length: shown }, () => glassSVG(1, { stat: true })).join("")}${part > 0.001 ? glassSVG(part, { stat: true }) : ""}${whole > shown ? `<span class="more">+${whole - shown}</span>` : ""}</div>
@@ -2119,12 +2430,319 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }));
   }
   $("#view-scores").addEventListener("click", async (e) => {
+    const sh = e.target.closest("[data-sheet]"); if (sh) return openSheet(sh.dataset.sheet);
     const b = e.target.closest("[data-pen]"); if (!b) return;
     const amt = parseFloat(b.dataset.pen), p = playerById(b.dataset.pid);
     const d = [{ pid: p.id, amt }];
+    const before = totals();
     N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Penalty", winner: null, drinks: d });
     save(); renderScores();
     await pour(d);
+    await waterCheck(before);
+  });
+
+  // ---------- Trophies ----------
+  const TROPHIES = [
+    { id: "first", icon: "🥇", name: "First win", desc: "Win a game", test: (st) => st.wins >= 1 },
+    { id: "hat", icon: "🎩", name: "Hat trick", desc: "Win 3 games in a row", test: (st) => st.bestStreak >= 3 },
+    { id: "survivor", icon: "🛟", name: "Survivor", desc: "Take 10 shots in one night", test: (st) => st.maxNightShots >= 10 },
+    { id: "untouchable", icon: "🛡️", name: "Untouchable", desc: "Win 3+ games in a night and drink 1 shot or less", test: (st) => st.untouchable },
+    { id: "perfect", icon: "💎", name: "Perfect night", desc: "Win every game you played in a night (3 or more)", test: (st) => st.perfect },
+    { id: "breaker", icon: "🧊", name: "Streak breaker", desc: "End someone's 3+ win streak", test: (st) => st.breaks >= 1 },
+    { id: "oracle", icon: "🔮", name: "Oracle", desc: "Call 5 side bets right", test: (st) => st.betsRight >= 5 },
+    { id: "console", icon: "🎮", name: "Console warrior", desc: "Win on the Xbox, PlayStation, and Nintendo themes", test: (st) => ["xbox", "playstation", "nintendo"].every((k) => st.skinWins.has(k)) },
+    { id: "tourist", icon: "🗺️", name: "Theme tourist", desc: "Win on 8 different themes", test: (st) => st.skinWins.size >= 8 },
+    { id: "champ", icon: "👑", name: "Champion", desc: "Win a finale bracket", test: (st) => st.finales >= 1 },
+    { id: "regular", icon: "🍻", name: "Regular", desc: "Play 5 nights", test: (st) => st.nights >= 5 },
+    { id: "legend", icon: "🏆", name: "Legend", desc: "Win 50 games all-time", test: (st) => st.wins >= 50 },
+  ];
+  const nightsForStats = () => [...S.archive, ...(N().started ? [N()] : [])];
+  function playerStats(nights = nightsForStats()) {
+    const m = {};
+    nights.forEach((night) => {
+      const t = totals(night);
+      night.players.forEach((p) => {
+        const key = p.name.trim().toLowerCase(); if (!key) return;
+        const st = m[key] || (m[key] = { key, name: p.name.trim(), emoji: p.emoji, wins: 0, bestStreak: 0, maxNightShots: 0, untouchable: false, perfect: false, skinWins: new Set(), betsRight: 0, nights: 0, finales: 0, breaks: 0 });
+        if (p.emoji) st.emoji = p.emoji;
+        st.nights++; st.wins += t[p.id].wins; st.maxNightShots = Math.max(st.maxNightShots, t[p.id].shots);
+        if (t[p.id].wins >= 3 && t[p.id].shots <= 1) st.untouchable = true;
+        const played = night.rounds.filter((r) => r.gameId && (r.winner === p.id || r.drinks.some((d) => d.pid === p.id)));
+        if (played.length >= 3 && played.every((r) => r.winner === p.id)) st.perfect = true;
+        let cur = 0;
+        night.rounds.forEach((r) => {
+          (r.bets || []).forEach((b) => { if (b.pid === p.id && b.right) st.betsRight++; });
+          if (!r.gameId) return;
+          cur = r.winner === p.id ? cur + 1 : 0;
+          st.bestStreak = Math.max(st.bestStreak, cur);
+          if (r.winner === p.id && r.skin) st.skinWins.add(r.skin);
+          if (r.winner === p.id && (r.broke || []).length) st.breaks++;
+        });
+        if (night.finale?.champion === p.id) st.finales++;
+      });
+    });
+    return m;
+  }
+  function trophyKeys() {
+    const st = playerStats(), out = new Set();
+    Object.values(st).forEach((x) => TROPHIES.forEach((t) => { if (t.test(x)) out.add(x.key + "|" + t.id); }));
+    return out;
+  }
+  function trophyNotes(before) {
+    const after = trophyKeys(), st = playerStats(), out = [];
+    after.forEach((k) => {
+      if (before.has(k)) return;
+      const [key, id] = k.split("|"), t = TROPHIES.find((x) => x.id === id);
+      out.push(`${t.icon} ${st[key]?.name || key} unlocked ${t.name}!`);
+    });
+    return out;
+  }
+  function trophyCaseHTML() {
+    const st = Object.values(playerStats()).sort((a, b) => b.wins - a.wins);
+    if (!st.length) return `<div class="muted">Trophies show up here once you start playing.</div>`;
+    return `<div class="trophy-grid">${st.map((x) => {
+      const got = TROPHIES.filter((t) => t.test(x)).length;
+      return `<div class="trophy-player"><div><b>${esc((x.emoji ? x.emoji + " " : "") + x.name)}</b> <span class="muted num">${got}/${TROPHIES.length}</span></div>
+        <div class="trophies">${TROPHIES.map((t) => `<span class="trophy ${t.test(x) ? "" : "locked"}" title="${esc(t.desc)}"><span class="ti">${t.icon}</span>${esc(t.name)}</span>`).join("")}</div></div>`;
+    }).join("")}</div>`;
+  }
+
+  // ---------- Night recap ----------
+  function recapData(night) {
+    const t = totals(night), ps = night.players;
+    const games = night.rounds.filter((r) => r.gameId);
+    const sh = (p) => t[p.id].shots, wn = (p) => t[p.id].wins;
+    const byWins = ps.slice().sort((a, b) => wn(b) - wn(a) || sh(a) - sh(b));
+    const byShots = ps.slice().sort((a, b) => sh(b) - sh(a));
+    const counts = {}; games.forEach((r) => (counts[r.title] = (counts[r.title] || 0) + 1));
+    const topGame = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    // biggest upset: a win by the player furthest behind the leader at that moment
+    const so = {}; ps.forEach((p) => (so[p.id] = 0));
+    let upset = null;
+    games.forEach((r) => {
+      if (r.winner && so[r.winner] !== undefined) {
+        const leader = ps.reduce((a, p) => (so[p.id] > so[a.id] ? p : a), ps[0]);
+        const gap = so[leader.id] - so[r.winner];
+        if (gap >= 2 && leader.id !== r.winner && (!upset || gap > upset.gap)) upset = { gap, winner: r.winner, leader: leader.id, title: r.title, score: `${so[leader.id]}–${so[r.winner]}` };
+        so[r.winner]++;
+      }
+    });
+    // per-player titles
+    const pen = {}, br = {}, bw = {}, stk = {};
+    ps.forEach((p) => { pen[p.id] = 0; br[p.id] = 0; bw[p.id] = 0; stk[p.id] = 0; });
+    let cur = {}; ps.forEach((p) => (cur[p.id] = 0));
+    night.rounds.forEach((r) => {
+      if (!r.gameId && /penalty/i.test(r.note || "")) r.drinks.forEach((d) => pen[d.pid] !== undefined && pen[d.pid]++);
+      (r.bets || []).forEach((b) => { if (b.right) br[b.pid] = (br[b.pid] || 0) + 1; else if (r.winner) bw[b.pid] = (bw[b.pid] || 0) + 1; });
+      if (r.gameId) ps.forEach((p) => { cur[p.id] = r.winner === p.id ? cur[p.id] + 1 : 0; stk[p.id] = Math.max(stk[p.id], cur[p.id]); });
+    });
+    const titles = {}, taken = new Set();
+    const award = (title, p, ok) => { if (p && ok && !titles[p.id] && !taken.has(title)) { titles[p.id] = title; taken.add(title); } };
+    const maxBy = (f) => ps.slice().sort((a, b) => f(b) - f(a))[0];
+    award("The Champ", byWins[0], wn(byWins[0]) > 0);
+    award("The Sponge", byShots[0], sh(byShots[0]) > 0);
+    award("On Fire", maxBy((p) => stk[p.id]), stk[maxBy((p) => stk[p.id]).id] >= 3);
+    award("The Oracle", maxBy((p) => br[p.id]), br[maxBy((p) => br[p.id]).id] >= 1);
+    award("Rule Breaker", maxBy((p) => pen[p.id]), pen[maxBy((p) => pen[p.id]).id] >= 1);
+    award("Bad Gambler", maxBy((p) => bw[p.id]), bw[maxBy((p) => bw[p.id]).id] >= 2);
+    award("Untouchable", byShots[byShots.length - 1], ps.length > 1);
+    const fallback = ["Steady Sipper", "Party Animal", "Wildcard", "Good Sport", "Dark Horse", "Hype Machine"];
+    ps.forEach((p) => { if (!titles[p.id]) titles[p.id] = fallback.find((f) => !taken.has(f) && taken.add(f)) || "Legend"; });
+    const totalShots = Object.values(t).reduce((a, x) => a + x.shots, 0);
+    return { night, t, games, mvp: byWins[0] && wn(byWins[0]) ? byWins[0] : null, sponge: byShots[0] && sh(byShots[0]) ? byShots[0] : null, topGame, upset, titles, totalShots };
+  }
+  function recapLines(d) {
+    const nm = (p) => pname(p), n = d.night;
+    const lines = [];
+    lines.push(["🏆", "MVP", d.mvp ? `${nm(d.mvp)} with ${d.t[d.mvp.id].wins} win${d.t[d.mvp.id].wins === 1 ? "" : "s"}` : "Nobody won anything. Impressive."]);
+    lines.push(["🥃", "Most shots", d.sponge ? `${nm(d.sponge)}: ${fmtShots(d.t[d.sponge.id].shots)}` : "Nobody drank. Suspicious."]);
+    lines.push(["😱", "Biggest upset", d.upset ? `${pnameById(d.upset.winner, n)} took ${d.upset.title} while ${pnameById(d.upset.leader, n)} led ${d.upset.score}` : "No upsets tonight"]);
+    lines.push(["🎮", "Most played", d.topGame ? (d.topGame[1] > 1 ? `${d.topGame[0]} (${d.topGame[1]}×)` : "Every game got one shot") : "No games yet"]);
+    lines.push(["📊", "The night", `${d.games.length} games · ${fmtShots(d.totalShots)} shots${n.finale?.champion ? " · finale won by " + pnameById(n.finale.champion, n) : ""}`]);
+    return lines;
+  }
+  function recapHTML(night) {
+    const d = recapData(night);
+    return `<div class="recap">${recapLines(d).map(([ic, h, v]) => `<div class="recap-row"><span class="ic">${ic}</span><span><b>${esc(h)}</b><br>${esc(v)}</span></div>`).join("")}</div>
+      <div class="eyebrow">Titles</div>
+      <div class="titles">${night.players.map((p) => `<div><b>${esc(pname(p))}</b><br><span class="muted">${esc(d.titles[p.id])}</span></div>`).join("")}</div>
+      <div class="row"><button class="btn primary" type="button" id="recapShare">Share image</button><button class="btn" type="button" id="recapCopy">Copy text</button></div>`;
+  }
+  function recapText(night) {
+    const d = recapData(night);
+    return [`🍻 Pour Decisions · ${fmtDate(night.started || night.created)}`, ...recapLines(d).map(([ic, h, v]) => `${ic} ${h}: ${v}`), "", ...night.players.map((p) => `${pname(p)}: ${d.titles[p.id]}`)].join("\n");
+  }
+  async function recapImage(night) {
+    const d = recapData(night), css = getComputedStyle(document.documentElement), v = (k) => css.getPropertyValue(k).trim();
+    const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    await document.fonts.ready;
+    g.fillStyle = v("--bg"); g.fillRect(0, 0, W, H);
+    g.fillStyle = v("--panel-2"); g.fillRect(50, 50, W - 100, H - 100);
+    g.strokeStyle = v("--accent"); g.lineWidth = 6; g.strokeRect(50, 50, W - 100, H - 100);
+    const disp = v("--font-display"), body = v("--font-body");
+    g.fillStyle = v("--accent"); g.font = `64px ${disp}`; g.fillText("POUR DECISIONS", 100, 170);
+    g.fillStyle = v("--muted"); g.font = `32px ${body}`; g.fillText(`Night recap · ${fmtDate(night.started || night.created)}`, 100, 220);
+    let y = 300;
+    const wrap = (text, x, maxW, lh) => { const words = String(text).split(" "); let line = ""; words.forEach((w) => { const t = line ? line + " " + w : w; if (g.measureText(t).width > maxW && line) { g.fillText(line, x, y); y += lh; line = w; } else line = t; }); g.fillText(line, x, y); y += lh; };
+    recapLines(d).forEach(([ic, h, val]) => {
+      g.font = `44px ${body}`; g.fillStyle = v("--fg"); g.fillText(ic, 100, y + 8);
+      g.font = `30px ${disp}`; g.fillStyle = v("--accent"); g.fillText(h.toUpperCase(), 170, y); y += 44;
+      g.font = `34px ${body}`; g.fillStyle = v("--fg"); wrap(val, 170, W - 280, 44); y += 18;
+    });
+    g.font = `30px ${disp}`; g.fillStyle = v("--accent"); g.fillText("TITLES", 100, y + 10); y += 60;
+    g.font = `32px ${body}`; g.fillStyle = v("--fg");
+    night.players.slice(0, 8).forEach((p) => { g.fillText(`${pname(p)}: ${d.titles[p.id]}`, 100, y); y += 46; });
+    return new Promise((res) => c.toBlob(res, "image/png"));
+  }
+
+  // ---------- Finale bracket ----------
+  const SEED_ORDER = { 2: [[0, 1]], 4: [[0, 3], [1, 2]], 8: [[0, 7], [3, 4], [2, 5], [1, 6]] };
+  const roundName = (count) => (count === 1 ? "Final" : count === 2 ? "Semifinals" : "Quarterfinals");
+  function buildFinale(count) {
+    const n = N(), t = totals();
+    const seeds = n.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins || t[a.id].shots - t[b.id].shots).slice(0, count);
+    const size = count <= 2 ? 2 : count <= 4 ? 4 : 8;
+    const matches = SEED_ORDER[size].map(([i, j]) => {
+      const a = seeds[i]?.id || null, b = seeds[j]?.id || null;
+      return { a, b, winner: !b ? a : !a ? b : null, game: "" };
+    });
+    n.finale = { stake: S.defaultShots ?? 1, rounds: [matches], champion: null };
+    advanceFinale();
+  }
+  function advanceFinale() {
+    const f = N().finale; if (!f) return;
+    const last = f.rounds[f.rounds.length - 1];
+    if (!last.every((m) => m.winner)) return;
+    if (last.length === 1) { f.champion = last[0].winner; return; }
+    const next = [];
+    for (let i = 0; i < last.length; i += 2) next.push({ a: last[i].winner, b: last[i + 1].winner, winner: null, game: "" });
+    f.rounds.push(next);
+  }
+  function finaleHTML() {
+    const n = N(), f = n.finale;
+    if (!n.started) return `<div class="muted">Start the night first.</div>`;
+    if (!f) {
+      const opts = [2, 4, 8].filter((k) => k === 2 || n.players.length > k / 2);
+      return `<div class="muted">Seeds the top players by tonight's wins (fewest shots breaks ties). Each match is one game, and the loser drinks ${fmtShots(S.defaultShots ?? 1)}.</div>
+        <div class="row">${opts.map((k) => `<button class="btn ${k === 4 ? "primary" : ""}" type="button" data-fsize="${k}">Top ${Math.min(k, n.players.length)}</button>`).join("")}</div>`;
+    }
+    const pool = [...new Set([...callable().map((g) => g.title), ...gameLibrary().map((g) => g.title)])];
+    return `${f.champion ? `<div class="champion">👑 ${esc(pnameById(f.champion))} wins the finale!</div>` : ""}
+      <div class="bracket">${f.rounds.map((rd, ri) => `<div class="bround"><div class="eyebrow">${roundName(rd.length)}</div>${rd.map((m, mi) => {
+        const A = m.a ? esc(pnameById(m.a)) : "Bye", B = m.b ? esc(pnameById(m.b)) : "Bye";
+        if (m.winner) return `<div class="match"><div class="vs">${A} vs ${B}</div><div>✓ <span class="win-name">${esc(pnameById(m.winner))}</span>${m.game ? " · " + esc(m.game) : ""}</div></div>`;
+        return `<div class="match"><div class="vs">${A} vs ${B}</div>
+          <div class="row"><input type="text" list="finaleGames" placeholder="Game" value="${esc(m.game)}" data-fgame="${ri}:${mi}" aria-label="Game for this match"><button class="btn small" type="button" data-frand="${ri}:${mi}" aria-label="Pick a random game">🎲</button></div>
+          <div class="row"><button class="btn small primary" type="button" data-fwin="${ri}:${mi}:a">${A} won</button><button class="btn small primary" type="button" data-fwin="${ri}:${mi}:b">${B} won</button></div></div>`;
+      }).join("")}</div>`).join("")}</div>
+      <datalist id="finaleGames">${pool.map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+      <div class="row"><button class="btn ghost" type="button" id="finaleReset">${finaleResetArm ? "Tap again to reset" : "Reset bracket"}</button></div>`;
+  }
+  let finaleResetArm = false;
+  async function finaleWin(ri, mi, side) {
+    const n = N(), f = n.finale, m = f.rounds[ri][mi];
+    m.winner = m[side]; const loser = side === "a" ? m.b : m.a;
+    const title = (m.game || "").trim() || "Finale match";
+    m.game = title;
+    const extra = { id: uid(), title, by: null };
+    (n.extras = n.extras || []).push(extra);
+    const drinks = loser ? [{ pid: loser, amt: f.stake }] : [];
+    const before = totals(), tb = trophyKeys();
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: extra.id, title, by: null, spunBy: null, injected: true, finale: true, winner: m.winner, drinks, skin: S.skin });
+    advanceFinale();
+    save(); renderSheet(); renderAll();
+    const notes = f.champion ? [`👑 ${pnameById(f.champion)} wins the finale!`] : [];
+    notes.push(...trophyNotes(tb));
+    await pour(drinks, { notes });
+    await waterCheck(before);
+  }
+
+  // ---------- Night hand-off link ----------
+  const b64u = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+  const unb64u = (str) => { const s = atob(str.replace(/-/g, "+").replace(/_/g, "/")); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
+  async function packNight(night) {
+    const bytes = new TextEncoder().encode(JSON.stringify(night));
+    if (window.CompressionStream) {
+      const z = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+      return "z" + b64u(z);
+    }
+    return "j" + b64u(bytes);
+  }
+  async function unpackNight(str) {
+    const kind = str[0], bytes = unb64u(str.slice(1));
+    const raw = kind === "z" ? new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer()) : bytes;
+    const night = JSON.parse(new TextDecoder().decode(raw));
+    if (!night || !Array.isArray(night.players) || !Array.isArray(night.rounds)) throw new Error("bad");
+    return night;
+  }
+  let incomingNight = null;
+  async function checkIncoming() {
+    const m = location.hash.match(/^#night=(.+)$/); if (!m) return;
+    try { incomingNight = await unpackNight(m[1]); openSheet("import"); }
+    catch { toast("That night link didn't work. Ask for a fresh one."); }
+    try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
+  }
+  function importHTML() {
+    const nt = incomingNight; if (!nt) return "";
+    const t = totals(nt);
+    return `<div>Someone sent you a night from <b>${fmtDate(nt.started || nt.created)}</b> with ${nt.players.map((p) => esc(pname(p))).join(", ")}: ${nt.rounds.filter((r) => r.gameId).length} games and ${fmtShots(Object.values(t).reduce((a, x) => a + x.shots, 0))} shots so far.</div>
+      ${N().started && !N().sample ? `<div class="note">The night on this phone gets saved to History first, so nothing is lost.</div>` : ""}
+      <div class="row"><button class="btn primary" type="button" id="importNight">Open it here</button><button class="btn ghost" type="button" id="closeSheet2">Cancel</button></div>`;
+  }
+
+  // ---------- Sheet (recap, trophies, finale) ----------
+  let sheetKind = null, sheetNight = null;
+  function openSheet(kind, night) { sheetKind = kind; sheetNight = night || N(); $("#sheet").hidden = false; renderSheet(); }
+  function closeSheet() { $("#sheet").hidden = true; sheetKind = null; }
+  function renderSheet() {
+    if (!sheetKind) return;
+    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"] };
+    $("#sheetEyebrow").textContent = heads[sheetKind][0];
+    $("#sheetTitle").textContent = heads[sheetKind][1];
+    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML() : sheetKind === "import" ? importHTML() : finaleHTML();
+  }
+  $("#closeSheet").addEventListener("click", closeSheet);
+  $("#sheet").addEventListener("click", async (e) => {
+    if (e.target.id === "sheet") return closeSheet();
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.id === "closeSheet2") return closeSheet();
+    if (b.id === "importNight" && incomingNight) {
+      const cur = N();
+      if (cur.started && !cur.sample && cur.id !== incomingNight.id) { cur.ended = Date.now(); cur.pending = null; S.archive.push(cur); }
+      S.night = incomingNight; incomingNight = null; form = null;
+      save(); closeSheet(); setTab("spin"); toast("Night opened on this phone");
+      return;
+    }
+    if (b.id === "recapCopy") {
+      const txt = recapText(sheetNight);
+      try { await navigator.clipboard.writeText(txt); toast("Recap copied"); } catch { toast("Copy isn't allowed here"); }
+    } else if (b.id === "recapShare") {
+      const blob = await recapImage(sheetNight);
+      const file = new File([blob], "pour-decisions-recap.png", { type: "image/png" });
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "Pour Decisions recap" }); return; }
+      } catch { /* share cancelled */ return; }
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast("Recap image saved");
+    } else if (b.dataset.fsize) { buildFinale(parseInt(b.dataset.fsize, 10)); save(); renderSheet(); }
+    else if (b.dataset.frand) {
+      const [ri, mi] = b.dataset.frand.split(":").map(Number);
+      const pool = [...new Set([...callable().map((g) => g.title), ...gameLibrary().map((g) => g.title)])];
+      if (!pool.length) return toast("No games to pick from yet");
+      N().finale.rounds[ri][mi].game = pickOne(pool); save(); renderSheet();
+    } else if (b.dataset.fwin) {
+      const [ri, mi, side] = b.dataset.fwin.split(":");
+      finaleWin(+ri, +mi, side);
+    } else if (b.id === "finaleReset") {
+      if (!finaleResetArm) { finaleResetArm = true; renderSheet(); setTimeout(() => { finaleResetArm = false; if (sheetKind === "finale") renderSheet(); }, 3000); return; }
+      finaleResetArm = false; N().finale = null; save(); renderSheet();
+    }
+  });
+  $("#sheet").addEventListener("input", (e) => {
+    const k = e.target.dataset.fgame; if (!k) return;
+    const [ri, mi] = k.split(":").map(Number); N().finale.rounds[ri][mi].game = e.target.value; save();
   });
 
   // ---------- History ----------
@@ -2166,6 +2784,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <thead><tr><th>Player</th><th class="n">Nights</th><th class="n">Wins</th><th class="n">Shots</th><th class="n">Shots / night</th></tr></thead>
             <tbody>${lb.map((m) => `<tr><td><b>${esc(m.name)}</b></td><td class="n">${m.nights}</td><td class="n">${m.wins}</td><td class="n">${fmtShots(m.shots)}</td><td class="n">${fmtShots(m.shots / m.nights)}</td></tr>`).join("")}</tbody>
           </table></div>` : `<div class="muted">Start a night and the all-time standings show up here. Players are matched by name across nights.</div>`}
+          <h3 style="margin-top:8px">Trophy case</h3>
+          ${trophyCaseHTML()}
           <h3 style="margin-top:8px">Game history</h3>
           ${games.length ? `<div class="table-wrap"><table>
             <thead><tr><th>Game</th><th class="n">Played</th><th>Won by</th><th>Last played</th></tr></thead>
@@ -2184,7 +2804,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
                 ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
                 <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
                 ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
-                <div><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
+                <div class="row"><button class="btn small" type="button" data-recap="${night.id}">Night recap</button><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
               </div>
             </details>`;
           }).join("") : `<div class="muted">Nothing archived yet. When you wrap up tonight it lands here.</div>`}
@@ -2208,6 +2828,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <label class="field">Restore from a backup (paste it here)<textarea id="importBox" rows="3" placeholder='{"app":"pour-decisions", …}'></textarea></label>
             <div class="row"><button class="btn" type="button" id="importBtn">Restore</button><label class="btn ghost" for="importFile">Open file…</label><input type="file" id="importFile" accept="application/json,.json" hidden></div>
           </div>
+          <div class="panel stack">
+            <h3>Send tonight to another phone</h3>
+            <div class="muted">Makes a link with tonight's lineup, rounds, and shots. Open it on another phone to pick up where you left off. It copies the night; the phones don't stay in sync.</div>
+            <div class="row"><button class="btn" type="button" id="sendNight" ${n.started ? "" : "disabled"}>Share tonight's link</button></div>
+          </div>
           ${installPanelHTML()}
           <div class="panel stack" id="settingsPanel">
             <h3>Settings</h3>
@@ -2222,10 +2847,17 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
               <div class="muted" style="font-size:.85rem">Every new game starts with this much on the line. You can still change it per game.</div>
             </div>
             <label class="pick" style="align-self:flex-start"><input type="checkbox" id="defWinnerHalf" ${S.winnerHalf ? "checked" : ""}><span>Winner drinks half by default</span></label>
+            ${settingRow("Wild slices on the wheel", "wildSlices", [[0, "Off"], [1, "1"], [2, "2"], [3, "3"]], S.wildSlices ?? 2)}
+            ${settingRow("Side bet stake", "betStake", [[0.25, "¼"], [0.5, "½"], [1, "1"]], S.betStake ?? 0.5)}
+            ${settingRow("Streak-breaker bonus", "streakBonus", [[0, "Off"], [0.25, "¼"], [0.5, "½"], [1, "1"]], S.streakBonus ?? 0.5)}
+            ${settingRow("Water round every", "waterEvery", [[0, "Off"], [2, "2 shots"], [3, "3 shots"], [5, "5 shots"]], S.waterEvery ?? 3)}
             <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound on" : "Sound off"}</button></div>
           </div>
         </div>
       </div>`;
+  }
+  function settingRow(label, key, opts, cur) {
+    return `<div class="stack" style="gap:6px"><div class="eyebrow">${label}</div><div class="seg" role="group" aria-label="${label}">${opts.map(([v, l]) => `<button type="button" data-set="${key}" data-val="${v}" aria-pressed="${cur === v}">${l}</button>`).join("")}</div></div>`;
   }
   // ---------- Install as a phone app ----------
   let installPrompt = null;
@@ -2260,6 +2892,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   $("#view-history").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.recap) { const nt = S.archive.find((x) => x.id === b.dataset.recap); if (nt) openSheet("recap", nt); return; }
     if (b.dataset.del) {
       if (deleteArm !== b.dataset.del) { deleteArm = b.dataset.del; renderHistory(); const d = $(`[data-del="${deleteArm}"]`); d && (d.closest("details").open = true); return; }
       S.archive = S.archive.filter((x) => x.id !== b.dataset.del); deleteArm = null; save(); renderHistory(); toast("Night deleted");
@@ -2271,9 +2904,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       old.ended = Date.now(); old.pending = null;
       S.archive.push(old);
       const per = old.perPlayer;
-      const players = mode === "keep" ? old.players.map((p) => mkPlayer(p.name, [], per)) : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
+      const players = mode === "keep" ? old.players.map((p) => Object.assign(mkPlayer(p.name, [], per), { emoji: p.emoji, color: p.color })) : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
       S.night = newNight(players); S.night.perPlayer = per; form = null;
       save(); toast("Night saved to the hall of fame"); setTab("setup");
+      openSheet("recap", old);
     } else if (b.id === "copyBackup") {
       const txt = backupJSON();
       try { await navigator.clipboard.writeText(txt); toast("Backup copied"); }
@@ -2282,6 +2916,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const url = URL.createObjectURL(new Blob([backupJSON()], { type: "application/json" }));
       const a = document.createElement("a"); a.href = url; a.download = `pour-decisions-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } else if (b.id === "sendNight") {
+      const url = location.href.split("#")[0] + "#night=" + (await packNight(N()));
+      try {
+        if (navigator.share) { await navigator.share({ title: "Pour Decisions night", text: "Open tonight's Pour Decisions night", url }); return; }
+      } catch { return; /* share cancelled */ }
+      try { await navigator.clipboard.writeText(url); toast("Link copied. Send it to the other phone."); }
+      catch { const box = $("#importBox"); box.value = url; box.select(); toast("Copy blocked. The link is selected in the box below."); }
     } else if (b.id === "importBtn") {
       importBackup($("#importBox").value);
     } else if (b.id === "installBtn" && installPrompt) {
@@ -2292,6 +2933,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const cur = S.defaultShots ?? 1;
       S.defaultShots = b.dataset.defamt ? parseFloat(b.dataset.defamt) : Math.max(0.25, q4(cur + parseFloat(b.dataset.defstep)));
       save(); renderHistory(); toast(`New games start at ${fmtShots(S.defaultShots)} shot${S.defaultShots === 1 ? "" : "s"}`);
+    } else if (b.dataset.set) {
+      S[b.dataset.set] = parseFloat(b.dataset.val); save(); renderHistory();
     } else if (b.id === "soundBtn") {
       S.sound = !S.sound; save(); renderHistory();
     }
@@ -2341,7 +2984,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#openRng").addEventListener("click", openRng);
   $("#closeRng").addEventListener("click", closeRng);
   $("#rng").addEventListener("click", (e) => { if (e.target.id === "rng") closeRng(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#logGame").hidden) closeLog(); if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#sheet").hidden) closeSheet(); if (!$("#logGame").hidden) closeLog(); if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } } });
   $("#rngMode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (!b || rolling) return; rngMode = b.dataset.mode; buildStage(); });
   $("#rngPresets").addEventListener("click", (e) => {
     const b = e.target.closest("[data-pmin]"); if (!b || rolling) return;
@@ -2409,6 +3052,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   applySkin();
   setTab(S.tab || "setup");
+  checkIncoming();
+  window.addEventListener("hashchange", checkIncoming);
 })();
 </script>
 <!--ARTIFACT-END-->
