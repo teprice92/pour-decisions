@@ -647,7 +647,9 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .tag { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; color: var(--muted); vertical-align: 1px; font-family: var(--font-body); font-weight: 700; }
 .inject { border-top: 1px solid var(--line); padding-top: 12px; }
 .inject .row input { flex: 1 1 200px; }
-.lib-chip button[data-call] { padding-right: 12px; }
+.lib-chip button[data-logpick] { padding-right: 12px; }
+.lib-chip.picked { background: var(--accent); border-color: var(--accent); }
+.lib-chip.picked button { color: var(--accent-fg); }
 .win-name { color: var(--accent); font-weight: 700; }
 
 /* Spin */
@@ -854,7 +856,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="scores" id="tab-scores">Shots</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
-      <button class="btn small" id="callGame" type="button">Call a game</button>
+      <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
     </nav>
   </div>
@@ -885,6 +887,19 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
 <div class="overlay" id="pour" hidden>
   <div class="pour-card" id="pourCard" role="status" aria-live="polite"></div>
+</div>
+
+<div class="overlay" id="logGame" hidden>
+  <div class="panel modal" role="dialog" aria-modal="true" aria-labelledby="logHead">
+    <div class="modal-head">
+      <div>
+        <div class="eyebrow">Already played it? Add it to tonight</div>
+        <h2 id="logHead">Log a game</h2>
+      </div>
+      <button class="btn small ghost" id="closeLog" type="button">Close</button>
+    </div>
+    <div class="stack" id="logBody" style="gap:16px"></div>
+  </div>
 </div>
 
 <div class="overlay" id="rng" hidden>
@@ -1487,34 +1502,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Spin ----------
   const mainWheel = new Wheel($("#mainWheel"), $("#mainPointer"));
   let form = null; // record-result form state while a game is pending
-  let injectOpen = false;
 
-  // Call in a game without spinning. A lineup game gets crossed off; anything else is a one-off extra.
   // games that are "on deck" (pending or paused) aren't offered again
   const onDeck = () => new Set([N().pending?.gameId, ...(N().paused || []).map((x) => x.pending.gameId)].filter(Boolean));
   const callable = () => { const busy = onDeck(); return remaining().filter((g) => !busy.has(g.id)); };
-  function injectGame(byId) {
-    const n = N(), input = $("#injectTitle");
-    if (mainWheel.spinning) return toast("Let the wheel stop first");
-    const title = byId ? (callable().find((g) => g.id === byId)?.title || "") : (input?.value || "").trim();
-    if (!title) { input?.focus(); return toast("Type the game you want to play"); }
-    if (n.pending && gameById(n.pending.gameId)?.title.toLowerCase() === title.toLowerCase()) return toast("That game is already up");
-    const hit = callable().find((g) => (byId ? g.id === byId : g.title.toLowerCase() === title.toLowerCase()));
-    let gameId;
-    if (hit) gameId = hit.id;
-    else {
-      const extra = { id: uid(), title, by: null };
-      (n.extras = n.extras || []).push(extra);
-      gameId = extra.id;
-    }
-    // pause whatever was up (with its half-filled result form) so it comes back after this game
-    if (n.pending) (n.paused = n.paused || []).push({ pending: n.pending, form });
-    form = null;
-    n.pending = { gameId, spunBy: null, by: hit ? hit.by : null, injected: true };
-    injectOpen = false; mainWheel._parked = false;
-    save(); blip(660, 0.12, "triangle", 0.05); renderSpin();
-    $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
-  }
   // bring back the game that was paused when this one was called in, if any
   function resumePaused() {
     const n = N(), back = (n.paused || []).pop();
@@ -1576,20 +1567,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         ${(n.paused || []).length ? `<div class="note">Paused: ${n.paused.slice().reverse().map((x) => `<b>${esc(gameById(x.pending.gameId)?.title || "?")}</b>`).join(", then ")}. It comes back once this game is recorded.</div>` : ""}
         <div class="row">
           ${!pend ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>` : ""}
-          <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle" aria-expanded="${injectOpen}">${pend ? "Call a different game now" : "Call a game"}</button>
+          <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle">Log a played game</button>
           ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
         </div>
-        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, call a game, or wrap up the night from History.</div>` : ""}
-        ${injectOpen ? `<div class="inject stack" style="gap:8px">
-          <div class="eyebrow">Call a game · skips the wheel, doesn't use up anyone's turn${pend ? ". The current game gets paused and comes back after." : ""}</div>
-          <div class="row">
-            <input type="text" id="injectTitle" list="injectList" autocomplete="off" placeholder="Type any game" aria-label="Game to play">
-            <button class="btn primary" type="button" id="injectBtn">Play this game</button>
-          </div>
-          <datalist id="injectList">${[...new Set([...remaining().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
-          ${callable().length ? `<div class="muted" style="font-size:.85rem">Or tap one from tonight's lineup:</div>
-          <div class="lib-chips">${callable().map((g) => `<span class="lib-chip"><button type="button" data-call="${g.id}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
-        </div>` : ""}
+        ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, log a game you played, or wrap up the night from History.</div>` : ""}
       </div>`;
 
     if (pend) side += recordFormHTML(pend);
@@ -1658,13 +1639,22 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     });
   }
 
-  $("#spinSide").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "injectTitle") { e.preventDefault(); injectGame(); } });
+  // typed amounts update state and visible numbers in place; a full re-render on blur would swallow the next tap
+  function typedAmount(f, input, scope, attr) {
+    const v = parseFloat(input.value);
+    if (!(v >= 0)) return;
+    f.amount = q4(v);
+    Object.values(f.drinks).forEach((d) => (d.amt = f.amount));
+    $$(`${scope} [${attr}] .mini-amt`).forEach((el) => (el.textContent = fmtShots(f.amount)));
+  }
+  $("#spinSide").addEventListener("input", (e) => { if (e.target.id === "amtInput" && form) typedAmount(form, e.target, "#spinSide", "data-dpid"); });
+  $("#logGame").addEventListener("input", (e) => { if (e.target.id === "logAmt" && logForm) typedAmount(logForm, e.target, "#logGame", "data-ldpid"); });
   $("#spinSide").addEventListener("change", (e) => {
     if (!form) return;
     const t = e.target;
     if (t.name === "winner") { form.winner = t.value; syncDrinkersToWinner(); renderSpin(); }
     else if (t.dataset.don) { form.drinks[t.dataset.don].on = t.checked; renderSpin(); }
-    else if (t.id === "amtInput") { setAmount(parseFloat(t.value)); }
+    else if (t.id === "amtInput") { /* handled live on input */ }
   });
   function setAmount(a) {
     if (!(a >= 0)) a = 1;
@@ -1678,9 +1668,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.dataset.go) return setTab(t.dataset.go);
     if (t.id === "spinBtn") return doSpin();
     if (t.id === "skipTurn") { n.turn = (n.turn + 1) % n.players.length; save(); renderSpin(); return; }
-    if (t.id === "injectBtn") return injectGame();
-    if (t.id === "injectToggle") { injectOpen = !injectOpen; renderSpin(); if (injectOpen) $("#injectTitle")?.focus(); return; }
-    if (t.dataset.call) return injectGame(t.dataset.call);
+    if (t.id === "injectToggle") return openLog();
     if (!form) return;
     if (t.dataset.amt) return setAmount(parseFloat(t.dataset.amt));
     if (t.dataset.step) return setAmount(form.amount + parseFloat(t.dataset.step));
@@ -1697,13 +1685,115 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     N().pool = b.dataset.pool; save(); renderSpin();
   });
   $("#hubSpin").addEventListener("click", () => doSpin());
-  $("#callGame").addEventListener("click", () => {
+  // ---------- Log a played game ----------
+  // Records a finished game (winner + shots) right away, at any time.
+  // It never touches the round in progress or whose turn it is.
+  let logForm = null;
+  function openLog() {
     const n = N();
-    if (!n.started) { setTab("setup"); return toast("Start the night first, then you can call any game"); }
-    if (mainWheel.spinning) return toast("Let the wheel stop first");
-    injectOpen = true; setTab("spin");
-    $("#injectTitle")?.focus();
-    $(".inject")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
+    if (!n.started) { setTab("setup"); return toast("Start the night first, then you can log games"); }
+    logForm = { title: "", winner: "", amount: 1, drinks: {} };
+    n.players.forEach((p) => (logForm.drinks[p.id] = { on: true, amt: 1 }));
+    $("#logGame").hidden = false; renderLog();
+    $("#logTitle")?.focus();
+  }
+  function closeLog() { $("#logGame").hidden = true; logForm = null; }
+  function renderLog() {
+    const n = N(), f = logForm;
+    const lineup = callable();
+    const pend = n.pending && gameById(n.pending.gameId);
+    const amounts = [0.25, 0.5, 0.75, 1, 1.5, 2, 3];
+    $("#logBody").innerHTML = `
+      ${pend ? `<div class="note">This won't touch the round in progress (<b>${esc(pend.title)}</b>). It stays right where you left it.</div>` : ""}
+      <div class="stack" style="gap:6px">
+        <div class="eyebrow">Which game?</div>
+        <input type="text" id="logTitle" list="logList" autocomplete="off" placeholder="Type any game" aria-label="Game played" value="${esc(f.title)}">
+        <datalist id="logList">${[...new Set([...lineup.map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+        ${lineup.length ? `<div class="lib-chips">${lineup.map((g) => `<span class="lib-chip ${g.title.toLowerCase() === f.title.trim().toLowerCase() ? "picked" : ""}"><button type="button" data-logpick="${esc(g.title)}">${esc(g.title)}</button></span>`).join("")}</div>` : ""}
+      </div>
+      <div class="stack" style="gap:6px">
+        <div class="eyebrow">Who won?</div>
+        <div class="winner-grid" role="radiogroup" aria-label="Winner">
+          ${n.players.map((p) => `<label class="pick"><input type="radio" name="logWinner" value="${p.id}" ${f.winner === p.id ? "checked" : ""}><span>${esc(p.name)}</span></label>`).join("")}
+          <label class="pick"><input type="radio" name="logWinner" value="tie" ${f.winner === "tie" ? "checked" : ""}><span>Tie / nobody</span></label>
+        </div>
+      </div>
+      <div class="stack" style="gap:6px">
+        <div class="eyebrow">Shots</div>
+        <div class="amounts">
+          ${amounts.map((a) => `<button type="button" class="btn small amt" data-lamt="${a}" aria-pressed="${f.amount === a}">${fmtShots(a)}</button>`).join("")}
+          <span class="stepper"><button type="button" class="btn small" data-lstep="-0.25" aria-label="Quarter shot less">−</button>
+          <input type="number" id="logAmt" min="0" step="0.25" value="${f.amount}" aria-label="Shots per drinker">
+          <button type="button" class="btn small" data-lstep="0.25" aria-label="Quarter shot more">+</button></span>
+        </div>
+      </div>
+      <div class="stack" style="gap:6px">
+        <div class="eyebrow">Who drank?</div>
+        <div class="drink-grid">
+          ${n.players.map((p) => { const d = f.drinks[p.id] || (f.drinks[p.id] = { on: false, amt: f.amount }); return `
+            <div class="drinker ${d.on ? "" : "off"}" data-ldpid="${p.id}">
+              <label><input type="checkbox" data-ldon="${p.id}" ${d.on ? "checked" : ""}> ${esc(p.name)}</label>
+              <button type="button" data-ldstep="-0.25" aria-label="Less for ${esc(p.name)}">−</button>
+              <span class="mini-amt num">${fmtShots(d.amt)}</span>
+              <button type="button" data-ldstep="0.25" aria-label="More for ${esc(p.name)}">+</button>
+            </div>`; }).join("")}
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn big primary" type="button" id="logSave">Save &amp; pour</button>
+        <span class="muted" style="font-size:.85rem">Doesn't change whose turn it is.</span>
+      </div>`;
+  }
+  function setLogAmount(a) {
+    if (!(a >= 0)) a = 1;
+    logForm.amount = q4(a);
+    Object.values(logForm.drinks).forEach((d) => (d.amt = logForm.amount));
+    renderLog();
+  }
+  async function saveLog() {
+    const n = N(), f = logForm;
+    const title = f.title.trim();
+    if (!title) { $("#logTitle")?.focus(); return toast("Type or pick the game you played"); }
+    if (!f.winner) return toast("Pick a winner (or Tie) first");
+    const hit = callable().find((g) => g.title.toLowerCase() === title.toLowerCase());
+    let game = hit;
+    if (!game) { game = { id: uid(), title, by: null }; (n.extras = n.extras || []).push(game); }
+    const drinks = Object.entries(f.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: game.by || null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks });
+    save(); closeLog(); renderAll();
+    toast(`${game.title} logged`);
+    await pour(drinks);
+  }
+  $("#callGame").addEventListener("click", openLog);
+  $("#closeLog").addEventListener("click", closeLog);
+  $("#logGame").addEventListener("click", (e) => {
+    if (e.target.id === "logGame") return closeLog();
+    const t = e.target.closest("button"); if (!t || !logForm) return;
+    if (t.dataset.logpick) { logForm.title = t.dataset.logpick; return renderLog(); }
+    if (t.dataset.lamt) return setLogAmount(parseFloat(t.dataset.lamt));
+    if (t.dataset.lstep) return setLogAmount(logForm.amount + parseFloat(t.dataset.lstep));
+    if (t.dataset.ldstep) {
+      const d = logForm.drinks[t.closest("[data-ldpid]").dataset.ldpid];
+      d.amt = q4(d.amt + parseFloat(t.dataset.ldstep)); if (d.amt > 0) d.on = true;
+      return renderLog();
+    }
+    if (t.id === "logSave") return saveLog();
+  });
+  $("#logGame").addEventListener("input", (e) => {
+    if (e.target.id !== "logTitle" || !logForm) return;
+    // update in place: re-rendering here would swallow the next tap
+    logForm.title = e.target.value;
+    const key = logForm.title.trim().toLowerCase();
+    $$("#logGame [data-logpick]").forEach((b) => b.parentElement.classList.toggle("picked", b.dataset.logpick.toLowerCase() === key));
+  });
+  $("#logGame").addEventListener("change", (e) => {
+    const t = e.target; if (!logForm) return;
+    if (t.name === "logWinner") {
+      logForm.winner = t.value;
+      N().players.forEach((p) => { logForm.drinks[p.id].on = t.value === "tie" ? true : p.id !== t.value; });
+      renderLog();
+    } else if (t.dataset.ldon) { logForm.drinks[t.dataset.ldon].on = t.checked; renderLog(); }
+    else if (t.id === "logAmt") { /* handled live on input */ }
   });
 
   async function doSpin() {
@@ -1748,7 +1838,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const drinkers = r.drinks.map((d) => `${esc(playerById(d.pid)?.name || "?")} ${fmtShots(d.amt)}`).join(", ");
         const total = r.drinks.reduce((a, d) => a + d.amt, 0);
         return `<li><span class="rn num">${r.gameId ? num : "+"}</span>
-          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">called in</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
+          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">logged</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
           <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}</span></li>`;
       }).join("")}</ol>` : `<div class="muted">No rounds yet. Spin the wheel to play the first game.</div>`}`;
   }
@@ -1897,7 +1987,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
                 </tbody></table></div>
                 <div class="eyebrow">Games played, in order</div>
                 ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
-                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">called in</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
+                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
                 ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
                 <div><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
               </div>
@@ -2017,7 +2107,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#openRng").addEventListener("click", openRng);
   $("#closeRng").addEventListener("click", closeRng);
   $("#rng").addEventListener("click", (e) => { if (e.target.id === "rng") closeRng(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#logGame").hidden) closeLog(); if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } } });
   $("#rngMode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (!b || rolling) return; rngMode = b.dataset.mode; buildStage(); });
   $("#rngPresets").addEventListener("click", (e) => {
     const b = e.target.closest("[data-pmin]"); if (!b || rolling) return;
