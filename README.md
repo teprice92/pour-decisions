@@ -12,6 +12,10 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 4. **Shots**: the shot board shows each player's glass, total shots, and wins. Penalty buttons add ¼, ½, or 1 shot at any time.
 5. **History**: wrap up the night to save it. The hall of fame tracks wins and shots across every night, matched by player name. **Game history** lists every game you've played, how many times, and who won it, and each past night shows its games in order with the winner.
 
+## Games tab
+
+A built-in catalog of party-friendly multiplayer games for 23 consoles: Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Game Boy & DS, Genesis, Dreamcast, PlayStation 1–5, Xbox, Xbox 360, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. Pick a console, search, and tap **+ Add** to put a game on a player's list, or fill their empty slots at random. It's all built in, so it works offline.
+
 ## Party features
 
 - **Wild slices**: special slices on the wheel, such as Double or nothing, Everyone drinks, Spinner picks, Reverse, and Waterfall. In Settings you can choose how many show up each round (0 to 3), read what each one does, and switch individual ones on or off.
