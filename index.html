@@ -3794,11 +3794,51 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     box.dataset.kind = link.kind; box.hidden = false;
     if (embedNow === src) return; // same link as the last theme: keep playing
     embedNow = src;
-    $("#mpFrame").innerHTML = embedded
-      ? `<div class="muted" style="padding:10px;font-size:.85rem">Spotify and YouTube players only work on your hosted site, not in this preview.</div>`
-      : `<iframe src="${src}" title="Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager"></iframe>`;
+    stopSpotify();
+    const iframe = `<iframe src="${src}" title="Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager"></iframe>`;
+    if (embedded) { $("#mpFrame").innerHTML = `<div class="muted" style="padding:10px;font-size:.85rem">Spotify and YouTube players only work on your hosted site, not in this preview.</div>`; return; }
+    if (link.kind !== "spotify") { $("#mpFrame").innerHTML = iframe; return; }
+    // Spotify: use its official player API so we can start the link over when it finishes
+    $("#mpFrame").innerHTML = `<div id="spotifyHost"></div>`;
+    const uri = `spotify:${link.type}:${link.id}`;
+    loadSpotifyApi().then((api) => {
+      if (embedNow !== src) return; // the theme changed while the API loaded
+      api.createController($("#spotifyHost"), { uri, width: "100%", height: 152 }, (ctl) => { spotifyCtl = ctl; loopSpotify(ctl, uri); });
+    }).catch(() => { if (embedNow === src) $("#mpFrame").innerHTML = iframe; }); // API unreachable: plain player, no loop
   }
-  function hideEmbed() { $("#miniPlayer").hidden = true; $("#mpFrame").innerHTML = ""; embedNow = ""; }
+  function hideEmbed() { stopSpotify(); $("#miniPlayer").hidden = true; $("#mpFrame").innerHTML = ""; embedNow = ""; }
+
+  // Spotify's embed has no repeat setting, so watch playback and start over when it ends
+  let spotifyApi = null, spotifyCtl = null;
+  const spotifyWaiters = [];
+  function loadSpotifyApi() {
+    if (spotifyApi) return Promise.resolve(spotifyApi);
+    return new Promise((resolve, reject) => {
+      spotifyWaiters.push(resolve);
+      setTimeout(() => reject(new Error("Spotify API timed out")), 8000);
+      if (document.getElementById("spotifyApi")) return;
+      window.onSpotifyIframeApiReady = (api) => { spotifyApi = api; spotifyWaiters.splice(0).forEach((f) => f(api)); };
+      const sc = document.createElement("script");
+      sc.id = "spotifyApi"; sc.src = "https://open.spotify.com/embed/iframe-api/v1"; sc.async = true;
+      sc.onerror = () => { sc.remove(); reject(new Error("Spotify API failed to load")); };
+      document.head.appendChild(sc);
+    });
+  }
+  function loopSpotify(ctl, uri) {
+    let nearEnd = false, restarting = false;
+    ctl.addListener("playback_update", (e) => {
+      const d = (e && e.data) || {}; if (!d.duration || restarting) return;
+      const atEnd = d.position >= d.duration - 1500;
+      if (!d.isPaused) nearEnd = atEnd; // playlists move to the next song on their own, which clears this
+      else if (nearEnd) {
+        // it stopped right at the end: the song, album, or playlist finished
+        restarting = true; nearEnd = false;
+        ctl.loadUri(uri);
+        setTimeout(() => { try { ctl.play(); } catch { /* player gone */ } restarting = false; }, 700);
+      }
+    });
+  }
+  function stopSpotify() { if (spotifyCtl) { try { spotifyCtl.destroy(); } catch { /* already gone */ } spotifyCtl = null; } }
   // YouTube's player accepts volume commands; Spotify's embed doesn't, so it just keeps playing
   function embedVolume(pct) {
     const f = $("#mpFrame iframe"); if (!f || $("#miniPlayer").dataset.kind !== "youtube") return;
