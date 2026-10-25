@@ -1072,6 +1072,25 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .tb-dots { display: inline-flex; }
 .tb-dots i { width: 12px; height: 12px; border-radius: 50%; margin-right: -3px; box-shadow: 0 0 0 2px var(--panel-2); }
 @media (max-width: 520px) { .tb-preview { grid-template-columns: auto 1fr; } .tb-preview .glass { display: none; } .tb-wheel { width: 64px; height: 64px; } }
+/* Controller highlight, and the controller button map in Settings */
+.pad-focus { outline: 3px solid var(--accent) !important; outline-offset: 3px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent); }
+.pick input.pad-focus + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.pad-help { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); font-size: .9rem; }
+.pad-map { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+.pad-map dt { font-weight: 700; color: var(--accent); }
+.pad-map dd { margin: 0; }
+/* Confetti sits above every overlay and never takes taps. The trophy card pops in with the theme's accent glow. */
+#confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 90; }
+#celebrate { z-index: 75; }
+.celeb-card { text-align: center; display: grid; gap: 6px; justify-items: center; max-width: 380px; padding: 28px 24px; box-shadow: 0 0 0 2px var(--accent), 0 0 60px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow); }
+.celeb-icon { font-size: 4.2rem; line-height: 1; filter: drop-shadow(0 6px 18px color-mix(in srgb, var(--accent) 60%, transparent)); }
+.celeb-name { font-family: var(--font-display); text-transform: var(--display-case); letter-spacing: var(--display-track); font-weight: var(--display-weight); font-size: 1.6rem; line-height: 1.1; }
+.celeb-who { font-weight: 700; color: var(--accent); font-size: 1.1rem; }
+#celebrate.go .celeb-card { animation: celebPop .55s cubic-bezier(.2, 1.6, .4, 1) both; }
+#celebrate.go .celeb-icon { animation: celebSpin .9s cubic-bezier(.2, 1.4, .4, 1) both .1s; }
+@keyframes celebPop { from { transform: scale(.4) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes celebSpin { from { transform: scale(0) rotate(-200deg); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { #celebrate.go .celeb-card, #celebrate.go .celeb-icon { animation: none; } }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
@@ -1279,6 +1298,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   </div>
 </div>
 
+<canvas id="confetti" aria-hidden="true" hidden></canvas>
+<div class="overlay" id="celebrate" hidden><div class="panel modal celeb-card" id="celebCard" role="status" aria-live="polite"></div></div>
 <div class="overlay" id="pour" hidden>
   <div class="pour-card" id="pourCard" role="status" aria-live="polite"></div>
 </div>
@@ -1702,7 +1723,191 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (sp.hit) noise(0.15, 0.08);
     (sp.land || [[523, .12, 0], [659, .12, 90], [784, .12, 180], [1047, .12, 270]]).forEach(([f, d, t]) => setTimeout(() => blip(f, d, sp.type || "triangle", 0.06), t));
   }
-  const tickSound = () => { const t = pack().tick || [1200, "square"]; blip(t[0], 0.02, t[1], 0.025); };
+  const tickSound = () => { const t = pack().tick || [1200, "square"]; blip(t[0], 0.02, t[1], 0.025); buzz("tick"); };
+
+
+  // ---------- Announcer, vibration, controllers ----------
+  // The announcer reads out spins, pours, and trophies with the browser's built-in voices.
+  // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
+  const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
+    skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+  const canSpeak = "speechSynthesis" in window;
+  const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
+  // fractions and emoji don't read well, so they're spelled out or dropped
+  function spokenShots(a) {
+    const w = Math.floor(a + 1e-9), f = Math.round((a - w) * 4);
+    const fr = ["", "a quarter", "a half", "three quarters"][f];
+    if (!w) return f === 2 ? "half a shot" : `${fr} of a shot`;
+    return `${w}${f ? " and " + fr : ""} shot${w === 1 && !f ? "" : "s"}`;
+  }
+  const speechText = (t) => String(t).replace(/\+?(\d*)([¼½¾])/g, (m, w, f) => (w ? w + " and " : "") + { "¼": "a quarter", "½": "a half", "¾": "three quarters" }[f])
+    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}★↺·]/gu, " ").replace(/\s+/g, " ").trim();
+  const listNames = (ns) => (ns.length < 2 ? ns.join("") : ns.slice(0, -1).join(", ") + " and " + ns[ns.length - 1]);
+  let speaking = 0;
+  function say(text) {
+    if (!S.voice || !canSpeak || !text) return;
+    try {
+      const u = new SpeechSynthesisUtterance(speechText(text));
+      const [pitch, rate] = VOICE_FX[skinBase(S.skin)] || [1, 1.02];
+      const v = speechVoices().find((x) => x.name === S.voiceName);
+      if (v) u.voice = v;
+      u.pitch = pitch; u.rate = rate; u.volume = 1;
+      u.onstart = () => { speaking++; Music.duck(true); };
+      u.onend = u.onerror = () => { speaking = Math.max(0, speaking - 1); if (!speaking && $("#pour").hidden) Music.duck(false); };
+      speechSynthesis.speak(u);
+    } catch { /* speech unavailable */ }
+  }
+  if (canSpeak) speechSynthesis.addEventListener?.("voiceschanged", () => { if (S.tab === "history") renderHistory(); });
+
+  // Phones buzz (Android; iPhones don't allow it) and controllers rumble on the same moments
+  const BUZZ = { tick: 6, land: [70, 50, 150], wild: [40, 40, 40, 40, 40, 40, 120], shot: [220], water: [30, 80, 30], trophy: [100, 60, 100, 60, 320], champ: [150, 80, 150, 80, 150, 80, 500], rule: [60, 40, 60] };
+  function buzz(kind, ms) {
+    if (S.vibrate === false) return;
+    const pat = ms != null ? ms : BUZZ[kind];
+    try { navigator.vibrate && navigator.vibrate(pat); } catch { /* not allowed */ }
+    if (kind === "tick") return;
+    const dur = Array.isArray(pat) ? pat.reduce((a, b) => a + b, 0) : pat;
+    for (const gp of navigator.getGamepads ? navigator.getGamepads() : []) {
+      try { gp && gp.vibrationActuator && gp.vibrationActuator.playEffect("dual-rumble", { duration: Math.min(dur, 900), strongMagnitude: kind === "shot" ? 0.6 : 0.4, weakMagnitude: 0.8 }); } catch { /* no rumble */ }
+    }
+  }
+
+  // Game controllers (standard mapping): A = spin / press, B = back, X = log a game, Y = chaos roll,
+  // LB/RB = switch tabs, D-pad or left stick = move between buttons, Start = spin, Back/View = TV mode
+  const PAD_TABS = ["setup", "spin", "scores", "stats", "games", "history"];
+  let padLoop = null, padFocusEl = null, padKey = null;
+  // screens re-render after most taps, so the highlight is remembered by id, name/value, or data attribute
+  function keyOf(el) {
+    if (el.id) return "#" + CSS.escape(el.id);
+    if (el.name && el.value) return `[name="${CSS.escape(el.name)}"][value="${CSS.escape(el.value)}"]`;
+    const d = [...el.attributes].find((a) => a.name.startsWith("data-"));
+    return d ? `${el.tagName.toLowerCase()}[${d.name}="${CSS.escape(d.value)}"]` : null;
+  }
+  function padCurrent(layer) {
+    if (padFocusEl && padFocusEl.isConnected && layer.contains(padFocusEl)) return padFocusEl;
+    const el = padKey && layer.querySelector(padKey);
+    if (el) { padFocusEl = el; el.classList.add("pad-focus"); el.focus({ preventScroll: true }); }
+    return el || null;
+  }
+  const padState = {};
+  const padNames = () => [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean).map((g) => g.id.replace(/\s*\(.*$/, "").trim() || "Controller");
+  window.addEventListener("gamepadconnected", (e) => {
+    toast(`🎮 ${e.gamepad.id.replace(/\s*\(.*$/, "").trim() || "Controller"} connected · A spins, B backs out, LB/RB switch tabs`);
+    startPads(); if (S.tab === "history") renderHistory();
+  });
+  window.addEventListener("gamepaddisconnected", () => { toast("🎮 Controller disconnected"); if (S.tab === "history") renderHistory(); });
+  function startPads() {
+    if (padLoop) return;
+    const loop = () => {
+      const pads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean);
+      if (!pads.length) { padLoop = null; return; }
+      pads.forEach(pollPad);
+      padLoop = requestAnimationFrame(loop);
+    };
+    padLoop = requestAnimationFrame(loop);
+  }
+  function pollPad(gp) {
+    const st = padState[gp.index] || (padState[gp.index] = {}), now = performance.now();
+    const ax = gp.axes || [], btn = (i) => !!(gp.buttons[i] && gp.buttons[i].pressed);
+    const held = {
+      a: btn(0), b: btn(1), x: btn(2), y: btn(3), lb: btn(4), rb: btn(5), back: btn(8), start: btn(9),
+      up: btn(12) || ax[1] < -0.6, down: btn(13) || ax[1] > 0.6, left: btn(14) || ax[0] < -0.6, right: btn(15) || ax[0] > 0.6,
+    };
+    Object.entries(held).forEach(([k, on]) => {
+      const was = st[k];
+      if (on && !was) { st[k] = now + 380; padPress(k); }
+      else if (on && ["up", "down", "left", "right"].includes(k) && now > was) { st[k] = now + 130; padPress(k); }
+      else if (!on) st[k] = 0;
+    });
+  }
+  // the top layer that's open: a dialog, or the page
+  function padLayer() {
+    for (const id of ["pour", "celebrate", "photoView", "sheet", "rng", "logGame"]) { const el = document.getElementById(id); if (el && !el.hidden) return el; }
+    return document.body;
+  }
+  const padFocusables = (root) => [...root.querySelectorAll("button, a[href], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])")]
+    .filter((el) => !el.disabled && !el.closest("[hidden]") && (el.type !== "file") && el.getClientRects().length && (el.offsetParent || el.closest(".pick")))
+    .map((el) => (el.matches(".pick input") ? el : el));
+  function padFocus(el) {
+    if (padFocusEl) padFocusEl.classList.remove("pad-focus");
+    padFocusEl = el; padKey = el ? keyOf(el) : null; if (!el) return;
+    el.classList.add("pad-focus"); el.focus({ preventScroll: true });
+    (el.matches(".pick input") ? el.parentElement : el).scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  function padMove(dir) {
+    const list = padFocusables(padLayer());
+    if (!list.length) return;
+    const c0 = padCurrent(padLayer()), cur = c0 && list.includes(c0) ? c0 : null;
+    if (!cur) return padFocus(list[0]);
+    const box = (el) => (el.matches(".pick input") ? el.parentElement : el).getBoundingClientRect();
+    const c = box(cur), cx = c.left + c.width / 2, cy = c.top + c.height / 2;
+    let best = null, bestD = Infinity;
+    list.forEach((el) => {
+      if (el === cur) return;
+      const r = box(el), x = r.left + r.width / 2, y = r.top + r.height / 2, dx = x - cx, dy = y - cy;
+      const along = { up: -dy, down: dy, left: -dx, right: dx }[dir], across = dir === "up" || dir === "down" ? Math.abs(dx) : Math.abs(dy);
+      if (along <= 4) return;
+      const d = along + across * 2.5;
+      if (d < bestD) { bestD = d; best = el; }
+    });
+    if (best) padFocus(best);
+  }
+  // A on the spin screen does the obvious next thing
+  function padMain() {
+    const n = N();
+    if (S.tab !== "spin") { setTab("spin"); return; }
+    if (n.wild) return $("#wildDone")?.click();
+    if (!n.pending && n.started) return doSpin();
+    const first = $("#spinSide [name=winner]") || $("#spinSide button");
+    if (first) padFocus(first);
+  }
+  function padPress(k) {
+    const layer = padLayer();
+    if (k === "a") {
+      if (layer.id === "pour" || layer.id === "celebrate") return layer.click();
+      if (padCurrent(layer)) {
+        if (padFocusEl.matches("select")) { const o = padFocusEl.options; padFocusEl.selectedIndex = (padFocusEl.selectedIndex + 1) % o.length; padFocusEl.dispatchEvent(new Event("change", { bubbles: true })); return; }
+        return padFocusEl.click();
+      }
+      return layer === document.body ? padMain() : padMove("down");
+    }
+    if (k === "b") {
+      if (layer === document.body) return padFocus(null);
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); padFocus(null); return;
+    }
+    if (k === "start") { if (layer === document.body) padMain(); return; }
+    if (layer !== document.body) { if (["up", "down", "left", "right"].includes(k)) padMove(k); return; }
+    if (k === "x") return $("#callGame").click();
+    if (k === "y") return $("#openRng").click();
+    if (k === "back") return $("#tvBtn").click();
+    if (k === "lb" || k === "rb") { const i = PAD_TABS.indexOf(S.tab); setTab(PAD_TABS[(i + (k === "rb" ? 1 : PAD_TABS.length - 1)) % PAD_TABS.length]); padFocus(null); return; }
+    padMove(k);
+  }
+  // focus moved by touch or mouse drops the controller highlight
+  document.addEventListener("pointerdown", () => padFocus(null), true);
+  if (navigator.getGamepads && [...navigator.getGamepads()].some(Boolean)) startPads();
+
+  function extrasSettingsHTML() {
+    const voices = speechVoices(), pads = padNames();
+    return `<div class="stack" id="extrasSettings" style="gap:10px">
+      <div class="eyebrow">Announcer, vibration, and controllers</div>
+      <div class="row">
+        <button class="btn" type="button" id="voiceBtn" aria-pressed="${!!S.voice}" ${canSpeak ? "" : "disabled"}>${S.voice ? "🎙️ Announcer on" : "🎙️ Announcer off"}</button>
+        <button class="btn" type="button" id="vibeBtn" aria-pressed="${S.vibrate !== false}">${S.vibrate !== false ? "📳 Vibration on" : "📳 Vibration off"}</button>
+        <button class="btn" type="button" id="confettiBtn" aria-pressed="${S.confetti !== false}">${S.confetti !== false ? "🎉 Confetti on" : "🎉 Confetti off"}</button>
+      </div>
+      ${canSpeak ? `<div class="row" style="align-items:flex-end">
+        <label class="field" style="flex:1 1 200px">Announcer voice<select id="voicePick"><option value="">Automatic</option>${voices.map((v) => `<option value="${esc(v.name)}" ${v.name === S.voiceName ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select></label>
+        <button class="btn" type="button" id="voiceTest" ${S.voice ? "" : "disabled"}>Test the voice</button>
+      </div>` : `<div class="muted" style="font-size:.85rem">This browser can't talk, so the announcer isn't available.</div>`}
+      <div class="muted" style="font-size:.85rem">The announcer calls out each spin, who drinks, trophies, and whose turn it is, in the theme's voice. Vibration works on Android phones (iPhones don't allow it) and rumbles controllers that support it. Confetti uses the theme's colors and shapes.</div>
+      <div class="pad-help">
+        <div><b>🎮 ${pads.length ? esc(pads.join(", ")) + " connected" : "No controller connected"}</b>${pads.length ? "" : `<br><span class="muted">Plug one in or pair it over Bluetooth, then press any button.</span>`}</div>
+        <dl class="pad-map"><dt>A</dt><dd>Spin, or press the highlighted button</dd><dt>B</dt><dd>Back out of a window</dd><dt>D-pad</dt><dd>Move between buttons</dd><dt>LB / RB</dt><dd>Switch tabs</dd><dt>X</dt><dd>Log a game</dd><dt>Y</dt><dd>Chaos roll</dd><dt>Start</dt><dd>Spin</dd><dt>View</dt><dd>TV mode</dd></dl>
+      </div>
+    </div>`;
+  }
 
   // ---------- Background music ----------
   // Original loops made on the fly with Web Audio, one style per theme (no recordings, so nothing to
@@ -3082,7 +3287,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks, skin: S.skin });
     save(); closeLog(); renderAll();
     toast(`${game.title} logged`);
-    await pour(drinks, { notes: trophyNotes(trophiesBefore) });
+    const won = newTrophies(trophiesBefore), notes = won.map((t) => t.note);
+    if (f.winner !== "tie") confetti({ count: 70, y: 0.3 });
+    await pour(drinks, { notes, quiet: notes });
+    if (won.length) await celebrate(won);
     await waterCheck(before);
   }
   $("#callGame").addEventListener("click", openLog);
@@ -3130,7 +3338,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (g.wild) return landWild(g.wild);
     n.pending = { gameId: g.id, spunBy: spinner().id, by: allGames().find((x) => x.id === g.id)?.by };
     mainWheel._parked = true;
-    save(); fanfare(); renderSpin();
+    save(); fanfare(); buzz("land"); renderSpin();
+    const pickedBy = playerById(n.pending.by);
+    say(`${SKINS[S.skin].landed}. ${gameById(g.id)?.title || ""}.${pickedBy ? ` ${pickedBy.name}'s pick.` : ""}`);
     $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
   }
 
@@ -3139,7 +3349,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     n.wild = { k, spunBy: spinner()?.id };
     if (k === "double") n.nextMod = Object.assign({}, n.nextMod, { double: true });
     if (k === "reverse") n.dir = -(n.dir || 1);
-    save(); fanfare(); renderSpin();
+    save(); fanfare(); buzz("wild"); renderSpin();
+    say(`Wild slice! ${WILDS[k].label}`);
     if (k === "everyone") {
       const amt = 0.5;
       const drinks = n.players.map((p) => ({ pid: p.id, amt }));
@@ -3185,9 +3396,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!injected) { advanceTurn(n); n.nextMod = null; }
     form = null; resumePaused();
     save(); renderSpin();
-    notes.push(...trophyNotes(trophiesBefore));
-    await pour(drinks, { notes });
+    const won = newTrophies(trophiesBefore);
+    notes.push(...won.map((t) => t.note));
+    if (winner) confetti({ count: 70, y: 0.3 });
+    await pour(drinks, { notes, quiet: won.map((t) => t.note) });
+    if (won.length) await celebrate(won);
     await waterCheck(before);
+    if (!injected && N().started && spinner()) say(`${spinner().name}, you're up.`);
   }
 
   function addDrink(drinks, pid, amt) {
@@ -3273,10 +3488,130 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     save(); renderAll(); toast("Last round undone");
   });
 
+
+  // ---------- Confetti and trophy celebrations ----------
+  // Confetti borrows each theme's shapes and colors: PlayStation face buttons, card suits, Zelda triangles,
+  // sakura petals, Minecraft pixels. Custom themes throw their wheel colors.
+  const CONFETTI = {
+    playstation: { glyphs: ["✕", "○", "△", "□"], colors: ["#2f8cff", "#ff4f6d", "#3eb489", "#e48fd0"] },
+    metalgear: { glyphs: ["!"], colors: ["#ff3b3b", "#ffd23f"], size: 1.4 },
+    cards: { glyphs: ["♠", "♥", "♦", "♣"], colors: ["#111111", "#d62828", "#d62828", "#111111", "#f2e8c9"] },
+    nintendo: { shape: "coin", colors: ["#ffd23f", "#f4b400", "#ffe680"] },
+    castlevania: { glyphs: ["🦇"], size: 1.2 },
+    zelda: { shape: "tri", colors: ["#e8c65a", "#f5dc7d", "#b8922e"] },
+    halo: { shape: "rect", colors: ["#5ac8fa", "#d8e7ef", "#7cb342", "#ffffff"] },
+    pokemon: { shape: "ball" },
+    synthwave: { shape: "rect", colors: ["#ff2bd6", "#00e5ff", "#ffd23f", "#9d4dff"] },
+    streetfighter: { glyphs: ["💥", "👊"] },
+    mortalkombat: { glyphs: ["🐉", "💀"] },
+    minecraft: { shape: "pixel", colors: ["#5d9b3a", "#8b5a2b", "#7f7f7f", "#4fc3f7", "#3fd13f"] },
+    fallout: { glyphs: ["☢"], colors: ["#ffd23f", "#9bf09b"], size: 1.3 },
+    mariokart: { shape: "pixel", colors: ["#111111", "#ffffff"], extra: ["🍌", "🏁"] },
+    skyrim: { glyphs: ["❄"], colors: ["#ffffff", "#bfe6ff", "#d8c7a0"], gravity: 0.04, size: 1.2 },
+    gta: { glyphs: ["💵", "💰"] },
+    amongus: { shape: "circle", colors: ["#c51111", "#132ed1", "#117f2d", "#ed54ba", "#ef7d0d", "#f5f557", "#50ef39", "#6b2fbb"] },
+    divebar: { glyphs: ["🍺", "🥃"] },
+    starwars: { shape: "star", colors: ["#ffe81f", "#ffffff", "#4fc3f7"] },
+    sakura: { shape: "petal", colors: ["#ffc0d9", "#f48fb1", "#ff9cc2", "#f06292"], gravity: 0.035 },
+    cruise: { glyphs: ["🌴", "⚓", "🐚", "🍹"] },
+    pride: { shape: "rect", colors: ["#e40303", "#ff8c00", "#ffed00", "#008026", "#24408e", "#732982", "#5bcefa", "#f5a9b8"] },
+    wedding: { shape: "heart", colors: ["#ffffff", "#f4d3b0", "#e8b4bc", "#d4af37"] },
+    policenauts: { shape: "pixel", colors: ["#ff2bd6", "#00e5ff", "#ffd23f"] },
+  };
+  // what a trophy is called in each theme
+  const TROPHY_WORD = { xbox: "Achievement unlocked", playstation: "Trophy earned", halo: "Medal earned", zelda: "You found a treasure!", pokemon: "Badge earned!",
+    mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
+    skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
+    amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
+    synthwave: "New high score", policenauts: "Case closed", cards: "Royal flush" };
+  let confettiParts = [], confettiRaf = null;
+  function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
+    if (S.confetti === false || reduceMotion) return;
+    const cv = $("#confetti"), ctx = cv.getContext("2d"), dpr = Math.min(2, devicePixelRatio || 1);
+    const W = innerWidth, H = innerHeight;
+    if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+    const base = skinBase(S.skin), cfg = Object.assign({ shape: "rect" }, CONFETTI[base] || {}), colors = cfg.colors || SKINS[S.skin].wheel;
+    const scale = Math.max(0.8, Math.min(1.4, W / 900)) * (cfg.size || 1);
+    for (let i = 0; i < count; i++) {
+      const glyphs = cfg.glyphs || (cfg.extra && Math.random() < 0.2 ? cfg.extra : null);
+      const a = rain ? Math.PI / 2 : -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1, v = rain ? Math.random() * 2 : 6 + Math.random() * 9;
+      confettiParts.push({
+        x: rain ? Math.random() * W : W * x, y: rain ? -20 - Math.random() * H * 0.5 : H * y,
+        vx: Math.cos(a) * v * (rain ? 0 : 1), vy: Math.sin(a) * v, rot: Math.random() * 6.3, vr: (Math.random() - 0.5) * 0.3,
+        s: (6 + Math.random() * 7) * scale, c: colors[i % colors.length], g: glyphs ? glyphs[Math.floor(Math.random() * glyphs.length)] : null,
+        shape: cfg.shape, life: 0, wob: Math.random() * 6.3, grav: cfg.gravity || 0.18,
+      });
+    }
+    cv.hidden = false;
+    if (!confettiRaf) confettiRaf = requestAnimationFrame(confettiStep);
+  }
+  function drawPart(ctx, q) {
+    ctx.fillStyle = q.c;
+    if (q.g) { ctx.font = `${q.s * 2}px system-ui, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(q.g, 0, 0); return; }
+    const z = q.s;
+    ctx.beginPath();
+    if (q.shape === "circle" || q.shape === "coin") { ctx.arc(0, 0, z * 0.6, 0, 6.29); ctx.fill(); if (q.shape === "coin") { ctx.strokeStyle = "rgba(0,0,0,.25)"; ctx.lineWidth = 2; ctx.stroke(); } }
+    else if (q.shape === "ball") { ctx.arc(0, 0, z * 0.6, Math.PI, 0); ctx.fillStyle = "#e3350d"; ctx.fill(); ctx.beginPath(); ctx.arc(0, 0, z * 0.6, 0, Math.PI); ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.fillStyle = "#222"; ctx.fillRect(-z * 0.6, -1, z * 1.2, 2); }
+    else if (q.shape === "tri") { ctx.moveTo(0, -z * 0.7); ctx.lineTo(z * 0.65, z * 0.5); ctx.lineTo(-z * 0.65, z * 0.5); ctx.fill(); }
+    else if (q.shape === "star") { for (let i = 0; i < 10; i++) { const r = i % 2 ? z * 0.28 : z * 0.7, an = (i * Math.PI) / 5 - Math.PI / 2; ctx.lineTo(Math.cos(an) * r, Math.sin(an) * r); } ctx.fill(); }
+    else if (q.shape === "heart") { ctx.moveTo(0, z * 0.6); ctx.bezierCurveTo(z, 0, z * 0.5, -z * 0.8, 0, -z * 0.25); ctx.bezierCurveTo(-z * 0.5, -z * 0.8, -z, 0, 0, z * 0.6); ctx.fill(); }
+    else if (q.shape === "petal") { ctx.ellipse(0, 0, z * 0.7, z * 0.38, 0, 0, 6.29); ctx.fill(); }
+    else if (q.shape === "pixel") { ctx.fillRect(-z / 2, -z / 2, z, z); }
+    else ctx.fillRect(-z / 2, -z / 4, z, z / 2);
+  }
+  function confettiStep() {
+    const cv = $("#confetti"), ctx = cv.getContext("2d"), dpr = cv.width / innerWidth;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+    confettiParts = confettiParts.filter((q) => q.y < innerHeight + 40 && q.life < 600);
+    confettiParts.forEach((q) => {
+      q.life++; q.vy += q.grav; q.vx *= 0.985; q.vy = Math.min(q.vy, q.grav < 0.1 ? 1.6 : 7);
+      q.wob += 0.08; q.x += q.vx + Math.sin(q.wob) * (q.grav < 0.1 ? 1.2 : 0.6); q.y += q.vy; q.rot += q.vr;
+      ctx.setTransform(dpr, 0, 0, dpr, q.x * dpr, q.y * dpr); ctx.rotate(q.rot);
+      if (!q.g && q.shape !== "ball" && q.shape !== "coin" && q.shape !== "pixel") ctx.scale(1, Math.abs(Math.cos(q.wob * 1.5)) * 0.7 + 0.3);
+      drawPart(ctx, q);
+    });
+    if (confettiParts.length) confettiRaf = requestAnimationFrame(confettiStep);
+    else { confettiRaf = null; cv.hidden = true; }
+  }
+  // the trophy card: one per unlock, a couple of seconds each, tap to skip
+  let celebSkip = null;
+  async function celebrate(list) {
+    for (const c of list) {
+      const ov = $("#celebrate");
+      $("#celebCard").innerHTML = `<div class="celeb-icon" aria-hidden="true">${c.icon}</div>
+        <div class="eyebrow">${esc(c.word || TROPHY_WORD[skinBase(S.skin)] || "Trophy unlocked")}</div>
+        <div class="celeb-name">${esc(c.title)}</div><div class="celeb-who">${esc(c.who)}</div><div class="muted">${esc(c.desc)}</div>`;
+      ov.hidden = false; ov.classList.remove("go"); void ov.offsetWidth; ov.classList.add("go");
+      fanfare(); setTimeout(fanfare, 450); buzz(c.champ ? "champ" : "trophy");
+      confetti({ count: c.champ ? 220 : 140, rain: true }); confetti({ count: 70, y: 0.45 });
+      say(`${c.word || TROPHY_WORD[skinBase(S.skin)] || "Trophy unlocked"}! ${c.who}, ${c.title}.`);
+      await new Promise((res) => { const t = setTimeout(res, c.champ ? 4200 : 3000); celebSkip = () => { clearTimeout(t); res(); }; });
+      ov.hidden = true;
+    }
+    celebSkip = null;
+  }
+  $("#celebrate").addEventListener("click", () => celebSkip && celebSkip());
+  function newTrophies(before) {
+    const after = trophyKeys(), st = playerStats(), out = [];
+    after.forEach((k) => {
+      if (before.has(k)) return;
+      const [key, id] = k.split("|"), t = TROPHIES.find((x) => x.id === id);
+      out.push({ icon: t.icon, title: t.name, desc: t.desc, who: st[key]?.name || key, note: `${t.icon} ${st[key]?.name || key} unlocked ${t.name}!` });
+    });
+    return out;
+  }
+
   // ---------- Pour animation ----------
   let pourSkip = false;
-  async function pour(drinks, { notes = [], water = false, names = [] } = {}) {
+  async function pour(drinks, { notes = [], water = false, names = [], quiet = [] } = {}) {
     if (!drinks.length && !water && !notes.length) return;
+    if (water) say(`Water round. ${listNames(names.map(speechText))}, grab a glass of water.`);
+    else {
+      const byAmt = {};
+      drinks.forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(playerById(d.pid)?.name || "Someone"));
+      const spoken = notes.filter((t) => !quiet.includes(t));
+      say([...Object.entries(byAmt).map(([a, ns]) => `${listNames(ns)}, drink ${spokenShots(+a)}.`), ...spoken].join(" "));
+    }
     const max = water ? 1 : drinks.length ? Math.max(...drinks.map((d) => d.amt)) : 0;
     const groups = {};
     drinks.forEach((d) => (groups[d.amt] = groups[d.amt] || []).push(pnameById(d.pid)));
@@ -3293,6 +3628,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const ms = (fast ? 450 : 900) * f + 250;
       setGlass(svg, f, ms);
       if (water) blip(500 + 300 * f, ms / 1000, "sine", 0.03); else blip(300 + 400 * f, ms / 1000, pack().pour || "sine", 0.03);
+      buzz(water ? "water" : "shot", water ? undefined : Math.round(ms * 0.6));
       await wait(ms);
       count += f; left -= f;
       if (!water) $("#pourCount").textContent = fmtShots(count);
@@ -3300,7 +3636,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     if (!water && max) $("#pourCount").textContent = fmtShots(max);
     if (!pourSkip) await wait(1600 + notes.length * 900);
-    ov.hidden = true; Music.duck(false); if (embedNow) embedVolume(S.musicVol ?? 40);
+    ov.hidden = true; if (!speaking) Music.duck(false); if (embedNow) embedVolume(S.musicVol ?? 40);
   }
   $("#pour").addEventListener("click", () => { pourSkip = true; $("#pour").hidden = true; });
 
@@ -3413,15 +3749,6 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function trophyKeys() {
     const st = playerStats(), out = new Set();
     Object.values(st).forEach((x) => TROPHIES.forEach((t) => { if (t.test(x)) out.add(x.key + "|" + t.id); }));
-    return out;
-  }
-  function trophyNotes(before) {
-    const after = trophyKeys(), st = playerStats(), out = [];
-    after.forEach((k) => {
-      if (before.has(k)) return;
-      const [key, id] = k.split("|"), t = TROPHIES.find((x) => x.id === id);
-      out.push(`${t.icon} ${st[key]?.name || key} unlocked ${t.name}!`);
-    });
     return out;
   }
   // what each trophy means, with how many players have it
@@ -3598,8 +3925,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     advanceFinale();
     save(); renderSheet(); renderAll();
     const notes = f.champion ? [`👑 ${pnameById(f.champion)} wins the finale!`] : [];
-    notes.push(...trophyNotes(tb));
-    await pour(drinks, { notes });
+    const won = newTrophies(tb);
+    notes.push(...won.map((t) => t.note));
+    await pour(drinks, { notes, quiet: won.map((t) => t.note) });
+    if (f.champion) won.unshift({ icon: "👑", title: "Finale champion", who: pnameById(f.champion), desc: "Won tonight's grand finale", word: "Champion of the night", champ: true });
+    if (won.length) await celebrate(won);
     await waterCheck(before);
   }
 
@@ -4125,6 +4455,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             ${settingRow("Streak-breaker bonus", "streakBonus", [[0, "Off"], [0.25, "¼"], [0.5, "½"], [1, "1"]], S.streakBonus ?? 0.5)}
             ${settingRow("Water round every", "waterEvery", [[0, "Off"], [2, "2 shots"], [3, "3 shots"], [5, "5 shots"]], S.waterEvery ?? 3)}
             <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound effects on" : "Sound effects off"}</button><button class="btn" type="button" id="musicBtn2" aria-pressed="${!!S.music}">${S.music ? "♪ Music on" : "♪ Music off"}</button></div>
+            ${extrasSettingsHTML()}
             <label class="field" for="musicVol">Music volume <input type="range" id="musicVol" min="0" max="100" step="5" value="${S.musicVol ?? 40}"></label>
             <div class="muted" style="font-size:.85rem">Each theme has its own original background loop, inspired by its style.</div>
             ${themeMusicHTML()}
@@ -4236,6 +4567,16 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       renderHistory(); if (S.music) applyMusic();
     } else if (b.id === "musicBtn2") {
       toggleMusic(); renderHistory();
+    } else if (b.id === "voiceBtn") {
+      S.voice = !S.voice; save(); renderHistory();
+      if (S.voice) say("Announcer is on. Let's drink.");
+      else if (canSpeak) speechSynthesis.cancel();
+    } else if (b.id === "voiceTest") {
+      say(`${SKINS[S.skin].landed}. GoldenEye 007. Alex, drink one and a half shots.`);
+    } else if (b.id === "vibeBtn") {
+      S.vibrate = S.vibrate === false; save(); renderHistory(); buzz("land");
+    } else if (b.id === "confettiBtn") {
+      S.confetti = S.confetti === false; save(); renderHistory(); if (S.confetti) confetti({ count: 90 });
     } else if (b.id === "soundBtn") {
       S.sound = !S.sound; save(); renderHistory();
     }
@@ -4286,7 +4627,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#openRng").addEventListener("click", openRng);
   $("#closeRng").addEventListener("click", closeRng);
   $("#rng").addEventListener("click", (e) => { if (e.target.id === "rng") closeRng(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#sheet").hidden) closeSheet(); if (!$("#logGame").hidden) closeLog(); if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (!$("#sheet").hidden) closeSheet(); if (!$("#logGame").hidden) closeLog(); if (!$("#rng").hidden) closeRng(); if (!$("#pour").hidden) { pourSkip = true; $("#pour").hidden = true; } if (celebSkip) celebSkip(); } });
   $("#rngMode").addEventListener("click", (e) => { const b = e.target.closest("[data-mode]"); if (!b || rolling) return; rngMode = b.dataset.mode; buildStage(); });
   $("#rngPresets").addEventListener("click", (e) => {
     const b = e.target.closest("[data-pmin]"); if (!b || rolling) return;
