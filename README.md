@@ -58,7 +58,9 @@ Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, P
 
 ## Music
 
-Tap **♪ Music** in the header to turn on background music. Each theme has its own original loop in its style: chiptune for the Nintendo themes, gothic for Castlevania, slow synth pads for Halo and Skyrim, a 90s city-pop groove for Policenauts, and so on. The loops are generated in the browser, so they work offline and there's nothing to download. Set the volume under History → Settings. Music gets quieter during pours and pauses when the app is in the background.
+Tap **♪ Music** in the header to turn on background music. Each theme has its own original loop in its style: chiptune for the Nintendo themes, gothic for Castlevania, slow synth pads for Halo and Skyrim, a 90s city-pop groove for Policenauts, and so on. The loops are generated in the browser, so they work offline and there's nothing to download. Set the volume under History → Settings.
+
+**Your own music:** under History → Settings → *Your own music*, paste a Spotify, YouTube, or YouTube Music link (song, album, or playlist) for any theme, or for all themes. That theme then plays it in a small player in the corner instead of the built-in loop. Links are saved in this browser only. Spotify plays 30-second previews unless you're logged in to Spotify in that browser, and phones usually need one tap on play inside the player. The players only work on the hosted site, not in the Claude preview. Music gets quieter during pours and pauses when the app is in the background.
 
 ## Saving
 

@@ -952,6 +952,26 @@ details.night .body { padding: 10px 0 0 18px; display: grid; gap: 10px; }
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   overflow-y: auto;
 }
+/* floating player for a theme's Spotify or YouTube link */
+.mini-player {
+  position: fixed; z-index: 40; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  width: min(340px, calc(100vw - 24px)); background: var(--panel); border-radius: 12px; box-shadow: var(--shadow), 0 12px 30px rgba(0,0,0,.45); overflow: hidden;
+}
+.mp-head { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 12px; font-weight: 700; font-size: .85rem; }
+.mp-head span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); cursor: pointer; font-weight: 700; }
+.mp-frame iframe { display: block; width: 100%; border: 0; }
+.mini-player[data-kind="spotify"] .mp-frame iframe { height: 152px; }
+.mini-player[data-kind="youtube"] .mp-frame iframe { aspect-ratio: 16 / 9; height: auto; }
+/* shrunk: keep the player running but out of the way */
+.mini-player.small .mp-frame { height: 0; overflow: hidden; }
+.tm-form { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+.tm-form select { width: auto; }
+.tm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tm-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); font-size: .9rem; }
+.tm-list li > span { min-width: 0; }
+.tm-url { font-size: .78rem; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .tm-form { grid-template-columns: 1fr; } .tm-form select { width: 100%; } }
 #pour { z-index: 70; } /* the pour always plays on top, even over the bracket or recap */
 .pour-card { display: grid; justify-items: center; gap: 10px; text-align: center; max-width: 440px; cursor: pointer; }
 .pour-card .glass { width: 200px; height: 260px; }
@@ -1159,6 +1179,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   <section class="view" id="view-history" hidden></section>
   <footer>Pour Decisions saves everything in this browser. Back it up from History. Drink responsibly and get a ride home.</footer>
 </main>
+
+<div class="mini-player" id="miniPlayer" hidden>
+  <div class="mp-head">
+    <span id="mpTitle">♪ Your music</span>
+    <button type="button" class="mp-btn" id="mpToggle" aria-label="Shrink the player">–</button>
+    <button type="button" class="mp-btn" id="mpClose" aria-label="Turn music off">✕</button>
+  </div>
+  <div class="mp-frame" id="mpFrame"></div>
+</div>
 
 <div class="overlay" id="pour" hidden>
   <div class="pour-card" id="pourCard" role="status" aria-live="polite"></div>
@@ -1968,7 +1997,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     $("#tagline").textContent = SKINS[S.skin].tagline;
     $("#hubSpin").textContent = SKINS[S.skin].spin;
     renderSkins();
-    if (Music.playing) Music.setTheme(S.skin);
+    if (S.music && (Music.playing || embedNow)) { if (musicLinkFor(S.skin)) applyMusic(); else if (Music.playing) Music.setTheme(S.skin); else applyMusic(); }
     // fonts may swap in after load; redraw wheels once they settle
     document.fonts && document.fonts.ready.then(() => { mainWheel.draw(); rngWheel && rngWheel.draw(); });
   }
@@ -2945,7 +2974,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const who = water ? `💧 ${names.map(esc).join(", ")}: grab a glass of water.` : Object.entries(groups).map(([a, ns]) => `${ns.map(esc).join(", ")} · ${fmtShots(+a)}`).join("<br>");
     const ov = $("#pour"), card = $("#pourCard");
     card.innerHTML = `<div class="eyebrow">${water ? "Water round" : "Bottoms up"}</div>${glassSVG(0, { water })}<div class="count num" id="pourCount">${water ? "💧" : "0"}</div><div class="who">${who}</div>${notes.map((t) => `<div class="pour-note">${esc(t)}</div>`).join("")}<div class="quip">${water ? "Hydrate or die-drate." : esc(pickOne(SKINS[S.skin].quips))}</div><div class="muted" style="font-size:.8rem">Tap to close</div>`;
-    ov.hidden = false; pourSkip = false; Music.duck(true);
+    ov.hidden = false; pourSkip = false; Music.duck(true); if (embedNow) embedVolume(Math.round((S.musicVol ?? 40) * 0.3));
     const svg = card.querySelector("svg");
     await wait(60);
     let left = max, count = 0;
@@ -2962,7 +2991,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     if (!water && max) $("#pourCount").textContent = fmtShots(max);
     if (!pourSkip) await wait(1600 + notes.length * 900);
-    ov.hidden = true; Music.duck(false);
+    ov.hidden = true; Music.duck(false); if (embedNow) embedVolume(S.musicVol ?? 40);
   }
   $("#pour").addEventListener("click", () => { pourSkip = true; $("#pour").hidden = true; });
 
@@ -3467,6 +3496,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound effects on" : "Sound effects off"}</button><button class="btn" type="button" id="musicBtn2" aria-pressed="${!!S.music}">${S.music ? "♪ Music on" : "♪ Music off"}</button></div>
             <label class="field" for="musicVol">Music volume <input type="range" id="musicVol" min="0" max="100" step="5" value="${S.musicVol ?? 40}"></label>
             <div class="muted" style="font-size:.85rem">Each theme has its own original background loop, inspired by its style.</div>
+            ${themeMusicHTML()}
           </div>
         </div>
       </div>`;
@@ -3558,6 +3588,16 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       save(); renderHistory(); toast(`New games start at ${fmtShots(S.defaultShots)} shot${S.defaultShots === 1 ? "" : "s"}`);
     } else if (b.dataset.set) {
       S[b.dataset.set] = parseFloat(b.dataset.val); save(); renderHistory();
+    } else if (b.id === "tmSave") {
+      const link = parseMusicLink($("#tmUrl").value);
+      if (!link) { toast("Paste a Spotify or YouTube link (song, album, or playlist)"); $("#tmUrl").focus(); return; }
+      const which = $("#tmTheme").value;
+      S.themeMusic = Object.assign({}, S.themeMusic, { [which]: link }); save();
+      toast(`${which === "*" ? "Every theme" : SKINS[which].label} will play your ${link.kind === "spotify" ? "Spotify" : "YouTube"} link`);
+      renderHistory(); if (S.music) applyMusic();
+    } else if (b.dataset.tmdel) {
+      const m = Object.assign({}, S.themeMusic); delete m[b.dataset.tmdel]; S.themeMusic = m; save();
+      renderHistory(); if (S.music) applyMusic();
     } else if (b.id === "musicBtn2") {
       toggleMusic(); renderHistory();
     } else if (b.id === "soundBtn") {
@@ -3679,12 +3719,80 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   // music: the header button and Settings both toggle it; browsers only allow audio after a tap,
   // so a saved "on" starts with the first tap on the page
+  // ---------- Your own music: Spotify or YouTube per theme ----------
+  // Links are saved in S.themeMusic (this browser only): { themeKey or "*": { kind, id, type, url } }.
+  // A theme with a link plays it in a small embedded player instead of the built-in loop.
+  function parseMusicLink(raw) {
+    const s = String(raw || "").trim(); if (!s) return null;
+    let m = s.match(/^spotify:(track|album|playlist|artist|episode|show):([A-Za-z0-9]+)/);
+    if (!m) m = s.match(/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/);
+    if (m) return { kind: "spotify", type: m[1], id: m[2], url: s };
+    let u; try { u = new URL(/^https?:/.test(s) ? s : "https://" + s); } catch { return null; }
+    const host = u.hostname.replace(/^(www|m|music)\./, "");
+    if (host !== "youtube.com" && host !== "youtu.be" && host !== "youtube-nocookie.com") return null;
+    const list = u.searchParams.get("list");
+    let vid = host === "youtu.be" ? u.pathname.slice(1) : u.searchParams.get("v") || (u.pathname.match(/\/(?:embed|shorts|live)\/([\w-]{6,})/) || [])[1];
+    if (vid === "videoseries") vid = null;
+    if (!vid && !list) return null;
+    return { kind: "youtube", id: vid || null, list: list || null, url: s };
+  }
+  const musicLinkFor = (skin) => { const m = S.themeMusic || {}; return m[skin] || m["*"] || null; };
+  function embedSrc(link) {
+    if (link.kind === "spotify") return `https://open.spotify.com/embed/${link.type}/${link.id}?utm_source=generator&theme=0`;
+    const origin = encodeURIComponent(location.origin);
+    if (link.list && !link.id) return `https://www.youtube.com/embed/videoseries?list=${link.list}&autoplay=1&loop=1&enablejsapi=1&origin=${origin}`;
+    // a single video loops only when it's also its own playlist
+    const loopWith = link.list ? `list=${link.list}` : `playlist=${link.id}`;
+    return `https://www.youtube.com/embed/${link.id}?autoplay=1&loop=1&${loopWith}&enablejsapi=1&origin=${origin}`;
+  }
+  function themeMusicHTML() {
+    const m = S.themeMusic || {};
+    const saved = Object.entries(m);
+    return `<div class="stack tm-block" id="themeMusicSet" style="gap:8px">
+      <div class="eyebrow">Your own music: Spotify or YouTube</div>
+      <div class="muted" style="font-size:.85rem">Paste a link to a song, album, or playlist from Spotify, YouTube, or YouTube Music. That theme plays it instead of the built-in loop. Saved on this phone only.</div>
+      <div class="tm-form">
+        <select id="tmTheme" aria-label="Which theme">${[["*", "All themes"], ...Object.entries(SKINS).map(([k, v]) => [k, v.label])].map(([k, l]) => `<option value="${k}" ${k === S.skin ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+        <input type="url" id="tmUrl" placeholder="https://open.spotify.com/playlist/…" aria-label="Spotify or YouTube link" inputmode="url">
+        <button class="btn" type="button" id="tmSave">Save</button>
+      </div>
+      ${saved.length ? `<ul class="tm-list">${saved.map(([k, l]) => `<li><span><b>${k === "*" ? "All themes" : esc(SKINS[k]?.label || k)}</b> · ${l.kind === "spotify" ? "Spotify " + esc(l.type) : l.list && !l.id ? "YouTube playlist" : "YouTube"}<br><span class="muted tm-url">${esc(l.url)}</span></span><button class="btn small ghost" type="button" data-tmdel="${k}">Remove</button></li>`).join("")}</ul>` : ""}
+      <div class="muted" style="font-size:.8rem">Spotify plays 30-second previews unless you're logged in to Spotify in this browser. On phones you may need to tap play in the player once.</div>
+    </div>`;
+  }
+  let embedNow = "";
+  function showEmbed(link) {
+    const src = embedSrc(link), box = $("#miniPlayer");
+    $("#mpTitle").textContent = `♪ ${link.kind === "spotify" ? "Spotify" : "YouTube"} · ${SKINS[S.skin].label}`;
+    box.dataset.kind = link.kind; box.hidden = false;
+    if (embedNow === src) return; // same link as the last theme: keep playing
+    embedNow = src;
+    $("#mpFrame").innerHTML = embedded
+      ? `<div class="muted" style="padding:10px;font-size:.85rem">Spotify and YouTube players only work on your hosted site, not in this preview.</div>`
+      : `<iframe src="${src}" title="Music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager"></iframe>`;
+  }
+  function hideEmbed() { $("#miniPlayer").hidden = true; $("#mpFrame").innerHTML = ""; embedNow = ""; }
+  // YouTube's player accepts volume commands; Spotify's embed doesn't, so it just keeps playing
+  function embedVolume(pct) {
+    const f = $("#mpFrame iframe"); if (!f || $("#miniPlayer").dataset.kind !== "youtube") return;
+    try { f.contentWindow.postMessage(JSON.stringify({ event: "command", func: "setVolume", args: [pct] }), "*"); } catch { /* player not ready */ }
+  }
+  function applyMusic() {
+    if (!S.music) { Music.stop(); hideEmbed(); return; }
+    const link = musicLinkFor(S.skin);
+    if (link) { Music.stop(); showEmbed(link); embedVolume(S.musicVol ?? 40); }
+    else { hideEmbed(); Music.start(); }
+  }
+  $("#mpToggle").addEventListener("click", () => { const box = $("#miniPlayer"); box.classList.toggle("small"); $("#mpToggle").textContent = box.classList.contains("small") ? "+" : "–"; });
+  $("#mpClose").addEventListener("click", () => { S.music = false; save(); applyMusic(); syncMusicBtn(); if (S.tab === "history") renderHistory(); });
+
   function syncMusicBtn() { const b = $("#musicBtn"); b.setAttribute("aria-pressed", String(!!S.music)); b.textContent = S.music ? "♪ Music on" : "♪ Music off"; }
-  function toggleMusic() { S.music = !S.music; save(); if (S.music) Music.start(); else Music.stop(); syncMusicBtn(); }
+  function toggleMusic() { S.music = !S.music; save(); applyMusic(); syncMusicBtn(); }
   $("#musicBtn").addEventListener("click", toggleMusic);
-  $("#view-history").addEventListener("input", (e) => { if (e.target.id === "musicVol") { S.musicVol = +e.target.value; save(); Music.setVolume(); } });
-  document.addEventListener("pointerdown", function first() { if (S.music && !Music.playing) Music.start(); document.removeEventListener("pointerdown", first); });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) Music.stop(); else if (S.music && Music.playing === false && document.hasFocus()) Music.start(); });
+  $("#view-history").addEventListener("input", (e) => { if (e.target.id === "musicVol") { S.musicVol = +e.target.value; save(); Music.setVolume(); embedVolume(S.musicVol); } });
+  document.addEventListener("pointerdown", function first() { if (S.music && !Music.playing && !embedNow) applyMusic(); document.removeEventListener("pointerdown", first); });
+  // the built-in loop pauses in the background; Spotify/YouTube players handle that themselves
+  document.addEventListener("visibilitychange", () => { if (document.hidden) Music.stop(); else if (S.music && !musicLinkFor(S.skin) && !Music.playing && document.hasFocus()) Music.start(); });
   syncMusicBtn();
   applySkin();
   setTab(S.tab || "setup");
