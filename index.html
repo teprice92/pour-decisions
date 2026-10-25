@@ -16,7 +16,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Russo+One&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Russo+One&family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -641,35 +641,62 @@ html[data-skin="wedding"] {
 }
 html[data-skin="wedding"] h2, html[data-skin="wedding"] .up-next .who, html[data-skin="wedding"] .landed .game-title, html[data-skin="wedding"] .brand-name { font-style: italic; }
 html[data-skin="policenauts"] {
-  --bg: #060a1c;
-  --bg-art: radial-gradient(1.2px 1.2px at 30px 40px, #fff, transparent), radial-gradient(1px 1px at 140px 110px, #cfe6ff, transparent), radial-gradient(1.5px 1.5px at 90px 170px, #fff, transparent),
-            radial-gradient(900px 700px at -10% 120%, rgba(40, 120, 220, .45), transparent 60%), radial-gradient(500px 300px at 105% -5%, rgba(255, 150, 60, .35), transparent 70%),
-            linear-gradient(180deg, #0a1030 0%, #060a1c 100%);
-  --panel: rgba(12, 20, 48, .86);
-  --panel-2: #121d45;
-  --fg: #eef3ff;
-  --muted: #94a5cf;
-  --accent: #ffae3d;
-  --accent-fg: #1a0f00;
-  --accent-2: #39c8ff;
-  --danger: #ff5a4a;
-  --line: rgba(57, 200, 255, .28);
-  --liquid: #ffb347;
-  --liquid-2: #c8641a;
-  --glass: rgba(210, 230, 255, .08);
-  --glass-edge: rgba(210, 230, 255, .6);
+  /* 80s anime cyberpunk: neon magenta and cyan over a rainy teal night, HUD brackets, CRT lines */
+  --bg: #050b12;
+  --bg-art: none;
+  --panel: rgba(6, 18, 28, .86);
+  --panel-2: #0b2230;
+  --fg: #e6fbff;
+  --muted: #7fb3c2;
+  --accent: #ff2bd6;
+  --accent-fg: #14000f;
+  --accent-2: #39f3ff;
+  --danger: #ff4d6a;
+  --line: rgba(57, 243, 255, .3);
+  --liquid: #ff2bd6;
+  --liquid-2: #39f3ff;
+  --glass: rgba(57, 243, 255, .07);
+  --glass-edge: rgba(150, 250, 255, .65);
   --font-display: "Russo One", "Arial Black", sans-serif;
-  --font-body: "Rajdhani", system-ui, sans-serif;
+  --font-body: "Chakra Petch", "Rajdhani", system-ui, sans-serif;
   --display-case: uppercase;
-  --display-track: .06em;
+  --display-track: .08em;
   --display-weight: 400;
-  --radius: 6px;
-  --shadow: 0 0 0 1px var(--line), 0 0 0 4px rgba(57, 200, 255, .06), 0 18px 40px rgba(0,0,0,.55);
+  --radius: 2px;
+  --shadow: 0 0 0 1px var(--line), 0 0 18px rgba(255, 43, 214, .12), 0 18px 40px rgba(0,0,0,.6);
+  --hud: #39f3ff;
   color-scheme: dark;
 }
-html[data-skin="policenauts"] body { background-size: 200px 200px, 200px 200px, 200px 200px, auto, auto, auto; }
-html[data-skin="policenauts"] h2, html[data-skin="policenauts"] .up-next .who, html[data-skin="policenauts"] .brand-name { background: linear-gradient(180deg, #fff3d6 0%, #ffae3d 55%, #b8601a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(0,0,0,.6)); }
-html[data-skin="policenauts"] .landed .game-title { color: #9ee6ff; text-shadow: 0 0 10px rgba(57, 200, 255, .6); }
+html[data-skin="policenauts"] body {
+  background:
+    repeating-linear-gradient(104deg, rgba(150, 235, 255, .05) 0 1px, transparent 1px 11px),
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='640'%20height='240'%20viewBox='0%200%20640%20240'%3E%3Cg%20fill='%23070d1a'%3E%3Crect%20x='0'%20y='150'%20width='63'%20height='90'/%3E%3Crect%20x='63'%20y='25'%20width='62'%20height='215'/%3E%3Crect%20x='94'%20y='7'%20width='2'%20height='18'/%3E%3Crect%20x='126'%20y='46'%20width='56'%20height='194'/%3E%3Crect%20x='187'%20y='106'%20width='51'%20height='134'/%3E%3Crect%20x='240'%20y='22'%20width='51'%20height='218'/%3E%3Crect%20x='292'%20y='162'%20width='67'%20height='78'/%3E%3Crect%20x='325'%20y='144'%20width='2'%20height='18'/%3E%3Crect%20x='359'%20y='75'%20width='40'%20height='165'/%3E%3Crect%20x='403'%20y='55'%20width='55'%20height='185'/%3E%3Crect%20x='461'%20y='107'%20width='68'%20height='133'/%3E%3Crect%20x='532'%20y='91'%20width='45'%20height='149'/%3E%3Crect%20x='554'%20y='73'%20width='2'%20height='18'/%3E%3Crect%20x='583'%20y='64'%20width='42'%20height='176'/%3E%3Crect%20x='604'%20y='46'%20width='2'%20height='18'/%3E%3Crect%20x='627'%20y='147'%20width='57'%20height='93'/%3E%3C/g%3E%3Cg%20fill='%23ff2bd6'%20opacity='.55'%3E%3Crect%20x='14'%20y='208'%20width='4'%20height='3'/%3E%3Crect%20x='50'%20y='208'%20width='4'%20height='3'/%3E%3Crect%20x='5'%20y='218'%20width='4'%20height='3'/%3E%3Crect%20x='23'%20y='218'%20width='4'%20height='3'/%3E%3Crect%20x='95'%20y='123'%20width='4'%20height='3'/%3E%3Crect%20x='158'%20y='74'%20width='4'%20height='3'/%3E%3Crect%20x='167'%20y='164'%20width='4'%20height='3'/%3E%3Crect%20x='131'%20y='174'%20width='4'%20height='3'/%3E%3Crect%20x='149'%20y='194'%20width='4'%20height='3'/%3E%3Crect%20x='140'%20y='204'%20width='4'%20height='3'/%3E%3Crect%20x='201'%20y='114'%20width='4'%20height='3'/%3E%3Crect%20x='192'%20y='124'%20width='4'%20height='3'/%3E%3Crect%20x='210'%20y='144'%20width='4'%20height='3'/%3E%3Crect%20x='228'%20y='154'%20width='4'%20height='3'/%3E%3Crect%20x='192'%20y='174'%20width='4'%20height='3'/%3E%3Crect%20x='219'%20y='204'%20width='4'%20height='3'/%3E%3Crect%20x='254'%20y='40'%20width='4'%20height='3'/%3E%3Crect%20x='245'%20y='60'%20width='4'%20height='3'/%3E%3Crect%20x='245'%20y='70'%20width='4'%20height='3'/%3E%3Crect%20x='281'%20y='80'%20width='4'%20height='3'/%3E%3Crect%20x='263'%20y='100'%20width='4'%20height='3'/%3E%3Crect%20x='245'%20y='150'%20width='4'%20height='3'/%3E%3Crect%20x='254'%20y='220'%20width='4'%20height='3'/%3E%3Crect%20x='333'%20y='170'%20width='4'%20height='3'/%3E%3Crect%20x='351'%20y='170'%20width='4'%20height='3'/%3E%3Crect%20x='315'%20y='180'%20width='4'%20height='3'/%3E%3Crect%20x='342'%20y='180'%20width='4'%20height='3'/%3E%3Crect%20x='342'%20y='210'%20width='4'%20height='3'/%3E%3Crect%20x='315'%20y='230'%20width='4'%20height='3'/%3E%3Crect%20x='342'%20y='230'%20width='4'%20height='3'/%3E%3Crect%20x='364'%20y='83'%20width='4'%20height='3'/%3E%3Crect%20x='373'%20y='113'%20width='4'%20height='3'/%3E%3Crect%20x='364'%20y='143'%20width='4'%20height='3'/%3E%3Crect%20x='382'%20y='163'%20width='4'%20height='3'/%3E%3Crect%20x='382'%20y='173'%20width='4'%20height='3'/%3E%3Crect%20x='382'%20y='223'%20width='4'%20height='3'/%3E%3Crect%20x='417'%20y='93'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='153'%20width='4'%20height='3'/%3E%3Crect%20x='444'%20y='173'%20width='4'%20height='3'/%3E%3Crect%20x='435'%20y='193'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='203'%20width='4'%20height='3'/%3E%3Crect%20x='475'%20y='145'%20width='4'%20height='3'/%3E%3Crect%20x='484'%20y='145'%20width='4'%20height='3'/%3E%3Crect%20x='502'%20y='155'%20width='4'%20height='3'/%3E%3Crect%20x='511'%20y='165'%20width='4'%20height='3'/%3E%3Crect%20x='484'%20y='195'%20width='4'%20height='3'/%3E%3Crect%20x='484'%20y='205'%20width='4'%20height='3'/%3E%3Crect%20x='502'%20y='205'%20width='4'%20height='3'/%3E%3Crect%20x='484'%20y='215'%20width='4'%20height='3'/%3E%3Crect%20x='546'%20y='169'%20width='4'%20height='3'/%3E%3Crect%20x='546'%20y='199'%20width='4'%20height='3'/%3E%3Crect%20x='546'%20y='209'%20width='4'%20height='3'/%3E%3Crect%20x='606'%20y='102'%20width='4'%20height='3'/%3E%3Crect%20x='588'%20y='132'%20width='4'%20height='3'/%3E%3Crect%20x='597'%20y='132'%20width='4'%20height='3'/%3E%3Crect%20x='597'%20y='152'%20width='4'%20height='3'/%3E%3Crect%20x='659'%20y='165'%20width='4'%20height='3'/%3E%3Crect%20x='632'%20y='175'%20width='4'%20height='3'/%3E%3Crect%20x='668'%20y='195'%20width='4'%20height='3'/%3E%3Crect%20x='650'%20y='225'%20width='4'%20height='3'/%3E%3C/g%3E%3Cg%20fill='%2339f3ff'%20opacity='.5'%3E%3Crect%20x='14'%20y='158'%20width='4'%20height='3'/%3E%3Crect%20x='14'%20y='168'%20width='4'%20height='3'/%3E%3Crect%20x='50'%20y='168'%20width='4'%20height='3'/%3E%3Crect%20x='32'%20y='178'%20width='4'%20height='3'/%3E%3Crect%20x='23'%20y='208'%20width='4'%20height='3'/%3E%3Crect%20x='50'%20y='218'%20width='4'%20height='3'/%3E%3Crect%20x='32'%20y='228'%20width='4'%20height='3'/%3E%3Crect%20x='77'%20y='83'%20width='4'%20height='3'/%3E%3Crect%20x='86'%20y='93'%20width='4'%20height='3'/%3E%3Crect%20x='95'%20y='93'%20width='4'%20height='3'/%3E%3Crect%20x='86'%20y='103'%20width='4'%20height='3'/%3E%3Crect%20x='86'%20y='163'%20width='4'%20height='3'/%3E%3Crect%20x='104'%20y='173'%20width='4'%20height='3'/%3E%3Crect%20x='95'%20y='203'%20width='4'%20height='3'/%3E%3Crect%20x='113'%20y='213'%20width='4'%20height='3'/%3E%3Crect%20x='68'%20y='223'%20width='4'%20height='3'/%3E%3Crect%20x='167'%20y='54'%20width='4'%20height='3'/%3E%3Crect%20x='131'%20y='64'%20width='4'%20height='3'/%3E%3Crect%20x='167'%20y='94'%20width='4'%20height='3'/%3E%3Crect%20x='158'%20y='114'%20width='4'%20height='3'/%3E%3Crect%20x='131'%20y='134'%20width='4'%20height='3'/%3E%3Crect%20x='149'%20y='134'%20width='4'%20height='3'/%3E%3Crect%20x='158'%20y='134'%20width='4'%20height='3'/%3E%3Crect%20x='167'%20y='134'%20width='4'%20height='3'/%3E%3Crect%20x='167'%20y='174'%20width='4'%20height='3'/%3E%3Crect%20x='149'%20y='204'%20width='4'%20height='3'/%3E%3Crect%20x='140'%20y='214'%20width='4'%20height='3'/%3E%3Crect%20x='192'%20y='114'%20width='4'%20height='3'/%3E%3Crect%20x='210'%20y='124'%20width='4'%20height='3'/%3E%3Crect%20x='228'%20y='144'%20width='4'%20height='3'/%3E%3Crect%20x='210'%20y='154'%20width='4'%20height='3'/%3E%3Crect%20x='210'%20y='164'%20width='4'%20height='3'/%3E%3Crect%20x='228'%20y='174'%20width='4'%20height='3'/%3E%3Crect%20x='192'%20y='184'%20width='4'%20height='3'/%3E%3Crect%20x='192'%20y='194'%20width='4'%20height='3'/%3E%3Crect%20x='210'%20y='214'%20width='4'%20height='3'/%3E%3Crect%20x='219'%20y='224'%20width='4'%20height='3'/%3E%3Crect%20x='272'%20y='40'%20width='4'%20height='3'/%3E%3Crect%20x='281'%20y='50'%20width='4'%20height='3'/%3E%3Crect%20x='272'%20y='60'%20width='4'%20height='3'/%3E%3Crect%20x='281'%20y='70'%20width='4'%20height='3'/%3E%3Crect%20x='245'%20y='80'%20width='4'%20height='3'/%3E%3Crect%20x='272'%20y='120'%20width='4'%20height='3'/%3E%3Crect%20x='263'%20y='180'%20width='4'%20height='3'/%3E%3Crect%20x='254'%20y='210'%20width='4'%20height='3'/%3E%3Crect%20x='333'%20y='180'%20width='4'%20height='3'/%3E%3Crect%20x='324'%20y='230'%20width='4'%20height='3'/%3E%3Crect%20x='364'%20y='113'%20width='4'%20height='3'/%3E%3Crect%20x='382'%20y='123'%20width='4'%20height='3'/%3E%3Crect%20x='373'%20y='183'%20width='4'%20height='3'/%3E%3Crect%20x='391'%20y='193'%20width='4'%20height='3'/%3E%3Crect%20x='382'%20y='213'%20width='4'%20height='3'/%3E%3Crect%20x='426'%20y='63'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='93'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='103'%20width='4'%20height='3'/%3E%3Crect%20x='435'%20y='103'%20width='4'%20height='3'/%3E%3Crect%20x='435'%20y='153'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='163'%20width='4'%20height='3'/%3E%3Crect%20x='426'%20y='163'%20width='4'%20height='3'/%3E%3Crect%20x='435'%20y='173'%20width='4'%20height='3'/%3E%3Crect%20x='417'%20y='213'%20width='4'%20height='3'/%3E%3Crect%20x='435'%20y='213'%20width='4'%20height='3'/%3E%3Crect%20x='408'%20y='223'%20width='4'%20height='3'/%3E%3Crect%20x='426'%20y='233'%20width='4'%20height='3'/%3E%3Crect%20x='502'%20y='125'%20width='4'%20height='3'/%3E%3Crect%20x='520'%20y='125'%20width='4'%20height='3'/%3E%3Crect%20x='502'%20y='135'%20width='4'%20height='3'/%3E%3Crect%20x='502'%20y='145'%20width='4'%20height='3'/%3E%3Crect%20x='520'%20y='185'%20width='4'%20height='3'/%3E%3Crect%20x='511'%20y='195'%20width='4'%20height='3'/%3E%3Crect%20x='520'%20y='205'%20width='4'%20height='3'/%3E%3Crect%20x='546'%20y='99'%20width='4'%20height='3'/%3E%3Crect%20x='555'%20y='139'%20width='4'%20height='3'/%3E%3Crect%20x='537'%20y='199'%20width='4'%20height='3'/%3E%3Crect%20x='555'%20y='199'%20width='4'%20height='3'/%3E%3Crect%20x='564'%20y='229'%20width='4'%20height='3'/%3E%3Crect%20x='615'%20y='82'%20width='4'%20height='3'/%3E%3Crect%20x='588'%20y='92'%20width='4'%20height='3'/%3E%3Crect%20x='606'%20y='112'%20width='4'%20height='3'/%3E%3Crect%20x='606'%20y='132'%20width='4'%20height='3'/%3E%3Crect%20x='588'%20y='232'%20width='4'%20height='3'/%3E%3Crect%20x='615'%20y='232'%20width='4'%20height='3'/%3E%3Crect%20x='650'%20y='155'%20width='4'%20height='3'/%3E%3Crect%20x='632'%20y='165'%20width='4'%20height='3'/%3E%3Crect%20x='677'%20y='175'%20width='4'%20height='3'/%3E%3Crect%20x='659'%20y='195'%20width='4'%20height='3'/%3E%3C/g%3E%3Crect%20x='0'%20y='238'%20width='640'%20height='2'%20fill='%23ff2bd6'%20opacity='.7'/%3E%3C/svg%3E") left bottom / 640px 240px repeat-x fixed,
+    radial-gradient(900px 420px at 15% 100%, rgba(255, 43, 214, .28), transparent 65%),
+    radial-gradient(800px 420px at 90% 95%, rgba(57, 243, 255, .2), transparent 65%),
+    linear-gradient(180deg, #02060c 0%, #071622 55%, #0d1b2c 100%) fixed;
+  background-color: var(--bg);
+}
+html[data-skin="policenauts"] body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.2) 0 1px, transparent 1px 3px);
+}
+/* HUD corner brackets on every panel */
+html[data-skin="policenauts"] .panel {
+  background:
+    linear-gradient(var(--hud), var(--hud)) left top / 18px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) left top / 2px 18px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) right top / 18px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) right top / 2px 18px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left bottom / 18px 2px no-repeat, linear-gradient(var(--accent), var(--accent)) left bottom / 2px 18px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right bottom / 18px 2px no-repeat, linear-gradient(var(--accent), var(--accent)) right bottom / 2px 18px no-repeat,
+    var(--panel);
+}
+/* VHS chromatic fringe on the big type */
+html[data-skin="policenauts"] h2, html[data-skin="policenauts"] .up-next .who, html[data-skin="policenauts"] .brand-name, html[data-skin="policenauts"] .landed .game-title {
+  color: #f4fdff; text-shadow: -2px 0 rgba(255, 43, 214, .85), 2px 0 rgba(57, 243, 255, .85), 0 0 14px rgba(255, 43, 214, .45);
+}
+html[data-skin="policenauts"] .brand-sub::before { content: "ポリスノーツ // "; color: var(--accent); letter-spacing: .1em; }
+html[data-skin="policenauts"] .eyebrow { color: var(--hud); }
+html[data-skin="policenauts"] .btn.primary { box-shadow: 0 0 14px rgba(255, 43, 214, .55); }
+html[data-skin="policenauts"] .tab[aria-selected="true"] { border-bottom-color: var(--hud); text-shadow: 0 0 10px rgba(57, 243, 255, .7); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1426,11 +1453,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       quips: ["Speak now or forever hold your shot.", "Cheers to the happy couple!", "Til death do us pour.", "Something old, something new, something poured for you."],
     },
     policenauts: {
-      label: "Policenauts", dot: "#ffae3d",
+      label: "Policenauts", dot: "#ff2bd6",
       tagline: "Bet list night · Beyond Coast PD, off duty",
-      wheel: ["#ffae3d", "#121d45", "#39c8ff", "#2a4fa8", "#eef3ff", "#c8641a"],
+      wheel: ["#ff2bd6", "#071622", "#39f3ff", "#3b1a6e", "#ffb000", "#0b2230", "#e6fbff"],
       landed: "Case file opened", spin: "Spin",
-      quips: ["Freeze! Space police!", "Low gravity. Lower tolerance.", "Twenty-five years frozen, and still first to the bar.", "Beyond Coast PD: case closed, glass empty."],
+      quips: ["Freeze! Space police!", "Low gravity. Lower tolerance.", "Twenty-five years frozen, and still first to the bar.", "Beyond Coast PD: case closed, glass empty.", "Neon on, glass up."],
     },
   };
 
