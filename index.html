@@ -2936,6 +2936,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   let mainWheel = makeMainWheel();
   let form = null; // record-result form state while a game is pending
+  let pickOpen = false; // the "Pick a game" list under the spin button
 
   // games that are "on deck" (pending or paused) aren't offered again
   const onDeck = () => new Set([N().pending?.gameId, ...(N().paused || []).map((x) => x.pending.gameId)].filter(Boolean));
@@ -3048,8 +3049,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <div class="row">
           ${!pend && !n.wild ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${esc(SKINS[S.skin].spin)} the wheel</button>` : ""}
           <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle">Log a played game</button>
+          ${!pend && !n.wild && list.length ? `<button class="btn" type="button" id="pickToggle" aria-expanded="${pickOpen}">${pickOpen ? "Close the list" : "Pick a game"}</button>` : ""}
           ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
         </div>
+        ${pickOpen && !pend && !n.wild && list.length ? `<div class="stack pick-list" style="gap:8px">
+          <div class="muted" style="font-size:.88rem">Skip the spin and choose the game yourself. ${esc(sp.name)} counts as the spinner.</div>
+          ${list.length > 8 ? `<input type="text" enterkeyhint="search" id="pickSearch" placeholder="Search the wheel…" aria-label="Search the wheel">` : ""}
+          <div class="lib-chips">${list.map((g) => `<span class="lib-chip" data-pickname="${esc(g.title.toLowerCase())}"><button type="button" data-pickgame="${g.id}">${esc(g.title)}${playerById(g.by) ? ` <span class="muted">· ${esc(playerById(g.by).name)}</span>` : ""}</button></span>`).join("")}</div>
+        </div>` : ""}
         ${!list.length && !pend ? `<div class="note">Every game has been played. Add more in the lineup, log a game you played, or wrap up the night from History.</div>` : ""}
       </div>`;
 
@@ -3177,6 +3184,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     applyWinnerRule(form);
     renderSpin();
   }
+  $("#spinSide").addEventListener("input", (e) => {
+    if (e.target.id !== "pickSearch") return;
+    const q = e.target.value.trim().toLowerCase();
+    $$("#spinSide [data-pickname]").forEach((c) => (c.hidden = !!q && !c.dataset.pickname.includes(q)));
+  });
   $("#spinSide").addEventListener("click", async (e) => {
     const t = e.target.closest("button"); if (!t) return;
     const n = N();
@@ -3184,10 +3196,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.id === "spinBtn") return doSpin();
     if (t.id === "skipTurn") { advanceTurn(n); save(); renderSpin(); return; }
     if (t.id === "wildDone") { n.wild = null; save(); renderSpin(); return; }
+    if (t.id === "pickToggle") { pickOpen = !pickOpen; renderSpin(); if (pickOpen) $("#pickSearch")?.focus(); return; }
     if (t.dataset.pickgame) {
+      pickOpen = false;
       const g = gameById(t.dataset.pickgame);
       n.pending = { gameId: g.id, spunBy: n.wild?.spunBy || spinner().id, by: g.by };
-      n.wild = null; mainWheel._parked = false; save(); fanfare(); renderSpin(); return;
+      n.wild = null; mainWheel._parked = false; save(); fanfare(); renderSpin();
+      say(`${g.title}. Picked by hand.`); return;
     }
     if (t.id === "grudgeBtn") { n.nextMod = Object.assign({}, n.nextMod, { grudge: [t.dataset.a, t.dataset.b] }); save(); renderSpin(); toast("Grudge match set for the next game"); return; }
     if (t.id === "cancelGrudge") { if (n.nextMod) delete n.nextMod.grudge; save(); renderSpin(); return; }
@@ -3496,7 +3511,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!e.target.closest("#undoRound")) return;
     const n = N(); const r = n.rounds.pop();
     if (r && r.gameId && !r.injected) advanceTurn(n, -1);
-    save(); renderAll(); toast("Last round undone");
+    // a spun game goes straight back up so it can be recorded again without a respin
+    const g = r && r.gameId && !r.injected && !r.finale && !n.pending && !n.wild ? gameById(r.gameId) : null;
+    if (g) {
+      n.pending = { gameId: g.id, spunBy: r.spunBy || spinner()?.id, by: r.by ?? g.by };
+      if (r.mod) n.nextMod = r.mod;
+      form = null; mainWheel._parked = false;
+    }
+    save(); renderAll(); toast(g ? `Last round undone. ${g.title} is back up, so record it again.` : "Last round undone");
   });
 
 
