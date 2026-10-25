@@ -730,6 +730,39 @@ html[data-skin="naruto"] .brand-sub::before { content: "木ノ葉 // "; color: v
 html[data-skin="naruto"] .eyebrow { color: #ffb347; }
 html[data-skin="naruto"] .btn.primary { box-shadow: 3px 3px 0 #000; }
 html[data-skin="naruto"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); }
+html[data-skin="akatsuki"] {
+  /* Akatsuki cloak: black, crimson clouds with white edges, ring-and-moon gloom */
+  --bg: #07060a;
+  --bg-art: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='240'%20viewBox='0%200%20300%20240'%3E%3Cg%20opacity='.24'%3E%3Cg%20fill='%23f2f2f2'%3E%3Ccircle%20cx='48'%20cy='62'%20r='16.0'/%3E%3Ccircle%20cx='64'%20cy='52'%20r='19.0'/%3E%3Ccircle%20cx='83'%20cy='56'%20r='17.0'/%3E%3Ccircle%20cx='96'%20cy='66'%20r='13.0'/%3E%3Ccircle%20cx='60'%20cy='69'%20r='14.0'/%3E%3Ccircle%20cx='78'%20cy='70'%20r='15.0'/%3E%3C/g%3E%3Cg%20fill='%23b3001b'%3E%3Ccircle%20cx='48'%20cy='62'%20r='13.0'/%3E%3Ccircle%20cx='64'%20cy='52'%20r='16.0'/%3E%3Ccircle%20cx='83'%20cy='56'%20r='14.0'/%3E%3Ccircle%20cx='96'%20cy='66'%20r='10.0'/%3E%3Ccircle%20cx='60'%20cy='69'%20r='11.0'/%3E%3Ccircle%20cx='78'%20cy='70'%20r='12.0'/%3E%3C/g%3E%3Cg%20fill='%23f2f2f2'%3E%3Ccircle%20cx='202'%20cy='172'%20r='12.8'/%3E%3Ccircle%20cx='215'%20cy='164'%20r='15.2'/%3E%3Ccircle%20cx='230'%20cy='167'%20r='13.6'/%3E%3Ccircle%20cx='241'%20cy='175'%20r='10.4'/%3E%3Ccircle%20cx='212'%20cy='177'%20r='11.2'/%3E%3Ccircle%20cx='226'%20cy='178'%20r='12.0'/%3E%3C/g%3E%3Cg%20fill='%23b3001b'%3E%3Ccircle%20cx='202'%20cy='172'%20r='10.4'/%3E%3Ccircle%20cx='215'%20cy='164'%20r='12.8'/%3E%3Ccircle%20cx='230'%20cy='167'%20r='11.2'/%3E%3Ccircle%20cx='241'%20cy='175'%20r='8.0'/%3E%3Ccircle%20cx='212'%20cy='177'%20r='8.8'/%3E%3Ccircle%20cx='226'%20cy='178'%20r='9.6'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"), radial-gradient(900px 520px at 80% -10%, rgba(179, 0, 27, .32), transparent 60%), radial-gradient(700px 420px at 0% 110%, rgba(120, 0, 20, .28), transparent 60%);
+  --panel: rgba(14, 10, 14, .9);
+  --panel-2: #17111a;
+  --fg: #f4ecec;
+  --muted: #a8939a;
+  --accent: #d0102b;
+  --accent-fg: #ffffff;
+  --accent-2: #f2f2f2;
+  --danger: #ff4d5e;
+  --line: rgba(208, 16, 43, .32);
+  --liquid: #e01b38;
+  --liquid-2: #6d0010;
+  --glass: rgba(255, 240, 240, .07);
+  --glass-edge: rgba(240, 220, 225, .6);
+  --font-display: "Shippori Mincho", "Cinzel", serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .04em;
+  --display-weight: 700;
+  --radius: 6px;
+  --shadow: 0 0 0 1px var(--line), 0 0 24px rgba(208, 16, 43, .10), 0 18px 40px rgba(0,0,0,.65);
+  color-scheme: dark;
+}
+/* cloaks have a high red collar; panels get a crimson lining up top */
+html[data-skin="akatsuki"] .panel { border-top: 3px solid var(--accent); }
+html[data-skin="akatsuki"] h2, html[data-skin="akatsuki"] .up-next .who, html[data-skin="akatsuki"] .brand-name, html[data-skin="akatsuki"] .landed .game-title { text-shadow: 0 0 2px #000, 0 0 16px rgba(208, 16, 43, .55); }
+html[data-skin="akatsuki"] .brand-sub::before { content: "暁 // "; color: var(--accent); letter-spacing: .1em; }
+html[data-skin="akatsuki"] .eyebrow { color: #e05a6c; }
+html[data-skin="akatsuki"] .btn.primary { box-shadow: 0 0 0 2px #f2f2f2 inset, 0 0 16px rgba(208, 16, 43, .5); }
+html[data-skin="akatsuki"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); text-shadow: 0 0 10px rgba(208, 16, 43, .8); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1593,6 +1626,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "Believe it!", spin: "Summon",
       quips: ["Believe it!", "That's my ninja way.", "Shadow Clone Jutsu: double the shots.", "A shinobi never leaves a shot behind.", "Ichiraku is buying. Not really.", "Your chakra is running low.", "Sake Style: Bottoms Up no Jutsu!"],
     },
+    akatsuki: {
+      label: "Akatsuki", dot: "#d0102b",
+      tagline: "Bet list night · Every shot has a bounty",
+      wheel: ["#b3001b", "#0e0a0e", "#f2f2f2", "#5a0010", "#2a1f2b", "#e01b38", "#7c6f86"],
+      landed: "The Akatsuki has chosen", spin: "Spin",
+      quips: ["Your bounty: one shot.", "Itachi saw this coming.", "Art is a blast! So is this pour.", "Know pain. Know shots.", "Kisame says: drown it.", "Hidan's ritual demands another round.", "Nobody leaves the hideout sober."],
+    },
   };
 
   // ---------- Utilities ----------
@@ -1765,6 +1805,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     divebar: { type: "triangle", land: [[392, .15, 0], [494, .15, 120], [587, .4, 240]], tick: [500, "triangle"] },
     wedding: { type: "sine", land: [[523, .3, 0], [659, .3, 250], [784, .3, 500], [1047, .6, 750]], tick: [1800, "sine"] },
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
+    akatsuki: { type: "sawtooth", land: [[220, .25, 0], [233, .25, 0], [165, .35, 260], [110, .7, 560]], tick: [500, "sawtooth"], hit: true, pour: "triangle" },
     naruto: { type: "triangle", land: [[659, .1, 0], [784, .1, 100], [880, .1, 200], [1047, .12, 300], [1319, .45, 420]], tick: [1300, "triangle"], hit: true },
     policenauts: { type: "triangle", land: [[698, .12, 0], [880, .12, 110], [1047, .12, 220], [1319, .45, 330]], tick: [1400, "triangle"] },
   };
@@ -1782,7 +1823,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
   const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
     skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
-    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
   const canSpeak = "speechSynthesis" in window;
   const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
   // fractions and emoji don't read well, so they're spelled out or dropped
@@ -2004,6 +2045,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     sakura: ["chill", 57, "in", [0, 3, 0, 4], { bpm: 76 }], cruise: ["calypso", 65, "major", [0, 3, 4, 0]], pride: ["disco", 57, "major", [0, 5, 3, 4]],
     wedding: ["waltz", 55, "major", [0, 3, 4, 0]], policenauts: ["citypop", 53, "dorian", [0, 3, 1, 4]],
     naruto: ["fight", 52, "in", [0, 5, 3, 4], { bpm: 132, lead: "triangle" }],
+    akatsuki: ["stealth", 45, "in", [0, 1, 5, 0], { bpm: 84, density: 0.2 }],
   };
   const Music = (() => {
     let ctx = null, master = null, out = null, timer = null, step = 0, nextT = 0, song = null, lead = null, playing = false;
@@ -3593,13 +3635,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     wedding: { shape: "heart", colors: ["#ffffff", "#f4d3b0", "#e8b4bc", "#d4af37"] },
     policenauts: { shape: "pixel", colors: ["#ff2bd6", "#00e5ff", "#ffd23f"] },
     naruto: { glyphs: ["🍥", "🍃", "🍜", "🌀"] },
+    akatsuki: { shape: "cloud", colors: ["#d0102b", "#b3001b", "#e01b38"], extra: ["💍"] },
   };
   // what a trophy is called in each theme
   const TROPHY_WORD = { xbox: "Achievement unlocked", playstation: "Trophy earned", halo: "Medal earned", zelda: "You found a treasure!", pokemon: "Badge earned!",
     mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
     skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
     amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
-    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", cards: "Royal flush" };
+    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", cards: "Royal flush" };
   let confettiParts = [], confettiRaf = null;
   function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
     if (S.confetti === false || reduceMotion) return;
@@ -3633,6 +3676,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else if (q.shape === "heart") { ctx.moveTo(0, z * 0.6); ctx.bezierCurveTo(z, 0, z * 0.5, -z * 0.8, 0, -z * 0.25); ctx.bezierCurveTo(-z * 0.5, -z * 0.8, -z, 0, 0, z * 0.6); ctx.fill(); }
     else if (q.shape === "petal") { ctx.ellipse(0, 0, z * 0.7, z * 0.38, 0, 0, 6.29); ctx.fill(); }
     else if (q.shape === "pixel") { ctx.fillRect(-z / 2, -z / 2, z, z); }
+    else if (q.shape === "cloud") {
+      const puffs = [[-0.55, 0.05, 0.38], [-0.15, -0.2, 0.46], [0.32, -0.1, 0.4], [0.62, 0.12, 0.28], [0.05, 0.22, 0.34]];
+      ctx.fillStyle = "#f2f2f2"; puffs.forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(x * z, y * z, r * z + 1.6, 0, 6.29); ctx.fill(); });
+      ctx.fillStyle = q.c; puffs.forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(x * z, y * z, r * z, 0, 6.29); ctx.fill(); });
+    }
     else ctx.fillRect(-z / 2, -z / 4, z, z / 2);
   }
   function confettiStep() {
@@ -3643,7 +3691,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       q.life++; q.vy += q.grav; q.vx *= 0.985; q.vy = Math.min(q.vy, q.grav < 0.1 ? 1.6 : 7);
       q.wob += 0.08; q.x += q.vx + Math.sin(q.wob) * (q.grav < 0.1 ? 1.2 : 0.6); q.y += q.vy; q.rot += q.vr;
       ctx.setTransform(dpr, 0, 0, dpr, q.x * dpr, q.y * dpr); ctx.rotate(q.rot);
-      if (!q.g && q.shape !== "ball" && q.shape !== "coin" && q.shape !== "pixel") ctx.scale(1, Math.abs(Math.cos(q.wob * 1.5)) * 0.7 + 0.3);
+      if (!q.g && q.shape !== "ball" && q.shape !== "coin" && q.shape !== "pixel" && q.shape !== "cloud") ctx.scale(1, Math.abs(Math.cos(q.wob * 1.5)) * 0.7 + 0.3);
       drawPart(ctx, q);
     });
     if (confettiParts.length) confettiRaf = requestAnimationFrame(confettiStep);
