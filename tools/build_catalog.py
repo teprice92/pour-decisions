@@ -41,17 +41,29 @@ def from_dat(path, users_path=None):
         e = titles.setdefault(k, [t, 0, users.get(k, 0)])
         if US.search(n): e[1] = 1
     return sorted(titles.values(), key=lambda x: x[0].lower())
+# Switch 2 games: exclusives have title IDs starting 04; "Nintendo Switch 2 Edition" releases are enhanced versions.
+S2_EDITION = re.compile(r"\s*[-–—:]?\s*Nintendo Switch 2 Edition\b.*$", re.I)
+# well-known Switch 2 releases the eShop dump doesn't have yet
+S2_EXTRA = [["Kirby Air Riders", 1, 4], ["Drag x Drive", 1, 2], ["Hyrule Warriors: Age of Imprisonment", 1, 2], ["Mario Tennis Fever", 1, 4],
+            ["Split Fiction", 1, 2], ["Kirby and the Forgotten Land + Star-Crossed World", 1, 2],
+            ["Pokémon Pokopia", 1, 0], ["Final Fantasy VII Remake Intergrade", 1, 1], ["Resident Evil Requiem", 1, 1],
+            ["Hades II", 1, 1], ["Persona 3 Reload", 1, 1], ["EA Sports FC 26", 1, 4], ["NBA 2K26", 1, 4],
+            ["Star Wars Outlaws", 1, 1], ["Assassin's Creed Shadows", 1, 1], ["Fast Fusion", 1, 4]]
 def from_titledb(path):
     d = json.load(open(path, encoding="utf-8"))
-    titles = {}
+    s1, s2 = {}, {}
     for e in d.values():
-        tid, name = (e.get("id") or ""), (e.get("name") or "").strip()
-        if not name or not tid.upper().endswith("000") or e.get("isDemo"): continue
-        if re.search(r"\b(demo|trial|体験版)\b", name, re.I): continue
+        tid, name = (e.get("id") or "").upper(), (e.get("name") or "").strip()
+        if not name or not tid.endswith("000") or e.get("isDemo"): continue
+        if re.search(r"\b(demo|trial|体験版|upgrade pack|friend's pass)\b", name, re.I): continue
         name = re.sub(r"\s+", " ", name.replace("™", "").replace("®", "")).strip()
+        is_s2 = tid.startswith("04") or bool(S2_EDITION.search(name))
+        name = S2_EDITION.sub("", name).strip(" -–—:")
         # the US eShop list, so every title is a US release
-        titles.setdefault(key(name), [name, 1, int(e.get("numberOfPlayers") or 0)])
-    return sorted(titles.values(), key=lambda x: x[0].lower())
+        (s2 if is_s2 else s1).setdefault(key(name), [name, 1, int(e.get("numberOfPlayers") or 0)])
+    for t, us, pl in S2_EXTRA: s2.setdefault(key(t), [t, us, pl])
+    srt = lambda m: sorted(m.values(), key=lambda x: x[0].lower())
+    return srt(s1), srt(s2)
 files = {"atari": "atari.dat", "nes": "nes.dat", "snes": "snes.dat", "n64": "n64.dat", "gc": "gc.dat", "wii": "wii.dat", "wiiu": "wiiu.dat",
          "gb": "gb.dat", "gbc": "gbc.dat", "gba": "gba.dat", "nds": "nds.dat", "genesis": "genesis.dat", "dreamcast": "dreamcast.dat",
          "ps1": "ps1.dat", "ps2": "ps2.dat", "ps3": "ps3.dat", "xbox": "xbox.dat", "x360": "x360.dat"}
@@ -64,7 +76,8 @@ for cid, f in files.items():
     g = from_dat(os.path.join(src, f), up); total += len(g)
     json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(cid, len(g), "us", sum(x[1] for x in g), "players", sum(1 for x in g if x[2]), os.path.getsize(os.path.join(out, cid + ".json")))
-g = from_titledb(os.path.join(src, "switch.json")); total += len(g)
-json.dump(g, open(os.path.join(out, "switch.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-print("switch", len(g), "players", sum(1 for x in g if x[2]), os.path.getsize(os.path.join(out, "switch.json")))
+for cid, g in zip(("switch", "switch2"), from_titledb(os.path.join(src, "switch.json"))):
+    total += len(g)
+    json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(cid, len(g), "players", sum(1 for x in g if x[2]), os.path.getsize(os.path.join(out, cid + ".json")))
 print("total", total)
