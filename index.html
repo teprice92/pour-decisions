@@ -1166,6 +1166,8 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .rule-amt { font-weight: 700; color: var(--accent); }
 .rule-who { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 @media (max-width: 520px) { .rules.editing li { grid-template-columns: 1fr auto; } .rules.editing li input { grid-column: 1 / -1; } .rules.editing li .seg { justify-self: start; } }
+/* Tonight's scoreboard on the Stats tab */
+.tonight-hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 16px; font-size: .95rem; }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
@@ -4345,6 +4347,64 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   const plName = (pl) => (pl.art && AVATAR_ART[pl.art] ? `${avatarHTML(pl)} ${esc(pl.name)}` : esc((pl.emoji ? pl.emoji + " " : "") + pl.name));
   const plText = (pl) => (pl.emoji ? pl.emoji + " " : "") + pl.name;
+
+  // Tonight: the current night on its own, so the table can see who's winning right now
+  function tonightHTML() {
+    const n = N();
+    if (!n.started || n.sample || !n.players.length) return "";
+    const t = totals(n), games = n.rounds.filter((r) => r.gameId);
+    const per = {};
+    n.players.forEach((p) => (per[p.id] = { p, played: 0, wins: 0, shots: t[p.id].shots, pen: 0, bets: 0, best: 0, run: 0, big: 0 }));
+    n.rounds.forEach((r) => {
+      r.drinks.forEach((d) => { const x = per[d.pid]; if (!x) return; if (!r.gameId && /penalty/i.test(r.note || "")) x.pen += d.amt; x.big = Math.max(x.big, d.amt); });
+      if (!r.gameId) return;
+      new Set([r.winner, ...r.drinks.map((d) => d.pid)].filter(Boolean)).forEach((id) => per[id] && per[id].played++);
+      (r.bets || []).forEach((b) => b.right && per[b.pid] && per[b.pid].bets++);
+      Object.values(per).forEach((x) => { x.run = r.winner === x.p.id ? x.run + 1 : 0; x.best = Math.max(x.best, x.run); });
+      if (r.winner && per[r.winner]) per[r.winner].wins++;
+    });
+    const rows = Object.values(per).sort((a, b) => b.wins - a.wins || a.shots - b.shots || a.p.name.localeCompare(b.p.name));
+    const poured = Object.values(t).reduce((a, x) => a + x.shots, 0);
+    const mins = Math.max(0, Math.round((Date.now() - n.started) / 60000));
+    const dur = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
+    const ties = games.filter((r) => !r.winner).length;
+    const counts = {}; games.forEach((r) => (counts[r.title] = (counts[r.title] || 0) + 1));
+    const topGame = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    // biggest single pour tonight
+    let big = null;
+    n.rounds.forEach((r) => r.drinks.forEach((d) => { if (!big || d.amt > big.amt) big = { amt: d.amt, pid: d.pid, what: r.title || r.note || "Penalty" }; }));
+    const lead = rows[0], wet = rows.slice().sort((a, b) => b.shots - a.shots)[0], hot = rows.slice().sort((a, b) => b.best - a.best)[0];
+    const riv = rivalry(n), st = streaks(n);
+    const hl = [
+      lead && lead.wins ? `👑 <b>Leading:</b> ${pnameHTML(lead.p)} with ${lead.wins} win${lead.wins === 1 ? "" : "s"}` : "",
+      wet && wet.shots ? `🥃 <b>Most poured:</b> ${pnameHTML(wet.p)}, ${fmtShots(wet.shots)} shot${wet.shots === 1 ? "" : "s"}` : "",
+      hot && hot.best >= 2 ? `🔥 <b>Best streak:</b> ${pnameHTML(hot.p)}, ${hot.best} wins in a row${st[hot.p.id] === hot.best ? " (still going)" : ""}` : "",
+      big ? `💥 <b>Biggest pour:</b> ${pnameHTML(playerById(big.pid, n))}, ${fmtShots(big.amt)} on ${esc(big.what)}` : "",
+      topGame && topGame[1] > 1 ? `🔁 <b>Most played:</b> ${esc(topGame[0])}, ${topGame[1]} times` : "",
+      riv ? `⚔️ <b>Rivalry:</b> ${pnameHTML(playerById(riv.a, n))} leads ${pnameHTML(playerById(riv.b, n))} ${riv.w}–${riv.l}` : "",
+    ].filter(Boolean);
+    const tiles = [["Games", games.length], ["Shots poured", fmtShots(poured)], ["Shots / game", games.length ? fmtShots(q4(poured / games.length)) : "–"], ["Ties", ties], ["Penalty shots", fmtShots(rows.reduce((a, x) => a + x.pen, 0))], ["Time in", dur]];
+    return `
+      <div class="panel stack tonight">
+        <div class="eyebrow">Tonight · started ${esc(fmtDate(n.started))}</div>
+        <h2>Tonight's scoreboard</h2>
+        <div class="stat-tiles">${tiles.map(([l, v]) => `<div class="tile"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}</div>
+        ${games.length ? `<div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Played</th><th class="n">Win rate</th><th class="n">Shots</th><th class="n">Penalty shots</th><th class="n">Best streak</th><th class="n">Bets won</th></tr></thead><tbody>
+          ${rows.map((x, i) => `<tr><td>${pnameHTML(x.p)}${i === 0 && x.wins ? " 👑" : ""}${st[x.p.id] >= 3 ? " 🔥" : ""}</td><td class="n">${x.wins}</td><td class="n">${x.played}</td><td class="n">${x.played ? Math.round((x.wins / x.played) * 100) + "%" : "–"}</td><td class="n">${fmtShots(x.shots)}</td><td class="n">${x.pen ? fmtShots(x.pen) : "–"}</td><td class="n">${x.best || "–"}</td><td class="n">${x.bets || "–"}</td></tr>`).join("")}
+        </tbody></table></div>
+        ${hl.length ? `<div class="tonight-hl">${hl.map((h) => `<div>${h}</div>`).join("")}</div>` : ""}` : `<div class="muted">No games recorded yet tonight. Spin the wheel and this fills in as you play.</div>`}
+      </div>
+      ${games.length ? `<div class="stats-grid">
+        <div class="panel stack">
+          <div class="chart-head"><h3>Wins tonight</h3><button class="btn small ghost" type="button" data-stable="twins" aria-pressed="${!!statsTable.twins}">${statsTable.twins ? "Chart" : "Table"}</button></div>
+          ${barsHTML("twins", rows.slice().sort((a, b) => b.wins - a.wins).map((x) => ({ label: pname(x.p), html: pnameHTML(x.p), value: x.wins, note: `${x.wins} of ${x.played} games` })), (v) => String(v))}
+        </div>
+        <div class="panel stack">
+          <div class="chart-head"><h3>Shots tonight</h3><button class="btn small ghost" type="button" data-stable="tshots" aria-pressed="${!!statsTable.tshots}">${statsTable.tshots ? "Chart" : "Table"}</button></div>
+          ${barsHTML("tshots", rows.slice().sort((a, b) => b.shots - a.shots).map((x) => ({ label: pname(x.p), html: pnameHTML(x.p), value: x.shots, note: x.pen ? `${fmtShots(x.pen)} from penalties` : "no penalties" })), (v) => fmtShots(v))}
+        </div>
+      </div>` : ""}`;
+  }
   let statsPlayer = null, statsGame = null;
   const statsTable = {}; // which charts are showing their table view
   function renderStats() {
@@ -4353,7 +4413,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const games = Object.values(st.ratings).sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title));
     const totalGames = st.nights.reduce((a, n) => a + n.rounds.filter((r) => r.gameId).length, 0);
     if (!roster.length || !totalGames) {
-      box.innerHTML = `<div class="panel empty"><h3>Stats show up after your first games</h3><div>Play a few rounds and this page fills with rankings, rivalries, and charts across every night.</div></div>`;
+      box.innerHTML = tonightHTML() + `<div class="panel empty"><h3>Stats show up after your first games</h3><div>Play a few rounds and this page fills with rankings, rivalries, and charts across every night.</div></div>`;
+      wireCharts(box, st, roster, () => "");
       return;
     }
     // series colors follow the player (fixed order by name), never their rank
@@ -4384,10 +4445,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const gsel = statsGame && st.ratings[statsGame];
     const board = gsel ? Object.entries(gsel.r).map(([k, v]) => ({ who: st.players[k], ...v })).sort((a, b) => b.rating - a.rating) : [];
 
-    box.innerHTML = `
+    box.innerHTML = tonightHTML() + `
       <div class="panel stats-head">
         <div class="eyebrow">${st.nights.length} night${st.nights.length === 1 ? "" : "s"} · ${totalGames} games · ${roster.length} players</div>
-        <h2>Stats &amp; bragging rights</h2>
+        <h2>All-time stats &amp; bragging rights</h2>
         <div class="muted">Ratings start at 1000 per game. Beat someone and you take points from them, more for beating someone who's better.</div>
       </div>
       <div class="stats-grid">
