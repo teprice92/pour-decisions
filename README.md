@@ -53,7 +53,7 @@ The complete lists and player counts come from the [No-Intro](https://no-intro.o
 
 ## Stats and bragging rights
 
-The **Stats** tab starts with **Tonight's scoreboard**. It shows games played, shots poured, shots per game, ties, penalty shots, and how long you've been playing. A table lists each player's wins, games played, win rate, shots, penalty shots, best win streak, and side bets won. Highlights call out the leader, who's poured the most, the best streak, the biggest single pour, the most played game, and tonight's rivalry. Wins tonight and Shots tonight bar charts sit below it.
+The **Stats** tab starts with **Tonight's scoreboard**. It shows games played, shots poured, shots per game, ties, penalty shots, and how long you've been playing. A table lists each player's wins, games played, win rate, shots, penalty shots, best win streak, and side bets won. Highlights call out the leader, who's poured the most, the best streak, the biggest single pour, the most played game, and tonight's rivalry. Wins tonight and Shots tonight bar charts sit below it. **Tonight by game** lists each game you've played with every player's win–loss record in it.
 
 Under that, the all-time stats add up every night saved in History, plus tonight's:
 
