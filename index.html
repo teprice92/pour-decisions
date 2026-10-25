@@ -1058,6 +1058,20 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
 .photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+/* Theme builder: live preview strip, color swatch grid. The whole page wears the draft while it's open. */
+.tb-preview { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); background-image: var(--bg-art); }
+.tb-wheel { width: 84px; height: 84px; border-radius: 50%; box-shadow: 0 0 0 3px var(--panel-2), 0 0 0 5px var(--accent); }
+.tb-title { font-family: var(--font-display); text-transform: var(--display-case); letter-spacing: var(--display-track); font-weight: var(--display-weight); font-size: 1.3rem; line-height: 1.1; overflow-wrap: anywhere; }
+.tb-preview .glass { width: 54px; height: auto; }
+.tb-warn { font-size: .88rem; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--danger); color: var(--fg); }
+.tb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.tb-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.tb-color { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); font-size: .88rem; cursor: pointer; }
+.tb-color input { width: 34px; height: 30px; padding: 0; border: 0; border-radius: 6px; background: none; cursor: pointer; flex: none; }
+.tb-item { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tb-dots { display: inline-flex; }
+.tb-dots i { width: 12px; height: 12px; border-radius: 50%; margin-right: -3px; box-shadow: 0 0 0 2px var(--panel-2); }
+@media (max-width: 520px) { .tb-preview { grid-template-columns: auto 1fr; } .tb-preview .glass { display: none; } .tb-wheel { width: 64px; height: 64px; } }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
@@ -1682,7 +1696,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
     policenauts: { type: "triangle", land: [[698, .12, 0], [880, .12, 110], [1047, .12, 220], [1319, .45, 330]], tick: [1400, "triangle"] },
   };
-  const pack = () => SOUND_PACKS[S.skin] || {};
+  const pack = () => SOUND_PACKS[skinBase(S.skin)] || {};
   function fanfare() {
     const sp = pack();
     if (sp.hit) noise(0.15, 0.08);
@@ -1822,7 +1836,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             master = ctx.createGain(); master.connect(f).connect(out).connect(ctx.destination); this._f = f;
           }
         } catch { return; }
-        this.setTheme(S.skin);
+        this.setTheme(skinBase(S.skin));
         out.gain.setTargetAtTime(volume(), ctx.currentTime, 0.3);
         if (!playing) { playing = true; step = 0; nextT = ctx.currentTime + 0.1; timer = setInterval(tick, 25); }
       },
@@ -2062,26 +2076,243 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 2600);
   }
 
+
+  // ---------- Custom themes (theme builder) ----------
+  // A custom theme is colors + fonts + words saved in S.customThemes. It gets a generated
+  // html[data-skin="c_…"] rule and a SKINS entry, and borrows music and sounds from a built-in theme.
+  const FONTS = [["Exo 2", "sans-serif"], ["Saira", "sans-serif"], ["Saira Condensed", "sans-serif"], ["Nunito", "sans-serif"], ["Alegreya Sans", "sans-serif"], ["Rajdhani", "sans-serif"], ["Chakra Petch", "sans-serif"], ["Fredoka", "sans-serif"], ["Baloo 2", "sans-serif"], ["Teko", "sans-serif"], ["Anton", "sans-serif"], ["Russo One", "sans-serif"], ["Audiowide", "sans-serif"], ["Orbitron", "sans-serif"], ["Bungee", "sans-serif"], ["Lilita One", "sans-serif"], ["Righteous", "sans-serif"], ["Bangers", "cursive"], ["Luckiest Guy", "cursive"], ["Pacifico", "cursive"], ["Metal Mania", "cursive"], ["Crimson Pro", "serif"], ["Cormorant Garamond", "serif"], ["Cinzel", "serif"], ["Marcellus SC", "serif"], ["Limelight", "serif"], ["Pirata One", "serif"], ["IM Fell English", "serif"], ["Shippori Mincho", "serif"], ["Press Start 2P", "monospace"], ["Silkscreen", "monospace"], ["Pixelify Sans", "monospace"], ["VT323", "monospace"], ["Share Tech Mono", "monospace"]];
+  const BODY_FONTS = ["Exo 2", "Saira", "Nunito", "Alegreya Sans", "Rajdhani", "Chakra Petch", "Fredoka", "Crimson Pro"];
+  const ARTS = { glow: "Soft glow", plain: "Plain", stripes: "Stripes", grid: "Grid" };
+  const hexCtx = document.createElement("canvas").getContext("2d");
+  // any CSS color → #rrggbb (alpha dropped)
+  function toHex(c) {
+    hexCtx.fillStyle = "#000000"; hexCtx.fillStyle = c || "#000000";
+    const f = hexCtx.fillStyle; if (f[0] === "#") return f;
+    const m = f.match(/[\d.]+/g) || [0, 0, 0];
+    return "#" + m.slice(0, 3).map((x) => Math.round(+x).toString(16).padStart(2, "0")).join("");
+  }
+  const rgbOf = (hex) => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const rgba = (hex, a) => `rgba(${rgbOf(hex).join(",")},${a})`;
+  const relLum = (hex) => { const [r, g, b] = rgbOf(hex).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const contrast = (a, b) => { const [x, y] = [relLum(a), relLum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+  // black or white, whichever reads better on c
+  const onColor = (c) => (contrast("#111111", c) >= contrast("#ffffff", c) ? "#111111" : "#ffffff");
+  const fontStack = (f) => `"${f}", ${(FONTS.find(([n]) => n === f) || [0, "sans-serif"])[1]}`;
+  const builtInSkins = () => Object.entries(SKINS).filter(([, v]) => !v.custom);
+  // saved themes can come from a pasted backup, so every field is checked before it reaches CSS
+  function cleanTheme(t) {
+    const hx = (c, d) => (/^#[0-9a-f]{6}$/i.test(c || "") ? c : d);
+    const font = (f, d) => (FONTS.some(([n]) => n === f) ? f : d);
+    const wheel = Array.isArray(t.wheel) ? t.wheel.slice(0, 6) : [];
+    while (wheel.length < 6) wheel.push(["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"][wheel.length]);
+    return {
+      id: /^c_[a-z0-9]+$/.test(t.id || "") ? t.id : "c_" + uid(),
+      label: String(t.label || "My theme").slice(0, 30), tagline: String(t.tagline || "").slice(0, 80),
+      spin: String(t.spin || "").slice(0, 14), landed: String(t.landed || "").slice(0, 30),
+      quips: (Array.isArray(t.quips) ? t.quips : []).map((q) => String(q).slice(0, 80)).filter(Boolean).slice(0, 12),
+      base: SKINS[t.base] && !SKINS[t.base].custom ? t.base : "xbox",
+      bg: hx(t.bg, "#101418"), panel: hx(t.panel, "#1a2028"), fg: hx(t.fg, "#f2f4f7"), muted: hx(t.muted, "#9aa4b2"),
+      accent: hx(t.accent, "#2a78d6"), accent2: hx(t.accent2, "#eb6834"), liquid: hx(t.liquid, "#ffc24a"), liquid2: hx(t.liquid2, "#d98a00"),
+      wheel: wheel.map((c, i) => hx(c, "#2a78d6")),
+      fontD: font(t.fontD, "Exo 2"), fontB: font(t.fontB, "Exo 2"), caps: !!t.caps,
+      radius: Math.max(0, Math.min(28, parseInt(t.radius, 10) || 0)), art: ARTS[t.art] ? t.art : "glow",
+    };
+  }
+  function themeCSS(t) {
+    const dark = relLum(t.bg) < 0.3;
+    const art = {
+      glow: `radial-gradient(1200px 600px at 80% -10%, ${rgba(t.accent, 0.3)}, transparent 60%), radial-gradient(800px 500px at -10% 110%, ${rgba(t.accent2, 0.2)}, transparent 60%)`,
+      plain: "none",
+      stripes: `repeating-linear-gradient(135deg, ${rgba(t.accent, 0.07)} 0 14px, transparent 14px 28px)`,
+      grid: `repeating-linear-gradient(0deg, ${rgba(t.accent, 0.1)} 0 1px, transparent 1px 28px), repeating-linear-gradient(90deg, ${rgba(t.accent, 0.1)} 0 1px, transparent 1px 28px)`,
+    }[t.art];
+    return `html[data-skin="${t.id}"] { --bg: ${t.bg}; --bg-art: ${art}; --panel: ${rgba(t.panel, 0.9)}; --panel-2: ${t.panel}; --fg: ${t.fg}; --muted: ${t.muted};
+  --accent: ${t.accent}; --accent-fg: ${onColor(t.accent)}; --accent-2: ${t.accent2}; --danger: ${dark ? "#ff6b5e" : "#c62828"}; --line: ${rgba(t.accent, 0.28)};
+  --liquid: ${t.liquid}; --liquid-2: ${t.liquid2}; --glass: ${rgba(t.fg, 0.1)}; --glass-edge: ${rgba(t.fg, 0.55)};
+  --font-display: ${fontStack(t.fontD)}; --font-body: ${fontStack(t.fontB)}; --display-case: ${t.caps ? "uppercase" : "none"}; --display-track: ${t.caps ? ".06em" : "0"}; --display-weight: 800;
+  --radius: ${t.radius}px; --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,${dark ? 0.45 : 0.12}); color-scheme: ${dark ? "dark" : "light"}; }`;
+  }
+  const skinFromTheme = (t) => ({
+    label: t.label, dot: t.accent, custom: true, base: t.base, wheel: t.wheel,
+    tagline: t.tagline || "Bet list night · House rules", spin: t.spin || "Spin", landed: t.landed || "Up next",
+    quips: t.quips.length ? t.quips : ["Bottoms up.", "Pour decisions were made.", "Cheers to that."],
+  });
+  // music and sound packs follow the built-in theme a custom theme borrows from
+  const skinBase = (k) => SKINS[k]?.base || k;
+  let draft = null, draftEditing = false, draftPrev = null;
+  function registerCustomThemes() {
+    Object.keys(SKINS).forEach((k) => { if (SKINS[k].custom) delete SKINS[k]; });
+    S.customThemes = (S.customThemes || []).map(cleanTheme);
+    S.customThemes.forEach((t) => (SKINS[t.id] = skinFromTheme(t)));
+    if (draft) SKINS[draft.id] = skinFromTheme(draft);
+    let el = $("#customSkinCss");
+    if (!el) { el = document.createElement("style"); el.id = "customSkinCss"; document.head.appendChild(el); }
+    el.textContent = [...S.customThemes.filter((t) => !draft || t.id !== draft.id), ...(draft ? [draft] : [])].map(themeCSS).join("\n");
+    if (!SKINS[S.skin]) S.skin = "xbox";
+  }
+  registerCustomThemes();
+  // read a built-in theme's tokens so a new theme can start from it
+  function readSkin(k) {
+    const root = document.documentElement, prev = root.dataset.skin;
+    root.dataset.skin = k;
+    const cs = getComputedStyle(root), v = (n) => cs.getPropertyValue(n).trim();
+    const fam = (x) => x.split(",")[0].replace(/["']/g, "").trim();
+    const out = {
+      bg: toHex(v("--bg")), panel: toHex(v("--panel-2")), fg: toHex(v("--fg")), muted: toHex(v("--muted")),
+      accent: toHex(v("--accent")), accent2: toHex(v("--accent-2")), liquid: toHex(v("--liquid")), liquid2: toHex(v("--liquid-2")),
+      fontD: fam(v("--font-display")), fontB: fam(v("--font-body")), caps: v("--display-case") === "uppercase",
+      radius: parseInt(v("--radius"), 10) || 0, wheel: SKINS[k].wheel.slice(0, 6), base: k,
+    };
+    root.dataset.skin = prev;
+    return out;
+  }
+  // a random palette built around one hue
+  function surpriseTheme() {
+    const h = Math.floor(Math.random() * 360), dark = Math.random() < 0.7, c = (dh, s, l) => toHex(`hsl(${(h + dh) % 360}, ${s}%, ${l}%)`);
+    const pal = dark
+      ? { bg: c(0, 35, 6), panel: c(0, 28, 12), fg: c(0, 30, 93), muted: c(0, 15, 66), accent: c(0, 85, 58), accent2: c(150, 70, 50), liquid: c(30, 90, 62), liquid2: c(30, 85, 40),
+          wheel: [c(0, 80, 45), c(0, 30, 18), c(150, 65, 50), c(60, 75, 58), c(0, 45, 30), c(210, 75, 68)] }
+      : { bg: c(0, 45, 95), panel: c(0, 40, 99), fg: c(0, 35, 13), muted: c(0, 12, 40), accent: c(0, 75, 42), accent2: c(150, 60, 38), liquid: c(30, 90, 55), liquid2: c(30, 85, 38),
+          wheel: [c(0, 75, 50), c(0, 55, 85), c(150, 55, 42), c(60, 80, 70), c(0, 45, 28), c(210, 70, 60)] };
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    return Object.assign(pal, { fontD: pick(FONTS)[0], fontB: pick(BODY_FONTS), caps: Math.random() < 0.5, radius: pick([0, 6, 12, 18, 24]), art: pick(Object.keys(ARTS)) });
+  }
+  function openBuilder(id) {
+    const have = (S.customThemes || []).find((t) => t.id === id);
+    draftEditing = !!have; draftPrev = S.skin;
+    draft = cleanTheme(have ? JSON.parse(JSON.stringify(have)) : Object.assign(readSkin(SKINS[S.skin].custom ? skinBase(S.skin) : S.skin), { label: "", art: "glow" }));
+    if (!have) draft.label = "";
+    previewDraft(); openSheet("builder");
+  }
+  function previewDraft() {
+    registerCustomThemes();
+    document.documentElement.dataset.skin = draft.id;
+    const w = $("#tbWheel");
+    if (w) {
+      const n = draft.wheel.length;
+      w.style.background = `conic-gradient(${draft.wheel.map((c, i) => `${c} ${(i / n) * 100}% ${((i + 1) / n) * 100}%`).join(", ")})`;
+      $("#tbPrevTitle").textContent = draft.label || "Your theme";
+      $("#tbPrevTag").textContent = draft.tagline || "Bet list night · House rules";
+      $("#tbPrevSpin").textContent = (draft.spin || "Spin") + " the wheel";
+      const warn = [];
+      if (contrast(draft.fg, draft.bg) < 4.5 || contrast(draft.fg, draft.panel) < 4.5) warn.push("Text is hard to read on the background or cards.");
+      if (contrast(draft.muted, draft.panel) < 3) warn.push("Soft text is hard to read on the cards.");
+      if (contrast(onColor(draft.accent), draft.accent) < 3.5) warn.push("Button text is hard to read on the button color.");
+      $("#tbWarn").textContent = warn.join(" ");
+      $("#tbWarn").hidden = !warn.length;
+    }
+  }
+  function endBuilder() {
+    draft = null; registerCustomThemes(); applySkin();
+  }
+  function builderHTML() {
+    const d = draft;
+    const color = (k, label) => `<label class="tb-color"><input type="color" data-tb="${k}" value="${d[k]}"><span>${label}</span></label>`;
+    const opts = (list, cur) => list.map(([v, l]) => `<option value="${esc(v)}" ${v === cur ? "selected" : ""}>${esc(l)}</option>`).join("");
+    return `
+      <div class="tb-preview">
+        <div class="tb-wheel" id="tbWheel" aria-hidden="true"></div>
+        <div class="stack" style="gap:6px;min-width:0">
+          <div class="eyebrow">Preview</div>
+          <div class="tb-title" id="tbPrevTitle"></div>
+          <div class="muted" id="tbPrevTag" style="font-size:.9rem"></div>
+          <div class="row"><span class="btn primary small" id="tbPrevSpin"></span><span class="btn small">Log a game</span></div>
+        </div>
+        ${glassSVG(0.65, { stat: true, cls: "tb-glass" })}
+      </div>
+      <div class="tb-warn" id="tbWarn" role="status" hidden></div>
+      <div class="tb-grid">
+        <label class="field">Name<input type="text" data-tb="label" maxlength="30" value="${esc(d.label)}" placeholder="Saturday Night Shots"></label>
+        <label class="field">Tagline<input type="text" data-tb="tagline" maxlength="80" value="${esc(d.tagline)}" placeholder="Bet list night · House rules"></label>
+      </div>
+      <div class="row" style="align-items:flex-end">
+        <label class="field" style="flex:1 1 200px">Start from a theme<select id="tbFrom"><option value="">Pick one to copy its look…</option>${opts(builtInSkins().map(([k, v]) => [k, v.label]), "")}</select></label>
+        <button class="btn" type="button" id="tbSurprise">🎲 Surprise me</button>
+      </div>
+      <div class="eyebrow">Colors</div>
+      <div class="tb-colors">
+        ${color("bg", "Background")}${color("panel", "Cards")}${color("fg", "Text")}${color("muted", "Soft text")}
+        ${color("accent", "Buttons")}${color("accent2", "Second accent")}${color("liquid", "Drink top")}${color("liquid2", "Drink bottom")}
+      </div>
+      <div class="eyebrow">Wheel slices</div>
+      <div class="tb-colors tb-wheelset">${d.wheel.map((c, i) => `<label class="tb-color"><input type="color" data-tbw="${i}" value="${c}"><span>Slice ${i + 1}</span></label>`).join("")}</div>
+      <div class="tb-grid">
+        <label class="field">Background pattern<select data-tb="art">${opts(Object.entries(ARTS), d.art)}</select></label>
+        <label class="field"><span>Corners · <span id="tbRadius">${d.radius}px</span></span><input type="range" min="0" max="28" step="2" data-tb="radius" value="${d.radius}"></label>
+        <label class="field">Heading font<select data-tb="fontD">${opts(FONTS.map(([f]) => [f, f]), d.fontD)}</select></label>
+        <label class="field">Body font<select data-tb="fontB">${opts(FONTS.map(([f]) => [f, f]), d.fontB)}</select></label>
+      </div>
+      <label class="pick" style="align-self:flex-start"><input type="checkbox" data-tb="caps" ${d.caps ? "checked" : ""}><span>ALL CAPS headings</span></label>
+      <div class="eyebrow">Words</div>
+      <div class="tb-grid">
+        <label class="field">Spin button word<input type="text" data-tb="spin" maxlength="14" value="${esc(d.spin)}" placeholder="Spin"></label>
+        <label class="field">When the wheel lands<input type="text" data-tb="landed" maxlength="30" value="${esc(d.landed)}" placeholder="Up next"></label>
+      </div>
+      <label class="field">Pour lines, one per line (shown when someone drinks)<textarea data-tb="quips" rows="3" placeholder="Bottoms up.&#10;Pour decisions were made.">${esc(d.quips.join("\n"))}</textarea></label>
+      <label class="field">Music and sounds from<select data-tb="base">${opts(builtInSkins().map(([k, v]) => [k, v.label]), d.base)}</select></label>
+      <div class="row">
+        <button class="btn primary" type="button" id="tbSave">${draftEditing ? "Save changes" : "Save theme"}</button>
+        <button class="btn ghost" type="button" id="tbCancel">Cancel</button>
+        ${draftEditing ? `<button class="btn ghost danger" type="button" id="tbDelete">Delete theme</button>` : ""}
+      </div>`;
+  }
+  function customThemesPanelHTML() {
+    const list = S.customThemes || [];
+    return `<div class="panel stack" id="themesPanel">
+      <h3>Your themes</h3>
+      <div class="muted">Build your own theme: pick the colors, wheel slices, fonts, words, and which theme's music it plays. Your themes are saved in this browser and included in backups.</div>
+      ${list.length ? `<ul class="tm-list">${list.map((t) => `<li><span class="tb-item"><span class="tb-dots" aria-hidden="true">${t.wheel.map((c) => `<i style="background:${c}"></i>`).join("")}</span><b>${esc(t.label)}</b>${S.skin === t.id ? ' <span class="muted">· on now</span>' : ""}</span>
+        <span class="row" style="gap:6px;flex-wrap:nowrap">${S.skin !== t.id ? `<button class="btn small" type="button" data-tbuse="${t.id}">Use</button>` : ""}<button class="btn small ghost" type="button" data-tbedit="${t.id}">Edit</button></span></li>`).join("")}</ul>` : ""}
+      <div class="row"><button class="btn primary" type="button" id="tbNew">🎨 Build a theme</button></div>
+    </div>`;
+  }
+  // builder fields update the draft in place, so typing and dragging never re-render the sheet
+  $("#sheet").addEventListener("input", (e) => {
+    if (sheetKind !== "builder" || !draft) return;
+    const el = e.target, k = el.dataset.tb;
+    if (el.dataset.tbw != null) draft.wheel[+el.dataset.tbw] = el.value;
+    else if (k === "caps") draft.caps = el.checked;
+    else if (k === "radius") { draft.radius = +el.value; $("#tbRadius").textContent = el.value + "px"; }
+    else if (k === "quips") draft.quips = el.value.split("\n").map((q) => q.trim()).filter(Boolean).slice(0, 12);
+    else if (k) draft[k] = el.value;
+    else return;
+    previewDraft();
+  });
+  $("#sheet").addEventListener("change", (e) => {
+    if (sheetKind !== "builder" || e.target.id !== "tbFrom" || !e.target.value) return;
+    Object.assign(draft, readSkin(e.target.value));
+    draft = cleanTheme(draft); renderSheet();
+  });
+
   // ---------- Skins + tabs ----------
   function renderSkins() {
     $("#skins").innerHTML = Object.entries(SKINS).map(([k, v]) =>
-      `<button type="button" class="skin-btn" data-skin="${k}" aria-pressed="${S.skin === k}"><i style="background:${v.dot}"></i>${v.label}</button>`).join("");
-    $("#skinSelect").innerHTML = Object.entries(SKINS).map(([k, v]) => `<option value="${k}" ${S.skin === k ? "selected" : ""}>${v.label}</option>`).join("");
+      `<button type="button" class="skin-btn" data-skin="${k}" aria-pressed="${S.skin === k}"><i style="background:${v.dot}"></i>${esc(v.label)}</button>`).join("") +
+      `<button type="button" class="skin-btn" data-skin="__build">＋ Build your own</button>`;
+    const opt = ([k, v]) => `<option value="${k}" ${S.skin === k ? "selected" : ""}>${esc(v.label)}</option>`;
+    const mine = Object.entries(SKINS).filter(([, v]) => v.custom);
+    $("#skinSelect").innerHTML = builtInSkins().map(opt).join("") +
+      (mine.length ? `<optgroup label="Your themes">${mine.map(opt).join("")}</optgroup>` : "") + `<option value="__build">＋ Build your own…</option>`;
   }
   function applySkin() {
+    registerCustomThemes();
     document.documentElement.dataset.skin = S.skin;
     $("#tagline").textContent = SKINS[S.skin].tagline;
     $("#hubSpin").textContent = SKINS[S.skin].spin;
     renderSkins();
-    if (S.music && (Music.playing || embedNow)) { if (musicLinkFor(S.skin)) applyMusic(); else if (Music.playing) Music.setTheme(S.skin); else applyMusic(); }
+    if (S.music && (Music.playing || embedNow)) { if (musicLinkFor(S.skin)) applyMusic(); else if (Music.playing) Music.setTheme(skinBase(S.skin)); else applyMusic(); }
     // fonts may swap in after load; redraw wheels once they settle
     document.fonts && document.fonts.ready.then(() => { mainWheel.draw(); rngWheel && rngWheel.draw(); });
   }
   $("#skins").addEventListener("click", (e) => {
     const b = e.target.closest("[data-skin]"); if (!b) return;
+    if (b.dataset.skin === "__build") return openBuilder();
     S.skin = b.dataset.skin; save(); applySkin(); renderAll();
   });
-  $("#skinSelect").addEventListener("change", (e) => { S.skin = e.target.value; save(); applySkin(); renderAll(); });
+  $("#skinSelect").addEventListener("change", (e) => {
+    if (e.target.value === "__build") { e.target.value = S.skin; return openBuilder(); }
+    S.skin = e.target.value; save(); applySkin(); renderAll();
+  });
   function setTab(t) {
     S.tab = t; save();
     ["setup", "spin", "scores", "stats", "games", "history"].forEach((k) => {
@@ -2599,7 +2830,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
         ${(n.paused || []).length ? `<div class="note">Paused: ${n.paused.slice().reverse().map((x) => `<b>${esc(gameById(x.pending.gameId)?.title || "?")}</b>`).join(", then ")}. It comes back once this game is recorded.</div>` : ""}
         <div class="row">
-          ${!pend && !n.wild ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${SKINS[S.skin].spin} the wheel</button>` : ""}
+          ${!pend && !n.wild ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${esc(SKINS[S.skin].spin)} the wheel</button>` : ""}
           <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle">Log a played game</button>
           ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
         </div>
@@ -3408,20 +3639,38 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Sheet (recap, trophies, finale) ----------
   let sheetKind = null, sheetNight = null;
   function openSheet(kind, night) { sheetKind = kind; sheetNight = night || N(); $("#sheet").hidden = false; renderSheet(); }
-  function closeSheet() { $("#sheet").hidden = true; sheetKind = null; }
+  function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"] };
+    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : finaleHTML();
+    if (sheetKind === "builder") previewDraft();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
   $("#sheet").addEventListener("click", async (e) => {
     if (e.target.id === "sheet") return closeSheet();
     const b = e.target.closest("button"); if (!b) return;
-    if (b.id === "closeSheet2") return closeSheet();
+    if (b.id === "closeSheet2" || b.id === "tbCancel") return closeSheet();
+    if (b.id === "tbSurprise") { draft = cleanTheme(Object.assign(draft, surpriseTheme())); return renderSheet(); }
+    if (b.id === "tbSave") {
+      if (!draft.label.trim()) { toast("Give your theme a name"); $('#sheetBody [data-tb="label"]').focus(); return; }
+      const t = cleanTheme(draft), list = S.customThemes || (S.customThemes = []), i = list.findIndex((x) => x.id === t.id);
+      if (i >= 0) list[i] = t; else list.push(t);
+      S.skin = t.id; draft = null; save(); closeSheet(); applySkin(); renderAll();
+      return toast(`${t.label} is on`);
+    }
+    if (b.id === "tbDelete") {
+      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "Tap again to delete"; return; }
+      const id = draft.id, gone = draft.label;
+      S.customThemes = (S.customThemes || []).filter((x) => x.id !== id);
+      if (S.skin === id) S.skin = draft.base;
+      if (S.themeMusic) delete S.themeMusic[id];
+      draft = null; save(); closeSheet(); applySkin(); renderAll();
+      return toast(`${gone} deleted`);
+    }
     if (b.id === "importNight" && incomingNight) {
       const cur = N();
       if (cur.started && !cur.sample && cur.id !== incomingNight.id) { cur.ended = Date.now(); cur.pending = null; S.archive.push(cur); }
@@ -3851,6 +4100,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="row"><button class="btn" type="button" id="sendNight" ${n.started ? "" : "disabled"}>Share tonight's link</button></div>
           </div>
           ${installPanelHTML()}
+          ${customThemesPanelHTML()}
           <div class="panel stack" id="settingsPanel">
             <h3>Settings</h3>
             <div class="stack" style="gap:6px">
@@ -3903,7 +4153,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else body = `<div class="muted">Open your browser's menu and choose <b>Install app</b> or <b>Add to Home screen</b>. It works offline and updates itself from the site.</div>`;
     return `<div class="panel stack"><h3>Phone app</h3>${body}</div>`;
   }
-  const backupJSON = () => JSON.stringify({ app: "pour-decisions", version: 1, exported: Date.now(), archive: S.archive, night: S.night, tags: S.tags || {} }, null, 1);
+  const backupJSON = () => JSON.stringify({ app: "pour-decisions", version: 1, exported: Date.now(), archive: S.archive, night: S.night, tags: S.tags || {}, customThemes: S.customThemes || [] }, null, 1);
   function importBackup(text) {
     try {
       const d = JSON.parse(text);
@@ -3912,6 +4162,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       let added = 0;
       d.archive.forEach((x) => { if (!have.has(x.id)) { S.archive.push(x); added++; } });
       if (d.tags && typeof d.tags === "object") S.tags = Object.assign({}, d.tags, S.tags || {});
+      if (Array.isArray(d.customThemes)) { const mine = new Set((S.customThemes || []).map((t) => t.id)); S.customThemes = [...(S.customThemes || []), ...d.customThemes.filter((t) => t && !mine.has(t.id))]; applySkin(); }
       S.archive.sort((a, b) => (a.started || a.created) - (b.started || b.created));
       if (d.night && d.night.started && !have.has(d.night.id) && d.night.id !== S.night.id && (!S.night.started || S.night.sample)) S.night = d.night;
       save(); renderAll(); toast(`Restored ${added} night${added === 1 ? "" : "s"}`);
@@ -3920,6 +4171,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#view-history").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.viewphoto) return openPhoto(b.dataset.viewphoto);
+    if (b.id === "tbNew") return openBuilder();
+    if (b.dataset.tbedit) return openBuilder(b.dataset.tbedit);
+    if (b.dataset.tbuse) { S.skin = b.dataset.tbuse; save(); applySkin(); renderAll(); return toast(`${SKINS[S.skin].label} is on`); }
     if (b.dataset.recap) { const nt = S.archive.find((x) => x.id === b.dataset.recap); if (nt) openSheet("recap", nt); return; }
     if (b.dataset.del) {
       if (deleteArm !== b.dataset.del) { deleteArm = b.dataset.del; renderHistory(); const d = $(`[data-del="${deleteArm}"]`); d && (d.closest("details").open = true); return; }
@@ -4119,7 +4373,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!vid && !list) return null;
     return { kind: "youtube", id: vid || null, list: list || null, url: s };
   }
-  const musicLinkFor = (skin) => { const m = S.themeMusic || {}; return m[skin] || m["*"] || null; };
+  const musicLinkFor = (skin) => { const m = S.themeMusic || {}; return m[skin] || m[skinBase(skin)] || m["*"] || null; };
   function embedSrc(link) {
     if (link.kind === "spotify") return `https://open.spotify.com/embed/${link.type}/${link.id}?utm_source=generator&theme=0`;
     const origin = encodeURIComponent(location.origin);
