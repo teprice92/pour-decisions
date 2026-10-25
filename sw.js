@@ -2,7 +2,8 @@
 // The page is network-first: online, you always get the latest version from the site;
 // offline (or on a slow connection), the last saved copy opens instead.
 // Bump VERSION when the list of app files below changes.
-const VERSION = "v3";
+const VERSION = "v4";
+const CATALOG_REV = 3; // matches CATALOG_REV in index.html
 const SHELL = `pd-shell-${VERSION}`;
 const FONTS = "pd-fonts";
 const SHELL_FILES = [
@@ -34,9 +35,11 @@ self.addEventListener("activate", (event) => {
 
 async function cacheCatalog() {
   const cache = await caches.open(SHELL);
-  for (const f of CATALOG_FILES) {
+  for (const file of CATALOG_FILES) {
+    const f = `${file}?v=${CATALOG_REV}`;
     if (await cache.match(f)) continue;
-    try { const r = await fetch(f); if (r.ok) await cache.put(f, r); } catch { /* offline; saved when opened later */ }
+    // cache: "reload" skips the browser's HTTP cache so a just-updated list isn't saved stale
+    try { const r = await fetch(f, { cache: "reload" }); if (r.ok) await cache.put(f, r); } catch { /* offline; saved when opened later */ }
   }
 }
 
