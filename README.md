@@ -44,6 +44,15 @@ The complete lists and player counts come from the [No-Intro](https://no-intro.o
 - **Send tonight to another phone**: History → Send tonight makes a link that opens the night on another phone. It's a copy, so the two phones don't stay in sync.
 - **Theme sound packs**: many themes have their own sounds, like the Zelda secret jingle, the Mario coin, a lightsaber hum, and the Metal Gear alert.
 
+## Stats and bragging rights
+
+The **Stats** tab adds up every night saved in History, plus tonight's:
+
+- **Shots per night** for each player as a line chart (hover or tap for the numbers), and **all-time wins** as bars. Every chart has a **Table** button.
+- **Player cards**: nights, games, wins, win rate, total shots, and shots per night. Each card also shows the player's **nemesis** (who beats them most), their **favorite victim**, their best and toughest games, and their win rate by console.
+- **Game rankings**: every game has its own rating. Everyone starts at 1000, and beating someone takes points from them, more if they were rated higher. Pick a game to see its leaderboard, and **Champions by game** shows who's on top of each one.
+- **Round photos**: tap **📷 Photo** on any recorded round to attach a picture. Photos show in the round log, the night recap, and History. They're shrunk and stored in this browser (IndexedDB), and they aren't included in backups or send-a-night links.
+
 ## Settings
 
 Under **History → Settings** you can set the default shots on the line, whether the winner drinks half by default, the number of wild slices, the side bet stake, the streak-breaker bonus, and how often water rounds come up.

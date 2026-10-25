@@ -1019,6 +1019,45 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .trophies { display: flex; flex-wrap: wrap; gap: 6px; }
 .trophy { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: .85rem; background: var(--panel-2); }
 .trophy .ti { font-size: 1.1rem; }
+/* Stats */
+.stats-head { display: grid; gap: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 20px; align-items: start; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.chart-wrap { position: relative; }
+.chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+.viz-grid { stroke: var(--line); stroke-width: 1; }
+.viz-axis { fill: var(--muted); font: 600 13px var(--font-body); }
+.viz-label { fill: var(--fg); font: 700 14px var(--font-body); }
+.viz-cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.viz-tip { position: absolute; z-index: 3; pointer-events: none; background: var(--panel-2); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: .85rem; box-shadow: 0 8px 20px rgba(0,0,0,.35); min-width: 120px; }
+.viz-tip .tip-h { color: var(--muted); font-size: .75rem; margin-bottom: 4px; }
+.viz-tip i, .viz-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.viz-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem; color: var(--fg); }
+.bars { position: relative; display: grid; gap: 8px; }
+.bar-row { display: grid; grid-template-columns: minmax(80px, 34%) minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; border-radius: 6px; }
+.bar-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+.bar-track { height: 12px; background: color-mix(in srgb, var(--line) 50%, transparent); border-radius: 4px; }
+.bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
+.bar-val { text-align: right; font-weight: 700; color: var(--fg); }
+.stats-players { display: flex; flex-wrap: wrap; gap: 6px; }
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--panel-2); }
+.tile .tv { font-family: var(--font-display); font-size: 1.6rem; line-height: 1.1; }
+.tile .tl { font-size: .75rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.stats-two > .stack { align-content: start; }
+.stats-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.rival, .game-rate { font-size: .95rem; }
+/* Round photos */
+.photo-thumb { display: inline-block; padding: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel-2); cursor: pointer; margin-top: 4px; }
+.photo-thumb img { display: block; width: 64px; height: 64px; object-fit: cover; }
+.photo-thumb.missing { display: none; }
+.photo-strip { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-strip .photo-thumb { display: grid; width: 110px; text-align: left; color: var(--fg); }
+.photo-strip .photo-thumb img { width: 110px; height: 110px; }
+.photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
+.photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
@@ -1169,6 +1208,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="setup" id="tab-setup">Lineup</button>
       <button class="tab" role="tab" data-tab="spin" id="tab-spin">Spin</button>
       <button class="tab" role="tab" data-tab="scores" id="tab-scores">Shots</button>
+      <button class="tab" role="tab" data-tab="stats" id="tab-stats">Stats</button>
       <button class="tab" role="tab" data-tab="games" id="tab-games">Games</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
@@ -1202,6 +1242,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   </section>
 
   <section class="view" id="view-scores" hidden></section>
+  <section class="view" id="view-stats" hidden></section>
   <section class="view" id="view-games" hidden></section>
   <section class="view" id="view-history" hidden></section>
   <footer>Pour Decisions saves everything in this browser. Back it up from History. Drink responsibly and get a ride home.</footer>
@@ -1214,6 +1255,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     <button type="button" class="mp-btn" id="mpClose" aria-label="Turn music off">✕</button>
   </div>
   <div class="mp-frame" id="mpFrame"></div>
+</div>
+
+<input type="file" id="photoInput" accept="image/*" hidden>
+<div class="overlay" id="photoView" hidden>
+  <div class="photo-view">
+    <img id="photoBig" alt="">
+    <div class="row" style="justify-content:center"><button class="btn danger" type="button" id="photoDel">Remove photo</button><button class="btn" type="button" id="photoClose">Close</button></div>
+  </div>
 </div>
 
 <div class="overlay" id="pour" hidden>
@@ -1518,7 +1567,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Derived data ----------
   const N = () => S.night;
   const playerById = (id, night = N()) => night.players.find((p) => p.id === id);
-  const allGames = (night = N()) => night.players.flatMap((p) => p.games.filter((g) => g.title.trim()).map((g) => ({ id: g.id, title: g.title.trim(), by: p.id })));
+  const allGames = (night = N()) => night.players.flatMap((p) => p.games.filter((g) => g.title.trim()).map((g) => ({ id: g.id, title: g.title.trim(), by: p.id, console: g.console })));
   // only games that came off the wheel are crossed off; logged games never touch it
   const playedIds = (night = N()) => new Set(night.rounds.filter((r) => r.gameId && !r.injected).map((r) => r.gameId));
   const remaining = (night = N()) => { const done = playedIds(night); return allGames(night).filter((g) => !done.has(g.id)); };
@@ -2035,7 +2084,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#skinSelect").addEventListener("change", (e) => { S.skin = e.target.value; save(); applySkin(); renderAll(); });
   function setTab(t) {
     S.tab = t; save();
-    ["setup", "spin", "scores", "games", "history"].forEach((k) => {
+    ["setup", "spin", "scores", "stats", "games", "history"].forEach((k) => {
       $("#view-" + k).hidden = k !== t;
       $("#tab-" + k).setAttribute("aria-selected", String(k === t));
     });
@@ -2134,7 +2183,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!card) return;
     const p = playerById(card.dataset.pid);
     if (el.dataset.field === "name") p.name = el.value;
-    if (el.dataset.gid) { const g = p.games.find((x) => x.id === el.dataset.gid); if (g) g.title = el.value; }
+    if (el.dataset.gid) { const g = p.games.find((x) => x.id === el.dataset.gid); if (g) { g.title = el.value; delete g.console; } }
     n.sample = false;
     save();
   });
@@ -2369,15 +2418,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const t = catTitle(g, c), by = taken.get(catKey(t)) || taken.get(catKey(g));
         return `<div class="cat-game ${by ? "added" : ""}"><span class="t">${esc(g)}<small>${esc(c.name)}${pl ? ` · 👥 ${online ? "up to " + pl + " online" : pl === 1 ? "1 player" : "up to " + pl + " players"}` : ""}${by ? " · on " + esc(by.name) + "'s list" : ""}</small></span>
           <span class="tag-btns"><button type="button" class="icon-btn" data-tag="fav" data-tc="${c.id}" data-tt="${esc(g)}" aria-pressed="${fav}" aria-label="${fav ? "Remove " + esc(g) + " from favorites" : "Favorite " + esc(g)}">⭐</button><button type="button" class="icon-btn" data-tag="party" data-tc="${c.id}" data-tt="${esc(g)}" aria-pressed="${party}" aria-label="${party ? "Unmark " + esc(g) + " as a party game" : "Mark " + esc(g) + " as a party game"}">🎉</button></span>
-          <button class="btn small ${by ? "ghost" : ""}" type="button" data-catadd="${esc(t)}" aria-label="${by ? "Add " + esc(g) + " again" : "Add " + esc(g)}">${by ? "+ Again" : "+ Add"}</button></div>`;
+          <button class="btn small ${by ? "ghost" : ""}" type="button" data-catadd="${esc(t)}" data-cc="${c.id}" aria-label="${by ? "Add " + esc(g) + " again" : "Add " + esc(g)}">${by ? "+ Again" : "+ Add"}</button></div>`;
       }).join("")}</div>` : `<div class="muted">No games match that search.</div>`}
       ${total > list.length ? `<div class="row" style="justify-content:center"><button class="btn" type="button" id="catMore">Show ${Math.min(300, total - list.length).toLocaleString()} more</button><button class="btn" type="button" id="catAll">Show all ${total.toLocaleString()}</button></div>` : ""}`;
   }
-  function addToActive(title) {
+  function addToActive(title, consoleId) {
     const n = N(), p = playerById(activePid()); if (!p) return false;
     const slot = p.games.find((g) => !g.title.trim());
     if (!slot) { toast(`${p.name}'s list is full. Raise "Games each" in the Lineup to add more.`); return false; }
-    slot.title = title; n.sample = false; return true;
+    slot.title = title; slot.console = consoleId || undefined; n.sample = false; return true;
   }
   function refreshSlots() {
     const n = N(), who = playerById(activePid()), el = $("#catSlots"); if (!el || !who) return;
@@ -2399,7 +2448,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const fl = $("label.pick:has(#catFav) span"); if (fl) fl.textContent = "⭐ Favorites only" + (favCount ? ` (${favCount})` : "");
       return;
     }
-    if (b.dataset.catadd) { if (addToActive(b.dataset.catadd)) { save(); renderCatList(); refreshSlots(); toast(`Added ${b.dataset.catadd} to ${playerById(activePid()).name}'s list`); } return; }
+    if (b.dataset.catadd) { if (addToActive(b.dataset.catadd, b.dataset.cc)) { save(); renderCatList(); refreshSlots(); toast(`Added ${b.dataset.catadd} to ${playerById(activePid()).name}'s list`); } return; }
     if (b.id === "catCustomAdd") {
       const t = $("#catCustom").value.trim(); if (!t) { $("#catCustom").focus(); return toast("Type a game first"); }
       if (addToActive(t)) { save(); $("#catCustom").value = ""; renderCatList(); refreshSlots(); toast(`Added ${t} to ${playerById(activePid()).name}'s list`); }
@@ -2410,9 +2459,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const shown = catConsole === "all" ? CATALOG : CATALOG.filter((c) => c.id === catConsole);
       if (!catPartyOnly) await Promise.all(shown.map(loadFull));
       const have = new Set(n.players.flatMap((x) => x.games.map((g) => catKey(g.title))));
-      const src = shown.flatMap((c) => consoleGames(c)).filter((r) => (!catPartyOnly || r.party) && (!catFav || r.fav) && (!catUS || r.us)).map((r) => catTitle(r.g, r.c)).filter((t) => !have.has(catKey(t)));
+      const src = shown.flatMap((c) => consoleGames(c)).filter((r) => (!catPartyOnly || r.party) && (!catFav || r.fav) && (!catUS || r.us)).map((r) => ({ t: catTitle(r.g, r.c), c: r.c.id })).filter((x) => !have.has(catKey(x.t)));
       let added = 0;
-      while (src.length && p.games.some((g) => !g.title.trim())) { const t = src.splice(randInt(src.length), 1)[0]; if (addToActive(t)) added++; }
+      while (src.length && p.games.some((g) => !g.title.trim())) { const x = src.splice(randInt(src.length), 1)[0]; if (addToActive(x.t, x.c)) added++; }
       save(); renderCatList(); refreshSlots();
       toast(added ? `Added ${added} game${added === 1 ? "" : "s"} to ${p.name}'s list` : `${p.name}'s list is already full`);
     }
@@ -2901,7 +2950,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     notes.push(...streakNotes(winner, drinks));
     const before = totals(), trophiesBefore = trophyKeys();
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined });
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined });
     if (!injected) { advanceTurn(n); n.nextMod = null; }
     form = null; resumePaused();
     save(); renderSpin();
@@ -2971,8 +3020,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const total = r.drinks.reduce((a, d) => a + d.amt, 0);
         return `<li><span class="rn num">${r.gameId ? num : "+"}</span>
           <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">logged</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
-          <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}${r.gameId && r.title ? `<br><button class="btn small ghost" type="button" data-again="${r.id}" aria-label="Put ${esc(r.title)} back on the wheel">↺ Play again</button>` : ""}</span></li>`;
+          <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}${r.gameId && r.title ? `<br><button class="btn small ghost" type="button" data-again="${r.id}" aria-label="Put ${esc(r.title)} back on the wheel">↺ Play again</button>` : ""}
+            ${r.gameId ? (r.photo ? `<br><button type="button" class="photo-thumb" data-viewphoto="${r.id}" aria-label="See the photo from ${esc(r.title)}"><img data-photo-id="${r.id}" alt=""></button>` : `<br><button class="btn small ghost" type="button" data-addphoto="${r.id}" aria-label="Add a photo to ${esc(r.title)}">📷 Photo</button>`) : ""}</span></li>`;
       }).join("")}</ol>` : `<div class="muted">No rounds yet. Spin the wheel to play the first game.</div>`}`;
+    hydratePhotos($("#roundLog"));
   }
   $("#roundLog").addEventListener("click", (e) => {
     const ag = e.target.closest("[data-again]");
@@ -2981,7 +3032,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const n = N(), r = n.rounds.find((x) => x.id === ag.dataset.again); if (!r) return;
       const p = playerById(r.by) || spinner() || n.players[0]; if (!p) return;
       const slot = p.games.find((g) => !g.title.trim());
-      if (slot) slot.title = r.title; else p.games.push({ id: uid(), title: r.title });
+      if (slot) { slot.title = r.title; slot.console = r.console; } else p.games.push({ id: uid(), title: r.title, console: r.console });
       save(); renderSpin(); toast(`${r.title} is back on the wheel (on ${p.name}'s list)`);
       return;
     }
@@ -3226,6 +3277,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function recapHTML(night) {
     const d = recapData(night);
     return `<div class="recap">${recapLines(d).map(([ic, h, v]) => `<div class="recap-row"><span class="ic">${ic}</span><span><b>${esc(h)}</b><br>${esc(v)}</span></div>`).join("")}</div>
+      ${photoStripHTML(night)}
       <div class="eyebrow">Titles</div>
       <div class="titles">${night.players.map((p) => `<div><b>${pnameHTML(p)}</b><br><span class="muted">${esc(d.titles[p.id])}</span></div>`).join("")}</div>
       <div class="row"><button class="btn primary" type="button" id="recapShare">Share image</button><button class="btn" type="button" id="recapCopy">Copy text</button></div>`;
@@ -3362,6 +3414,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
+    setTimeout(() => hydratePhotos($("#sheetBody")), 0);
     $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : finaleHTML();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
@@ -3406,6 +3459,306 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const k = e.target.dataset.fgame; if (!k) return;
     const [ri, mi] = k.split(":").map(Number); N().finale.rounds[ri][mi].game = e.target.value; save();
   });
+
+
+  // ---------- Round photos ----------
+  // Photos live in IndexedDB on this device (keyed by round id); rounds just carry photo: true.
+  // They're not in backups or night links, which stay small text.
+  const PhotoDB = (() => {
+    let dbp = null;
+    const open = () => dbp || (dbp = new Promise((res, rej) => {
+      const r = indexedDB.open("pourDecisionsPhotos", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("photos");
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }));
+    const run = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction("photos", mode), q = fn(t.objectStore("photos")); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }); };
+    return { put: (k, v) => run("readwrite", (st) => st.put(v, k)), get: (k) => run("readonly", (st) => st.get(k)), del: (k) => run("readwrite", (st) => st.delete(k)) };
+  })();
+  const photoURLs = new Map();
+  async function photoURL(id) {
+    if (photoURLs.has(id)) return photoURLs.get(id);
+    try { const blob = await PhotoDB.get(id); if (!blob) return null; const u = URL.createObjectURL(blob); photoURLs.set(id, u); return u; } catch { return null; }
+  }
+  function hydratePhotos(root) {
+    if (!root) return;
+    root.querySelectorAll("img[data-photo-id]").forEach(async (img) => { const u = await photoURL(img.dataset.photoId); if (u) img.src = u; else img.closest(".photo-thumb")?.classList.add("missing"); });
+  }
+  // a night's photos as a strip of thumbnails (history and recap)
+  function photoStripHTML(night) {
+    const shots = night.rounds.filter((r) => r.photo);
+    if (!shots.length) return "";
+    return `<div class="eyebrow">Photos</div><div class="photo-strip">${shots.map((r) => `<button type="button" class="photo-thumb" data-viewphoto="${r.id}" aria-label="Photo from ${esc(r.title || "a round")}"><img data-photo-id="${r.id}" alt=""><span>${esc(r.title || "")}</span></button>`).join("")}</div>`;
+  }
+  async function shrinkPhoto(file) {
+    const img = await createImageBitmap(file);
+    const k = Math.min(1, 1280 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return new Promise((res) => c.toBlob(res, "image/jpeg", 0.82));
+  }
+  const findRound = (id) => { for (const night of [N(), ...S.archive]) { const r = night.rounds.find((x) => x.id === id); if (r) return r; } return null; };
+  let photoFor = null;
+  document.addEventListener("click", (e) => {
+    const add = e.target.closest("[data-addphoto]"); if (add) { photoFor = add.dataset.addphoto; $("#photoInput").value = ""; $("#photoInput").click(); return; }
+    const view = e.target.closest("[data-viewphoto]"); if (view && !view.closest("#view-history")) openPhoto(view.dataset.viewphoto);
+  });
+  $("#photoInput").addEventListener("change", async (e) => {
+    const f = e.target.files[0], r = photoFor && findRound(photoFor); if (!f || !r) return;
+    try {
+      const blob = await shrinkPhoto(f);
+      await PhotoDB.put(r.id, blob); photoURLs.delete(r.id);
+      r.photo = true; save(); renderAll(); if (sheetKind) renderSheet();
+      toast("📷 Photo added");
+    } catch { toast("That photo couldn't be saved. Try a different one."); }
+  });
+  let photoOpen = null;
+  async function openPhoto(id) {
+    const u = await photoURL(id); if (!u) return toast("That photo isn't on this phone");
+    photoOpen = id; $("#photoBig").src = u; $("#photoBig").alt = `Photo from ${findRound(id)?.title || "a round"}`; $("#photoView").hidden = false;
+  }
+  const closePhoto = () => { $("#photoView").hidden = true; photoOpen = null; };
+  $("#photoClose").addEventListener("click", closePhoto);
+  $("#photoView").addEventListener("click", (e) => { if (e.target.id === "photoView") closePhoto(); });
+  $("#photoDel").addEventListener("click", async () => {
+    const r = photoOpen && findRound(photoOpen); if (!r) return closePhoto();
+    try { await PhotoDB.del(r.id); } catch { /* already gone */ }
+    photoURLs.delete(r.id); delete r.photo; save(); closePhoto(); renderAll(); if (sheetKind) renderSheet(); toast("Photo removed");
+  });
+
+  // ---------- Stats ----------
+  // Everything is computed from saved nights + tonight. Players are matched by name.
+  // Per-game ratings are Elo (start 1000, K 32): the winner gains against each player who lost that game.
+  const VIZ = { // validated categorical palette, fixed order (light and dark steps of the same hues)
+    light: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"],
+    dark: ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"],
+  };
+  const vizMode = () => (getComputedStyle(document.documentElement).colorScheme.trim() === "light" ? "light" : "dark");
+  const nameKey = (nm) => nm.trim().toLowerCase();
+  // when a round didn't record its console, use the party picks if exactly one console has that title
+  const PICK_CONSOLE = (() => { const m = new Map(); CATALOG.forEach((c) => c.party.forEach((t) => { const k = catKey(t); m.set(k, m.has(k) && m.get(k) !== c.id ? null : c.id); })); return m; })();
+  function computeStats() {
+    const nights = nightsForStats().slice().sort((a, b) => (a.started || a.created) - (b.started || b.created));
+    const players = {}, ratings = {}, h2h = {};
+    nights.forEach((night, ni) => {
+      const t = totals(night);
+      night.players.forEach((p) => {
+        const k = nameKey(p.name); if (!k) return;
+        const pl = players[k] || (players[k] = { key: k, name: p.name.trim(), nights: 0, games: 0, wins: 0, shots: 0, perNight: {}, byConsole: {} });
+        if (p.emoji) pl.emoji = p.emoji; if (p.art) pl.art = p.art;
+        pl.nights++; pl.shots += t[p.id].shots; pl.perNight[ni] = (pl.perNight[ni] || 0) + t[p.id].shots;
+      });
+      night.rounds.forEach((r) => {
+        if (!r.gameId || !r.title) return;
+        const ids = [...new Set([r.winner, ...r.drinks.map((d) => d.pid)].filter(Boolean))];
+        const parts = ids.map((id) => playerById(id, night)).filter(Boolean).map((p) => nameKey(p.name)).filter(Boolean);
+        const wp = r.winner && playerById(r.winner, night), w = wp ? nameKey(wp.name) : null;
+        const con = r.console || PICK_CONSOLE.get(catKey(r.title)) || null;
+        parts.forEach((k) => {
+          const pl = players[k]; if (!pl) return;
+          pl.games++; if (k === w) pl.wins++;
+          if (con) { const b = pl.byConsole[con] || (pl.byConsole[con] = { w: 0, p: 0 }); b.p++; if (k === w) b.w++; }
+        });
+        if (!w || parts.length < 2) return;
+        const gk = catKey(r.title), g = ratings[gk] || (ratings[gk] = { title: r.title, plays: 0, r: {} });
+        g.plays++;
+        const R = (k) => g.r[k] || (g.r[k] = { rating: 1000, w: 0, l: 0 });
+        const losers = parts.filter((k) => k !== w);
+        let gain = 0;
+        losers.forEach((k) => {
+          const ew = 1 / (1 + Math.pow(10, (R(k).rating - R(w).rating) / 400)), d = (32 * (1 - ew)) / losers.length;
+          gain += d; R(k).rating -= d; R(k).l++;
+          h2h[w + "|" + k] = (h2h[w + "|" + k] || 0) + 1;
+        });
+        R(w).rating += gain; R(w).w++;
+      });
+    });
+    return { nights, players, ratings, h2h };
+  }
+  const plName = (pl) => (pl.art && AVATAR_ART[pl.art] ? `${avatarHTML(pl)} ${esc(pl.name)}` : esc((pl.emoji ? pl.emoji + " " : "") + pl.name));
+  const plText = (pl) => (pl.emoji ? pl.emoji + " " : "") + pl.name;
+  let statsPlayer = null, statsGame = null;
+  const statsTable = {}; // which charts are showing their table view
+  function renderStats() {
+    const st = computeStats(), box = $("#view-stats");
+    const roster = Object.values(st.players).sort((a, b) => b.nights - a.nights || b.games - a.games || a.name.localeCompare(b.name));
+    const games = Object.values(st.ratings).sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title));
+    const totalGames = st.nights.reduce((a, n) => a + n.rounds.filter((r) => r.gameId).length, 0);
+    if (!roster.length || !totalGames) {
+      box.innerHTML = `<div class="panel empty"><h3>Stats show up after your first games</h3><div>Play a few rounds and this page fills with rankings, rivalries, and charts across every night.</div></div>`;
+      return;
+    }
+    // series colors follow the player (fixed order by name), never their rank
+    const pal = VIZ[vizMode()], order = Object.keys(st.players).sort();
+    const colorOf = (k) => pal[order.indexOf(k) % pal.length];
+    if (!statsPlayer || !st.players[statsPlayer]) statsPlayer = roster[0].key;
+    if (!statsGame || !st.ratings[statsGame]) statsGame = games[0] ? catKey(games[0].title) : null;
+    const me = st.players[statsPlayer];
+
+    // head-to-head for the selected player
+    let nemesis = null, victim = null;
+    Object.entries(st.h2h).forEach(([k, c]) => {
+      const [w, l] = k.split("|");
+      if (l === statsPlayer && (!nemesis || c > nemesis.c)) nemesis = { who: st.players[w], c, back: st.h2h[statsPlayer + "|" + w] || 0 };
+      if (w === statsPlayer && (!victim || c > victim.c)) victim = { who: st.players[l], c, back: st.h2h[l + "|" + statsPlayer] || 0 };
+    });
+    // best and toughest games: rating vs the 1000 start, games with 2+ decided plays
+    const mine = games.map((g) => ({ g, r: g.r[statsPlayer] })).filter((x) => x.r && x.r.w + x.r.l >= 2);
+    const best = mine.slice().sort((a, b) => b.r.rating - a.r.rating).slice(0, 3);
+    const worst = mine.slice().sort((a, b) => a.r.rating - b.r.rating).filter((x) => !best.includes(x)).slice(0, 3);
+    const winRate = me.games ? Math.round((me.wins / me.games) * 100) : 0;
+
+    // champions: the top-rated player in each game played 2+ times
+    const champs = games.filter((g) => g.plays >= 2).map((g) => {
+      const top = Object.entries(g.r).sort((a, b) => b[1].rating - a[1].rating)[0];
+      return { g, who: st.players[top[0]], rating: top[1].rating, rec: top[1] };
+    }).slice(0, 20);
+    const gsel = statsGame && st.ratings[statsGame];
+    const board = gsel ? Object.entries(gsel.r).map(([k, v]) => ({ who: st.players[k], ...v })).sort((a, b) => b.rating - a.rating) : [];
+
+    box.innerHTML = `
+      <div class="panel stats-head">
+        <div class="eyebrow">${st.nights.length} night${st.nights.length === 1 ? "" : "s"} · ${totalGames} games · ${roster.length} players</div>
+        <h2>Stats &amp; bragging rights</h2>
+        <div class="muted">Ratings start at 1000 per game. Beat someone and you take points from them, more for beating someone who's better.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="panel stack">
+          <div class="chart-head"><h3>Shots per night</h3><button class="btn small ghost" type="button" data-stable="shots" aria-pressed="${!!statsTable.shots}">${statsTable.shots ? "Chart" : "Table"}</button></div>
+          ${shotsChartHTML(st, roster, colorOf)}
+        </div>
+        <div class="panel stack">
+          <div class="chart-head"><h3>Wins, all time</h3><button class="btn small ghost" type="button" data-stable="wins" aria-pressed="${!!statsTable.wins}">${statsTable.wins ? "Chart" : "Table"}</button></div>
+          ${barsHTML("wins", roster.filter((p) => p.games).sort((a, b) => b.wins - a.wins).map((p) => ({ label: plText(p), html: plName(p), value: p.wins, note: `${p.wins} of ${p.games} games` })), (v) => String(v))}
+        </div>
+      </div>
+      <div class="panel stack">
+        <div class="eyebrow">Player</div>
+        <div class="stats-players">${roster.map((p) => `<button type="button" class="btn small ${p.key === statsPlayer ? "primary" : ""}" data-splayer="${esc(p.key)}">${plName(p)}</button>`).join("")}</div>
+        <div class="stat-tiles">
+          ${[["Nights", me.nights], ["Games", me.games], ["Wins", me.wins], ["Win rate", winRate + "%"], ["Shots", fmtShots(me.shots)], ["Shots / night", fmtShots(me.shots / Math.max(1, me.nights))]].map(([l, v]) => `<div class="tile"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}
+        </div>
+        <div class="stats-two">
+          <div class="stack" style="gap:6px">
+            <div class="eyebrow">Rivals</div>
+            <div class="rival">😈 <b>Nemesis:</b> ${nemesis ? `${plName(nemesis.who)} has beaten ${esc(me.name)} ${nemesis.c}×${nemesis.back ? ` (${esc(me.name)} won ${nemesis.back} back)` : ""}` : "Nobody has beaten them yet."}</div>
+            <div class="rival">🎯 <b>Favorite victim:</b> ${victim ? `${plName(victim.who)}, beaten ${victim.c}×${victim.back ? ` (lost ${victim.back} back)` : ""}` : "No wins over anyone yet."}</div>
+          </div>
+          <div class="stack" style="gap:6px">
+            <div class="eyebrow">Best games</div>
+            ${best.length ? best.map((x) => `<div class="game-rate">🏅 <b>${esc(x.g.title)}</b> <span class="muted num">${Math.round(x.r.rating)} · ${x.r.w}–${x.r.l}</span></div>`).join("") : `<div class="muted">Needs 2+ decided plays of a game.</div>`}
+            <div class="eyebrow" style="margin-top:6px">Toughest games</div>
+            ${worst.length ? worst.map((x) => `<div class="game-rate">🥴 <b>${esc(x.g.title)}</b> <span class="muted num">${Math.round(x.r.rating)} · ${x.r.w}–${x.r.l}</span></div>`).join("") : `<div class="muted">Nothing yet.</div>`}
+          </div>
+        </div>
+        <div class="chart-head"><h3>Win rate by console</h3><button class="btn small ghost" type="button" data-stable="console" aria-pressed="${!!statsTable.console}">${statsTable.console ? "Chart" : "Table"}</button></div>
+        ${Object.keys(me.byConsole).length ? barsHTML("console", Object.entries(me.byConsole).map(([c, v]) => ({ label: CATALOG.find((x) => x.id === c)?.name || c, html: esc(CATALOG.find((x) => x.id === c)?.name || c), value: Math.round((v.w / v.p) * 100), note: `${v.w} of ${v.p} won` })).sort((a, b) => b.value - a.value), (v) => v + "%", 100)
+          : `<div class="muted">Consoles are known for games added from the Games tab (or matching a party pick). Add games from there to see this.</div>`}
+      </div>
+      <div class="stats-grid">
+        <div class="panel stack">
+          <h3>Game rankings</h3>
+          ${games.length ? `<label class="field" for="sgame">Game</label><select id="sgame">${games.map((g) => `<option value="${esc(catKey(g.title))}" ${catKey(g.title) === statsGame ? "selected" : ""}>${esc(g.title)} (${g.plays})</option>`).join("")}</select>
+          <div class="table-wrap"><table><thead><tr><th class="n">#</th><th>Player</th><th class="n">Rating</th><th class="n">W–L</th></tr></thead><tbody>
+            ${board.map((b, i) => `<tr><td class="n">${i + 1}</td><td>${plName(b.who)}${i === 0 ? " 👑" : ""}</td><td class="n">${Math.round(b.rating)}</td><td class="n">${b.w}–${b.l}</td></tr>`).join("")}
+          </tbody></table></div>` : `<div class="muted">Rankings appear once a game has a winner.</div>`}
+        </div>
+        <div class="panel stack">
+          <h3>Champions by game</h3>
+          ${champs.length ? `<div class="table-wrap"><table><thead><tr><th>Game</th><th>Best player</th><th class="n">Rating</th><th class="n">Played</th></tr></thead><tbody>
+            ${champs.map((c) => `<tr><td>${esc(c.g.title)}</td><td>${plName(c.who)}</td><td class="n">${Math.round(c.rating)}</td><td class="n">${c.g.plays}</td></tr>`).join("")}
+          </tbody></table></div>` : `<div class="muted">A game needs to be played twice to crown a champion.</div>`}
+        </div>
+      </div>`;
+    wireCharts(box, st, roster, colorOf);
+  }
+
+  // line chart: one line per player across nights (up to 8 players, the most regular ones)
+  function shotsChartHTML(st, roster, colorOf) {
+    const series = roster.slice(0, 8), n = st.nights.length;
+    if (statsTable.shots) {
+      return `<div class="table-wrap"><table><thead><tr><th>Night</th>${series.map((p) => `<th class="n">${esc(plText(p))}</th>`).join("")}</tr></thead><tbody>
+        ${st.nights.map((nt, i) => `<tr><td>${fmtDate(nt.started || nt.created)}</td>${series.map((p) => `<td class="n">${p.perNight[i] !== undefined ? fmtShots(p.perNight[i]) : "–"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    }
+    const W = 520, H = 250, L = 40, Rm = series.length <= 4 ? 92 : 16, T = 14, B = 32;
+    const max = Math.max(1, ...series.flatMap((p) => Object.values(p.perNight)));
+    const top = Math.ceil(max / 2) * 2 || 2;
+    const x = (i) => (n === 1 ? L + (W - L - Rm) / 2 : L + (i * (W - L - Rm)) / (n - 1));
+    const y = (v) => T + (H - T - B) * (1 - v / top);
+    const ticks = [0, top / 2, top];
+    const ptsOf = (p) => Object.keys(p.perNight).map(Number).sort((a, b) => a - b).map((i) => [x(i), y(p.perNight[i])]);
+    // end-of-line labels, nudged apart (at least 16 units) so close values don't overlap
+    const ends = series.length <= 4 ? series.map((p) => { const q = ptsOf(p); return q.length ? { p, x: q[q.length - 1][0], y: q[q.length - 1][1] } : null; }).filter(Boolean).sort((a, b) => a.y - b.y) : [];
+    ends.forEach((e, i) => { if (i && e.y - ends[i - 1].y < 16) e.y = ends[i - 1].y + 16; });
+    const lines = series.map((p) => {
+      const pts = ptsOf(p), c = colorOf(p.key);
+      return `<g><polyline points="${pts.map((q) => q.join(",")).join(" ")}" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        ${pts.map((q) => `<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="${c}" stroke="var(--panel-2)" stroke-width="2"/>`).join("")}</g>`;
+    }).join("") + ends.map((e) => `<text x="${e.x + 9}" y="${e.y + 5}" class="viz-label">${esc(e.p.name)}</text>`).join("");
+    const xl = st.nights.map((nt, i) => (n <= 8 || i % Math.ceil(n / 8) === 0 || i === n - 1 ? `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" class="viz-axis">${new Date(nt.started || nt.created).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</text>` : "")).join("");
+    return `<div class="chart-wrap" data-chart="shots">
+      <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Shots per night for each player">
+        ${ticks.map((v) => `<line x1="${L}" x2="${W - Rm}" y1="${y(v)}" y2="${y(v)}" class="viz-grid"/><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" class="viz-axis">${fmtShots(v)}</text>`).join("")}
+        ${xl}${lines}
+        <line class="viz-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" visibility="hidden"/>
+        <rect class="viz-hit" x="${L - 10}" y="0" width="${W - L - Rm + 20}" height="${H}" fill="transparent"/>
+      </svg>
+      <div class="viz-tip" hidden></div>
+    </div>
+    ${series.length >= 2 ? `<div class="viz-legend">${series.map((p) => `<span><i style="background:${colorOf(p.key)}"></i>${esc(plText(p))}</span>`).join("")}</div>` : ""}
+    ${roster.length > 8 ? `<div class="muted" style="font-size:.85rem">Showing the 8 most regular players. The table has the same 8.</div>` : ""}`;
+  }
+  // horizontal bars, one series (so one color, no legend); values in text color at the bar end
+  function barsHTML(id, rows, fmt, maxV) {
+    if (statsTable[id]) return `<div class="table-wrap"><table><tbody>${rows.map((r) => `<tr><td>${r.html}</td><td class="n">${fmt(r.value)}</td><td class="n muted">${esc(r.note)}</td></tr>`).join("")}</tbody></table></div>`;
+    const max = maxV || Math.max(1, ...rows.map((r) => r.value));
+    return `<div class="bars" data-chart="${id}">${rows.map((r) => `<div class="bar-row" tabindex="0" data-tip="${esc(r.label)}: ${esc(fmt(r.value))} · ${esc(r.note)}">
+      <span class="bar-label">${r.html}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${Math.max(r.value ? 2 : 0, (r.value / max) * 100)}%"></span></span>
+      <span class="bar-val num">${esc(fmt(r.value))}</span></div>`).join("")}<div class="viz-tip" hidden></div></div>`;
+  }
+  function wireCharts(box, st, roster, colorOf) {
+    // line chart crosshair: nearest night, every player's value at that night
+    const wrap = box.querySelector('[data-chart="shots"]');
+    if (wrap) {
+      const svg = wrap.querySelector("svg"), tip = wrap.querySelector(".viz-tip"), cross = svg.querySelector(".viz-cross"), hit = svg.querySelector(".viz-hit");
+      const n = st.nights.length, series = roster.slice(0, 8);
+      const W = 520, L = 40, Rm = series.length <= 4 ? 92 : 16;
+      const move = (ev) => {
+        const r = svg.getBoundingClientRect(), vx = ((ev.clientX - r.left) / r.width) * W;
+        const i = n === 1 ? 0 : Math.max(0, Math.min(n - 1, Math.round(((vx - L) / (W - L - Rm)) * (n - 1))));
+        const cx = n === 1 ? L + (W - L - Rm) / 2 : L + (i * (W - L - Rm)) / (n - 1);
+        cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+        tip.replaceChildren();
+        const h = document.createElement("div"); h.className = "tip-h"; h.textContent = fmtDate(st.nights[i].started || st.nights[i].created); tip.append(h);
+        series.forEach((p) => {
+          if (p.perNight[i] === undefined) return;
+          const row = document.createElement("div"), sw = document.createElement("i"), v = document.createElement("b"), l = document.createElement("span");
+          sw.style.background = colorOf(p.key); v.textContent = fmtShots(p.perNight[i]); l.textContent = " " + p.name;
+          row.append(sw, v, l); tip.append(row);
+        });
+        tip.hidden = false;
+        const px = (cx / W) * r.width;
+        tip.style.left = Math.min(r.width - tip.offsetWidth - 4, Math.max(4, px + 12)) + "px"; tip.style.top = "8px";
+      };
+      hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
+      hit.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); });
+    }
+    // bar tooltips on hover and keyboard focus
+    box.querySelectorAll(".bars").forEach((bars) => {
+      const tip = bars.querySelector(".viz-tip");
+      const show = (row) => { tip.textContent = row.dataset.tip; tip.hidden = false; tip.style.left = "8px"; tip.style.top = row.offsetTop - tip.offsetHeight - 4 + "px"; };
+      bars.querySelectorAll(".bar-row").forEach((row) => {
+        row.addEventListener("pointerenter", () => show(row)); row.addEventListener("focus", () => show(row));
+        row.addEventListener("pointerleave", () => (tip.hidden = true)); row.addEventListener("blur", () => (tip.hidden = true));
+      });
+    });
+  }
+  $("#view-stats").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.splayer) { statsPlayer = b.dataset.splayer; renderStats(); }
+    if (b.dataset.stable) { statsTable[b.dataset.stable] = !statsTable[b.dataset.stable]; renderStats(); }
+  });
+  $("#view-stats").addEventListener("change", (e) => { if (e.target.id === "sgame") { statsGame = e.target.value; renderStats(); } });
 
   // ---------- History ----------
   let deleteArm = null, endArm = false;
@@ -3465,6 +3818,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
                 <div class="eyebrow">Games played, in order</div>
                 ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
                 <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
+                ${photoStripHTML(night)}
                 ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
                 <div class="row"><button class="btn small" type="button" data-recap="${night.id}">Night recap</button><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
               </div>
@@ -3565,6 +3919,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   $("#view-history").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.viewphoto) return openPhoto(b.dataset.viewphoto);
     if (b.dataset.recap) { const nt = S.archive.find((x) => x.id === b.dataset.recap); if (nt) openSheet("recap", nt); return; }
     if (b.dataset.del) {
       if (deleteArm !== b.dataset.del) { deleteArm = b.dataset.del; renderHistory(); const d = $(`[data-del="${deleteArm}"]`); d && (d.closest("details").open = true); return; }
@@ -3742,6 +4097,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (S.tab === "spin") renderSpin();
     if (S.tab === "scores") renderScores();
     if (S.tab === "games") renderGames();
+    if (S.tab === "stats") renderStats();
     if (S.tab === "history") renderHistory();
   }
   // music: the header button and Settings both toggle it; browsers only allow audio after a tap,
