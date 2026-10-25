@@ -54,7 +54,11 @@ The **Chaos roll** button in the header opens a random number picker you can use
 
 ## Themes
 
-Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, Pokémon, Synthwave, Street Fighter, Minecraft, Fallout, Mario Kart, Mortal Kombat, Skyrim, GTA, Among Us, Dive Bar, Star Wars, Sakura, Cruise, Pride, and Wedding. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
+Xbox, PlayStation, Metal Gear, Card night, Nintendo, Castlevania, Zelda, Halo, Pokémon, Synthwave, Street Fighter, Minecraft, Fallout, Mario Kart, Mortal Kombat, Skyrim, GTA, Among Us, Dive Bar, Star Wars, Sakura, Cruise, Pride, Wedding, and Policenauts. Each one changes the colors, fonts, wheel, liquid in the shot glass, and the lines the app says to you.
+
+## Music
+
+Tap **♪ Music** in the header to turn on background music. Each theme has its own original loop in its style: chiptune for the Nintendo themes, gothic for Castlevania, slow synth pads for Halo and Skyrim, a 90s city-pop groove for Policenauts, and so on. The loops are generated in the browser, so they work offline and there's nothing to download. Set the volume under History → Settings. Music gets quieter during pours and pauses when the app is in the background.
 
 ## Saving
 

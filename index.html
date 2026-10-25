@@ -16,7 +16,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Russo+One&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -640,6 +640,36 @@ html[data-skin="wedding"] {
   color-scheme: light;
 }
 html[data-skin="wedding"] h2, html[data-skin="wedding"] .up-next .who, html[data-skin="wedding"] .landed .game-title, html[data-skin="wedding"] .brand-name { font-style: italic; }
+html[data-skin="policenauts"] {
+  --bg: #060a1c;
+  --bg-art: radial-gradient(1.2px 1.2px at 30px 40px, #fff, transparent), radial-gradient(1px 1px at 140px 110px, #cfe6ff, transparent), radial-gradient(1.5px 1.5px at 90px 170px, #fff, transparent),
+            radial-gradient(900px 700px at -10% 120%, rgba(40, 120, 220, .45), transparent 60%), radial-gradient(500px 300px at 105% -5%, rgba(255, 150, 60, .35), transparent 70%),
+            linear-gradient(180deg, #0a1030 0%, #060a1c 100%);
+  --panel: rgba(12, 20, 48, .86);
+  --panel-2: #121d45;
+  --fg: #eef3ff;
+  --muted: #94a5cf;
+  --accent: #ffae3d;
+  --accent-fg: #1a0f00;
+  --accent-2: #39c8ff;
+  --danger: #ff5a4a;
+  --line: rgba(57, 200, 255, .28);
+  --liquid: #ffb347;
+  --liquid-2: #c8641a;
+  --glass: rgba(210, 230, 255, .08);
+  --glass-edge: rgba(210, 230, 255, .6);
+  --font-display: "Russo One", "Arial Black", sans-serif;
+  --font-body: "Rajdhani", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .06em;
+  --display-weight: 400;
+  --radius: 6px;
+  --shadow: 0 0 0 1px var(--line), 0 0 0 4px rgba(57, 200, 255, .06), 0 18px 40px rgba(0,0,0,.55);
+  color-scheme: dark;
+}
+html[data-skin="policenauts"] body { background-size: 200px 200px, 200px 200px, 200px 200px, auto, auto, auto; }
+html[data-skin="policenauts"] h2, html[data-skin="policenauts"] .up-next .who, html[data-skin="policenauts"] .brand-name { background: linear-gradient(180deg, #fff3d6 0%, #ffae3d 55%, #b8601a 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(0,0,0,.6)); }
+html[data-skin="policenauts"] .landed .game-title { color: #9ee6ff; text-shadow: 0 0 10px rgba(57, 200, 255, .6); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1095,6 +1125,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="games" id="tab-games">Games</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
+      <button class="btn small ghost" id="musicBtn" type="button" aria-pressed="false">♪ Music off</button>
       <button class="btn small ghost tv-toggle" id="tvBtn" type="button">TV mode</button>
       <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
@@ -1365,6 +1396,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "Dearly beloved, we gather to play", spin: "Spin",
       quips: ["Speak now or forever hold your shot.", "Cheers to the happy couple!", "Til death do us pour.", "Something old, something new, something poured for you."],
     },
+    policenauts: {
+      label: "Policenauts", dot: "#ffae3d",
+      tagline: "Bet list night · Beyond Coast PD, off duty",
+      wheel: ["#ffae3d", "#121d45", "#39c8ff", "#2a4fa8", "#eef3ff", "#c8641a"],
+      landed: "Case file opened", spin: "Spin",
+      quips: ["Freeze! Space police!", "Low gravity. Lower tolerance.", "Twenty-five years frozen, and still first to the bar.", "Beyond Coast PD: case closed, glass empty."],
+    },
   };
 
   // ---------- Utilities ----------
@@ -1537,6 +1575,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     divebar: { type: "triangle", land: [[392, .15, 0], [494, .15, 120], [587, .4, 240]], tick: [500, "triangle"] },
     wedding: { type: "sine", land: [[523, .3, 0], [659, .3, 250], [784, .3, 500], [1047, .6, 750]], tick: [1800, "sine"] },
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
+    policenauts: { type: "triangle", land: [[698, .12, 0], [880, .12, 110], [1047, .12, 220], [1319, .45, 330]], tick: [1400, "triangle"] },
   };
   const pack = () => SOUND_PACKS[S.skin] || {};
   function fanfare() {
@@ -1545,6 +1584,150 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     (sp.land || [[523, .12, 0], [659, .12, 90], [784, .12, 180], [1047, .12, 270]]).forEach(([f, d, t]) => setTimeout(() => blip(f, d, sp.type || "triangle", 0.06), t));
   }
   const tickSound = () => { const t = pack().tick || [1200, "square"]; blip(t[0], 0.02, t[1], 0.025); };
+
+  // ---------- Background music ----------
+  // Original loops made on the fly with Web Audio, one style per theme (no recordings, so nothing to
+  // download and it works offline). A style sets tempo, scale, instruments and drums; each theme picks
+  // a style, a key and a chord progression, and its melody is generated from a seed so it stays the same.
+  const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], harmonic: [0, 2, 3, 5, 7, 8, 11], dorian: [0, 2, 3, 5, 7, 9, 10],
+    mixo: [0, 2, 4, 5, 7, 9, 10], pent: [0, 2, 4, 7, 9], minpent: [0, 3, 5, 7, 10], in: [0, 1, 5, 7, 8] };
+  const DRUMS = { // 16th-note steps in a 4/4 bar (12 in 3/4)
+    four: { k: [0, 4, 8, 12], s: [4, 12], h: [2, 6, 10, 14] }, rock: { k: [0, 8, 10], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] },
+    chip: { k: [0, 8], s: [4, 12], h: [2, 6, 10, 14] }, boom: { k: [0, 8], s: [], h: [] }, sparse: { k: [0], s: [], h: [8] },
+    jazz: { k: [0], s: [4, 12], h: [0, 4, 6, 8, 12, 14], soft: true }, soft: { k: [0, 8], s: [], h: [4, 12], soft: true },
+    boombap: { k: [0, 7, 10], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] }, funk: { k: [0, 3, 10], s: [4, 12], h: [0, 2, 4, 6, 8, 10, 12, 14] },
+    waltz: { k: [0], s: [], h: [4, 8], soft: true },
+  };
+  const STYLES = {
+    chip: { bpm: 140, lead: "square", bass: "triangle", pad: null, density: 0.55, grid: 1, drums: "chip", bassPat: "eighths" },
+    synth: { bpm: 100, lead: "sawtooth", bass: "sawtooth", pad: "sawtooth", density: 0.35, grid: 2, drums: "four", bassPat: "eighths", cutoff: 1800 },
+    epic: { bpm: 76, lead: "triangle", bass: "sine", pad: "triangle", density: 0.22, grid: 2, drums: "boom", bassPat: "whole", cutoff: 2400 },
+    gothic: { bpm: 126, lead: "square", bass: "square", pad: null, density: 0.6, grid: 1, drums: "rock", bassPat: "eighths", cutoff: 2600 },
+    stealth: { bpm: 96, lead: "triangle", bass: "sawtooth", pad: "sine", density: 0.14, grid: 2, drums: "sparse", bassPat: "pulse", cutoff: 1100 },
+    fight: { bpm: 150, lead: "sawtooth", bass: "sawtooth", pad: null, density: 0.5, grid: 1, drums: "rock", bassPat: "eighths", cutoff: 2200 },
+    lounge: { bpm: 92, lead: "sine", bass: "triangle", pad: "triangle", density: 0.3, grid: 2, drums: "jazz", bassPat: "walk", sevenths: true, swing: 0.62, cutoff: 2000 },
+    space: { bpm: 70, lead: "sine", bass: "sine", pad: "sawtooth", density: 0.12, grid: 2, drums: null, bassPat: "whole", cutoff: 900 },
+    chill: { bpm: 82, lead: "sine", bass: "triangle", pad: "triangle", density: 0.3, grid: 2, drums: "soft", bassPat: "simple", cutoff: 2200 },
+    disco: { bpm: 118, lead: "square", bass: "sawtooth", pad: "sawtooth", density: 0.35, grid: 2, drums: "four", bassPat: "octave", sevenths: true, cutoff: 2400 },
+    hiphop: { bpm: 88, lead: "triangle", bass: "sine", pad: "sine", density: 0.2, grid: 2, drums: "boombap", bassPat: "simple", cutoff: 1500 },
+    swing40s: { bpm: 112, lead: "triangle", bass: "triangle", pad: "sine", density: 0.4, grid: 2, drums: "jazz", bassPat: "walk", sevenths: true, swing: 0.62, cutoff: 2600 },
+    citypop: { bpm: 106, lead: "square", bass: "sawtooth", pad: "triangle", density: 0.38, grid: 2, drums: "funk", bassPat: "octave", sevenths: true, cutoff: 2300 },
+    calypso: { bpm: 108, lead: "triangle", bass: "triangle", pad: null, density: 0.45, grid: 1, drums: "soft", bassPat: "simple", pluck: true, cutoff: 3000 },
+    waltz: { bpm: 96, beats: 3, lead: "sine", bass: "triangle", pad: "triangle", density: 0.3, grid: 2, drums: "waltz", bassPat: "waltz", cutoff: 2400 },
+  };
+  // theme -> [style, root midi note, scale, chord progression (scale degrees, one per bar), extra]
+  const SONGS = {
+    xbox: ["synth", 52, "minor", [0, 5, 3, 6]], playstation: ["space", 50, "major", [0, 3, 4, 5], { drums: "soft", density: 0.2 }],
+    metalgear: ["stealth", 45, "minor", [0, 0, 5, 6]], cards: ["lounge", 50, "dorian", [0, 3, 0, 4]], nintendo: ["chip", 60, "major", [0, 3, 4, 0]],
+    castlevania: ["gothic", 50, "harmonic", [0, 5, 3, 4]], zelda: ["epic", 55, "mixo", [0, 6, 3, 0], { drums: "soft", bpm: 92 }],
+    halo: ["epic", 48, "minor", [0, 5, 2, 6]], pokemon: ["chip", 62, "major", [0, 4, 5, 3], { bpm: 150 }], synthwave: ["synth", 45, "minor", [0, 5, 2, 6], { bpm: 96 }],
+    streetfighter: ["fight", 52, "minor", [0, 5, 6, 0]], minecraft: ["chill", 55, "pent", [0, 3, 1, 4], { drums: null, bpm: 70, lead: "sine", density: 0.25 }],
+    fallout: ["swing40s", 58, "major", [0, 5, 1, 4]], mariokart: ["chip", 60, "mixo", [0, 6, 3, 4], { bpm: 160 }],
+    mortalkombat: ["synth", 45, "minor", [0, 0, 5, 6], { bpm: 140, drums: "rock", lead: "square" }], skyrim: ["epic", 50, "minor", [0, 5, 3, 4], { bpm: 70 }],
+    gta: ["hiphop", 49, "minor", [0, 5, 3, 6]], amongus: ["space", 48, "minor", [0, 5, 0, 6], { drums: "sparse", bpm: 90, density: 0.2 }],
+    divebar: ["lounge", 52, "mixo", [0, 3, 0, 4], { bpm: 100 }], starwars: ["epic", 48, "major", [0, 4, 5, 3], { bpm: 100, lead: "sawtooth" }],
+    sakura: ["chill", 57, "in", [0, 3, 0, 4], { bpm: 76 }], cruise: ["calypso", 65, "major", [0, 3, 4, 0]], pride: ["disco", 57, "major", [0, 5, 3, 4]],
+    wedding: ["waltz", 55, "major", [0, 3, 4, 0]], policenauts: ["citypop", 53, "dorian", [0, 3, 1, 4]],
+  };
+  const Music = (() => {
+    let ctx = null, master = null, out = null, timer = null, step = 0, nextT = 0, song = null, lead = null, playing = false;
+    const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
+    function songFor(key) {
+      const [style, root, scale, prog, extra] = SONGS[key] || SONGS.xbox;
+      const s = Object.assign({}, STYLES[style], extra || {}, { root, scale: SCALES[scale], prog });
+      s.steps = (s.beats || 4) * 4;
+      // seeded melody: two bars of steps, each a scale offset from the chord root or a rest
+      let seed = [...key].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) | 0, 7);
+      const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+      lead = [0, 1].map(() => { let at = 0; return Array.from({ length: s.steps }, (_, i) => {
+        if (i % s.grid) return null;
+        if (i === 0) return (at = 0);
+        if (rnd() > s.density) return null;
+        at = Math.max(-2, Math.min(9, at + Math.round((rnd() - 0.5) * 4)));
+        return at;
+      }); });
+      return s;
+    }
+    const deg = (d) => { const sc = song.scale, o = Math.floor(d / sc.length); return song.root + sc[((d % sc.length) + sc.length) % sc.length] + 12 * o; };
+    function tone(m, t, dur, type, vol, opts = {}) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type; o.frequency.setValueAtTime(hz(m), t); if (opts.detune) o.detune.value = opts.detune;
+      const a = opts.attack ?? 0.01, r = opts.release ?? 0.08;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + a);
+      g.gain.setValueAtTime(vol, t + Math.max(a, dur * (opts.pluck ? 0.15 : 0.7)));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + r);
+      o.connect(g).connect(master); o.start(t); o.stop(t + dur + r + 0.05);
+    }
+    function noiseHit(t, dur, vol, hp) {
+      const len = Math.floor(ctx.sampleRate * dur), buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
+      src.buffer = buf; src.connect(f).connect(g).connect(master); src.start(t);
+    }
+    function kick(t, vol) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g).connect(master); o.start(t); o.stop(t + 0.2);
+    }
+    function playStep(n, t, sixteenth) {
+      const s = song, i = n % s.steps, bar = Math.floor(n / s.steps), barLen = sixteenth * s.steps;
+      const chord = s.prog[bar % s.prog.length], root = deg(chord);
+      // pad: the bar's chord, held
+      if (i === 0 && s.pad) [0, 2, 4].concat(s.sevenths ? [6] : []).forEach((x, k) =>
+        tone(deg(chord + x) + 12, t, barLen * 0.95, s.pad, 0.05, { attack: 0.25, release: 0.4, detune: k * 4 }));
+      // bass
+      const bp = s.bassPat, b = root - 12;
+      if (bp === "eighths" && i % 2 === 0) tone(b, t, sixteenth * 1.6, s.bass, 0.12);
+      else if (bp === "pulse") tone(b, t, sixteenth * 0.8, s.bass, 0.06);
+      else if (bp === "octave" && i % 2 === 0) tone(b + (i % 4 ? 12 : 0), t, sixteenth * 1.6, s.bass, 0.11);
+      else if (bp === "walk" && i % 4 === 0) tone(deg(chord + [0, 2, 4, 5][i / 4] ) - 12, t, sixteenth * 3.5, s.bass, 0.12);
+      else if (bp === "simple" && (i === 0 || i === 8)) tone(i ? deg(chord + 4) - 12 : b, t, sixteenth * 6, s.bass, 0.12);
+      else if (bp === "waltz" && i % 4 === 0) tone(i ? deg(chord + 4) - 12 : b, t, sixteenth * 3, s.bass, 0.11);
+      else if (bp === "whole" && i === 0) tone(b, t, barLen * 0.95, s.bass, 0.13, { attack: 0.08, release: 0.3 });
+      // melody
+      const ln = lead[bar % 2][i];
+      if (ln !== null && ln !== undefined) tone(deg(chord + ln) + 12, t, sixteenth * s.grid * 0.9, s.lead, s.lead === "square" || s.lead === "sawtooth" ? 0.045 : 0.07, { pluck: s.pluck });
+      // drums
+      const dr = s.drums && DRUMS[s.drums];
+      if (dr) {
+        const sv = dr.soft ? 0.5 : 1;
+        if (dr.k.includes(i)) kick(t, 0.35 * sv);
+        if (dr.s.includes(i)) noiseHit(t, 0.12, 0.12 * sv, 1500);
+        if (dr.h.includes(i)) noiseHit(t, 0.03, 0.05 * sv, 7000);
+      }
+    }
+    function tick() {
+      const sixteenth = 60 / song.bpm / 4;
+      while (nextT < ctx.currentTime + 0.15) {
+        const swingOff = song.swing && step % 2 ? (song.swing - 0.5) * 2 * sixteenth : 0;
+        playStep(step, nextT + swingOff, sixteenth);
+        nextT += sixteenth; step++;
+      }
+    }
+    function volume() { return ((S.musicVol ?? 40) / 100) * 0.5; }
+    return {
+      start() {
+        try {
+          ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+          if (ctx.state === "suspended") ctx.resume();
+          if (!master) {
+            out = ctx.createGain(); const f = ctx.createBiquadFilter(); f.type = "lowpass";
+            master = ctx.createGain(); master.connect(f).connect(out).connect(ctx.destination); this._f = f;
+          }
+        } catch { return; }
+        this.setTheme(S.skin);
+        out.gain.setTargetAtTime(volume(), ctx.currentTime, 0.3);
+        if (!playing) { playing = true; step = 0; nextT = ctx.currentTime + 0.1; timer = setInterval(tick, 25); }
+      },
+      stop() { playing = false; clearInterval(timer); if (out) out.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.2); },
+      setTheme(key) { if (!ctx) return; song = songFor(key); if (this._f) this._f.frequency.value = song.cutoff || 2600; step = 0; nextT = Math.max(nextT, ctx.currentTime + 0.05); },
+      setVolume() { if (playing && out) out.gain.setTargetAtTime(volume(), ctx.currentTime, 0.1); },
+      duck(on) { if (playing && out) out.gain.setTargetAtTime(on ? volume() * 0.3 : volume(), ctx.currentTime, 0.15); },
+      get playing() { return playing; },
+    };
+  })();
 
   // ---------- Wheel ----------
   class Wheel {
@@ -1785,6 +1968,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     $("#tagline").textContent = SKINS[S.skin].tagline;
     $("#hubSpin").textContent = SKINS[S.skin].spin;
     renderSkins();
+    if (Music.playing) Music.setTheme(S.skin);
     // fonts may swap in after load; redraw wheels once they settle
     document.fonts && document.fonts.ready.then(() => { mainWheel.draw(); rngWheel && rngWheel.draw(); });
   }
@@ -2761,7 +2945,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const who = water ? `💧 ${names.map(esc).join(", ")}: grab a glass of water.` : Object.entries(groups).map(([a, ns]) => `${ns.map(esc).join(", ")} · ${fmtShots(+a)}`).join("<br>");
     const ov = $("#pour"), card = $("#pourCard");
     card.innerHTML = `<div class="eyebrow">${water ? "Water round" : "Bottoms up"}</div>${glassSVG(0, { water })}<div class="count num" id="pourCount">${water ? "💧" : "0"}</div><div class="who">${who}</div>${notes.map((t) => `<div class="pour-note">${esc(t)}</div>`).join("")}<div class="quip">${water ? "Hydrate or die-drate." : esc(pickOne(SKINS[S.skin].quips))}</div><div class="muted" style="font-size:.8rem">Tap to close</div>`;
-    ov.hidden = false; pourSkip = false;
+    ov.hidden = false; pourSkip = false; Music.duck(true);
     const svg = card.querySelector("svg");
     await wait(60);
     let left = max, count = 0;
@@ -2778,7 +2962,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     if (!water && max) $("#pourCount").textContent = fmtShots(max);
     if (!pourSkip) await wait(1600 + notes.length * 900);
-    ov.hidden = true;
+    ov.hidden = true; Music.duck(false);
   }
   $("#pour").addEventListener("click", () => { pourSkip = true; $("#pour").hidden = true; });
 
@@ -3280,7 +3464,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             ${settingRow("Side bet stake", "betStake", [[0.25, "¼"], [0.5, "½"], [1, "1"]], S.betStake ?? 0.5)}
             ${settingRow("Streak-breaker bonus", "streakBonus", [[0, "Off"], [0.25, "¼"], [0.5, "½"], [1, "1"]], S.streakBonus ?? 0.5)}
             ${settingRow("Water round every", "waterEvery", [[0, "Off"], [2, "2 shots"], [3, "3 shots"], [5, "5 shots"]], S.waterEvery ?? 3)}
-            <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound on" : "Sound off"}</button></div>
+            <div class="row"><button class="btn" type="button" id="soundBtn" aria-pressed="${S.sound}">${S.sound ? "Sound effects on" : "Sound effects off"}</button><button class="btn" type="button" id="musicBtn2" aria-pressed="${!!S.music}">${S.music ? "♪ Music on" : "♪ Music off"}</button></div>
+            <label class="field" for="musicVol">Music volume <input type="range" id="musicVol" min="0" max="100" step="5" value="${S.musicVol ?? 40}"></label>
+            <div class="muted" style="font-size:.85rem">Each theme has its own original background loop, inspired by its style.</div>
           </div>
         </div>
       </div>`;
@@ -3372,6 +3558,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       save(); renderHistory(); toast(`New games start at ${fmtShots(S.defaultShots)} shot${S.defaultShots === 1 ? "" : "s"}`);
     } else if (b.dataset.set) {
       S[b.dataset.set] = parseFloat(b.dataset.val); save(); renderHistory();
+    } else if (b.id === "musicBtn2") {
+      toggleMusic(); renderHistory();
     } else if (b.id === "soundBtn") {
       S.sound = !S.sound; save(); renderHistory();
     }
@@ -3489,6 +3677,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (S.tab === "games") renderGames();
     if (S.tab === "history") renderHistory();
   }
+  // music: the header button and Settings both toggle it; browsers only allow audio after a tap,
+  // so a saved "on" starts with the first tap on the page
+  function syncMusicBtn() { const b = $("#musicBtn"); b.setAttribute("aria-pressed", String(!!S.music)); b.textContent = S.music ? "♪ Music on" : "♪ Music off"; }
+  function toggleMusic() { S.music = !S.music; save(); if (S.music) Music.start(); else Music.stop(); syncMusicBtn(); }
+  $("#musicBtn").addEventListener("click", toggleMusic);
+  $("#view-history").addEventListener("input", (e) => { if (e.target.id === "musicVol") { S.musicVol = +e.target.value; save(); Music.setVolume(); } });
+  document.addEventListener("pointerdown", function first() { if (S.music && !Music.playing) Music.start(); document.removeEventListener("pointerdown", first); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) Music.stop(); else if (S.music && Music.playing === false && document.hasFocus()) Music.start(); });
+  syncMusicBtn();
   applySkin();
   setTab(S.tab || "setup");
   checkIncoming();
