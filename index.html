@@ -1091,6 +1091,15 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 @keyframes celebPop { from { transform: scale(.4) translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes celebSpin { from { transform: scale(0) rotate(-200deg); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { #celebrate.go .celeb-card, #celebrate.go .celeb-icon { animation: none; } }
+/* House rules card on the Spin tab: rule, cost, "Broke it"; edit mode swaps in inputs */
+.rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rules li { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+.rules.editing li { grid-template-columns: 1fr auto auto; }
+.rules.editing input { min-width: 0; width: 100%; }
+.rule-text { overflow-wrap: anywhere; }
+.rule-amt { font-weight: 700; color: var(--accent); }
+.rule-who { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+@media (max-width: 520px) { .rules.editing li { grid-template-columns: 1fr auto; } .rules.editing li input { grid-column: 1 / -1; } .rules.editing li .seg { justify-self: start; } }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
@@ -1268,6 +1277,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       </div>
       <div class="stack">
         <div class="stack" id="spinSide"></div>
+        <div class="panel stack" id="rulesCard"></div>
         <div class="panel" id="tvBoard" hidden></div>
       </div>
     </div>
@@ -3001,6 +3011,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
   function renderSpin() {
     const n = N();
+    renderRules();
     if (!n.started) {
       $("#spinSide").innerHTML = `<div class="panel empty"><h3>The wheel is waiting</h3><div>Fill in the lineup, then start the night.</div><button class="btn primary" type="button" data-go="setup">Go to the lineup</button></div>`;
       $("#roundLog").innerHTML = "";
@@ -3600,6 +3611,72 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     });
     return out;
   }
+
+
+  // ---------- House rules ----------
+  // Rules carry across nights (S.houseRules). Breaking one logs a penalty round for that player.
+  const RULE_IDEAS = [["Drink with your off hand", 0.25], ["Say \"drink\" and you drink", 0.25], ["Rage quit = full shot", 1], ["Phones face down", 0.5],
+    ["No pausing someone else's game", 0.5], ["Thumb master: last thumb on the table drinks", 0.25], ["Toast before every game", 0.25], ["Trash talk the winner and you drink", 0.25],
+    ["No pointing", 0.25], ["Controller hogs drink", 0.5]];
+  const houseRules = () => (S.houseRules = S.houseRules || [{ id: uid(), text: RULE_IDEAS[2][0], amt: 1 }, { id: uid(), text: RULE_IDEAS[1][0], amt: 0.25 }]);
+  let rulesEdit = false, ruleArm = null;
+  function renderRules() {
+    const list = houseRules(), n = N();
+    const head = `<div class="row" style="justify-content:space-between"><h3>📜 House rules</h3><button class="btn small ${rulesEdit ? "primary" : "ghost"}" type="button" id="rulesEditBtn">${rulesEdit ? "Done" : "Edit"}</button></div>`;
+    if (rulesEdit) {
+      const ideas = RULE_IDEAS.filter(([t]) => !list.some((r) => r.text.toLowerCase() === t.toLowerCase()));
+      $("#rulesCard").innerHTML = head + `
+        ${list.length ? `<ol class="rules editing">${list.map((r) => `<li>
+          <input type="text" data-ruletext="${r.id}" value="${esc(r.text)}" maxlength="80" aria-label="Rule">
+          <span class="seg" role="group" aria-label="Penalty">${[0.25, 0.5, 1].map((a) => `<button type="button" data-ruleamt="${r.id}" data-val="${a}" aria-pressed="${r.amt === a}">${fmtShots(a)}</button>`).join("")}</span>
+          <button class="btn small ghost danger" type="button" data-ruledel="${r.id}" aria-label="Remove ${esc(r.text)}">✕</button></li>`).join("")}</ol>` : ""}
+        <div class="row"><input type="text" id="ruleNew" maxlength="80" placeholder="Add your own rule…" style="flex:1 1 180px"><button class="btn" type="button" id="ruleAdd">Add</button></div>
+        ${ideas.length && list.length < 12 ? `<div class="eyebrow">Ideas</div><div class="lib-chips">${ideas.map(([t]) => `<span class="lib-chip"><button type="button" data-ruleidea="${esc(t)}">＋ ${esc(t)}</button></span>`).join("")}</div>` : ""}
+        <div class="muted" style="font-size:.85rem">Pick how much each broken rule costs. Rules stay for every night until you change them.</div>`;
+      return;
+    }
+    $("#rulesCard").innerHTML = head + (list.length ? `<ol class="rules">${list.map((r) => `<li>
+        <span class="rule-text">${esc(r.text)}</span><span class="rule-amt num">${fmtShots(r.amt)}</span>
+        <button class="btn small" type="button" data-rulebreak="${r.id}" aria-expanded="${ruleArm === r.id}">Broke it</button>
+        ${ruleArm === r.id ? `<div class="rule-who"><span class="muted">Who broke it?</span>${n.players.map((p) => `<button class="btn small" type="button" data-rulewho="${p.id}">${pnameHTML(p)}</button>`).join("")}<button class="btn small ghost" type="button" data-rulecancel>Cancel</button></div>` : ""}
+      </li>`).join("")}</ol>` : `<div class="muted">No house rules yet. Tap Edit to add some.</div>`);
+  }
+  $("#rulesCard").addEventListener("input", (e) => {
+    const id = e.target.dataset.ruletext; if (!id) return;
+    const r = houseRules().find((x) => x.id === id); if (r) { r.text = e.target.value.slice(0, 80); save(); }
+  });
+  $("#rulesCard").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "ruleNew") { e.preventDefault(); $("#ruleAdd").click(); } });
+  $("#rulesCard").addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const list = houseRules();
+    if (b.id === "rulesEditBtn") {
+      if (rulesEdit) S.houseRules = list.filter((r) => r.text.trim());
+      rulesEdit = !rulesEdit; ruleArm = null; save(); return renderRules();
+    }
+    if (b.id === "ruleAdd" || b.dataset.ruleidea) {
+      const text = b.dataset.ruleidea || $("#ruleNew").value.trim(); if (!text) return $("#ruleNew").focus();
+      if (list.length >= 12) return toast("That's 12 rules. Remove one first.");
+      list.push({ id: uid(), text: text.slice(0, 80), amt: (RULE_IDEAS.find(([t]) => t === text) || [0, 0.25])[1] });
+      save(); renderRules(); if (b.id === "ruleAdd") $("#ruleNew").focus();
+      return;
+    }
+    if (b.dataset.ruleamt) { const r = list.find((x) => x.id === b.dataset.ruleamt); if (r) r.amt = parseFloat(b.dataset.val); save(); return renderRules(); }
+    if (b.dataset.ruledel) { S.houseRules = list.filter((x) => x.id !== b.dataset.ruledel); save(); return renderRules(); }
+    if (b.dataset.rulebreak) {
+      if (!N().started) return toast("Start the night first");
+      ruleArm = ruleArm === b.dataset.rulebreak ? null : b.dataset.rulebreak; return renderRules();
+    }
+    if (b.dataset.rulecancel != null) { ruleArm = null; return renderRules(); }
+    if (b.dataset.rulewho) {
+      const r = list.find((x) => x.id === ruleArm), p = playerById(b.dataset.rulewho); if (!r || !p) return;
+      ruleArm = null;
+      const d = [{ pid: p.id, amt: r.amt }], before = totals();
+      N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: `Penalty · ${r.text}`, winner: null, drinks: d });
+      save(); renderAll(); buzz("rule");
+      await pour(d, { notes: [`📜 ${pname(p)} broke a house rule: "${r.text}"`] });
+      await waterCheck(before);
+    }
+  });
 
   // ---------- Pour animation ----------
   let pourSkip = false;
