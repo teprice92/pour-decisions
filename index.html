@@ -796,6 +796,41 @@ html[data-skin="kitsune"] .brand-sub::before { content: "狐 // "; color: var(--
 html[data-skin="kitsune"] .eyebrow { color: #7fe9f5; }
 html[data-skin="kitsune"] .btn.primary { box-shadow: 0 0 16px rgba(232, 69, 44, .5); }
 html[data-skin="kitsune"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); text-shadow: 0 0 10px rgba(94, 242, 255, .8); }
+html[data-skin="formula"] {
+  /* Grand prix night: carbon-fiber weave, racing red, red-and-white kerbs, timing-screen purple */
+  --bg: #0b0b0f;
+  --bg-art: repeating-linear-gradient(45deg, rgba(255,255,255,.028) 0 2px, transparent 2px 6px), repeating-linear-gradient(-45deg, rgba(0,0,0,.35) 0 2px, transparent 2px 6px), radial-gradient(1000px 480px at 90% -10%, rgba(225, 6, 0, .30), transparent 60%), radial-gradient(700px 400px at 0% 110%, rgba(160, 60, 255, .14), transparent 60%);
+  --panel: rgba(21, 21, 30, .9);
+  --panel-2: #1e1e28;
+  --fg: #ffffff;
+  --muted: #a3a3b2;
+  --accent: #e10600;
+  --accent-fg: #ffffff;
+  --accent-2: #a64dff;
+  --danger: #ff5c5c;
+  --line: rgba(255, 255, 255, .14);
+  --liquid: #ffd700;
+  --liquid-2: #ff8700;
+  --glass: rgba(255, 255, 255, .07);
+  --glass-edge: rgba(230, 230, 240, .65);
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Saira", system-ui, sans-serif;
+  --display-case: uppercase;
+  --display-track: .04em;
+  --display-weight: 800;
+  --radius: 4px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+/* every panel sits on a red-and-white kerb; headings lean forward like timing graphics */
+html[data-skin="formula"] .panel { border-top: 0; background-image: repeating-linear-gradient(90deg, #e10600 0 18px, #ffffff 18px 36px); background-size: 100% 4px; background-repeat: no-repeat; background-color: var(--panel); }
+html[data-skin="formula"] h2, html[data-skin="formula"] h3, html[data-skin="formula"] .up-next .who, html[data-skin="formula"] .brand-name, html[data-skin="formula"] .landed .game-title { font-style: italic; }
+html[data-skin="formula"] header.top { border-bottom: 0; }
+html[data-skin="formula"] header.top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: repeating-conic-gradient(#f4f4f4 0 25%, #111 0 50%) 0 0 / 8px 8px; pointer-events: none; }
+html[data-skin="formula"] .brand-sub::before { content: "🏁 "; }
+html[data-skin="formula"] .eyebrow { color: #ff4d45; }
+html[data-skin="formula"] .btn.primary { font-style: italic; box-shadow: 0 0 14px rgba(225, 6, 0, .45); }
+html[data-skin="formula"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1681,6 +1716,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "The fox has chosen", spin: "Spin",
       quips: ["Nine tails, nine shots.", "Never trust a fox with your drink.", "Foxfire lights the way to the bar.", "Leave Inari an offering of sake.", "The kitsune grins. You drink.", "Was that your drink, or an illusion?"],
     },
+    formula: {
+      label: "Formula One", dot: "#e10600",
+      tagline: "Bet list night · Lights out, glasses up",
+      wheel: ["#e10600", "#15151e", "#ffffff", "#38383f", "#ff8700", "#00d2be", "#ffd700", "#a64dff"],
+      landed: "Lights out and away we go!", spin: "Launch",
+      quips: ["Box, box! Your shot is ready.", "DRS open: drink faster.", "Two-second pit stop. One shot.", "That's a five-second penalty. Drink.", "Purple sector on that pour.", "Track limits exceeded. Drink.", "Tyres are gone. So is that shot."],
+    },
   };
 
   // ---------- Utilities ----------
@@ -1853,6 +1895,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     divebar: { type: "triangle", land: [[392, .15, 0], [494, .15, 120], [587, .4, 240]], tick: [500, "triangle"] },
     wedding: { type: "sine", land: [[523, .3, 0], [659, .3, 250], [784, .3, 500], [1047, .6, 750]], tick: [1800, "sine"] },
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
+    formula: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [880, .5, 1600]], tick: [160, "sawtooth"], pour: "sawtooth" },
     kitsune: { type: "sine", land: [[1175, .12, 0], [1319, .12, 110], [1568, .12, 220], [1760, .12, 330], [2349, .5, 440]], tick: [1800, "sine"], pour: "sine" },
     akatsuki: { type: "sawtooth", land: [[220, .25, 0], [233, .25, 0], [165, .35, 260], [110, .7, 560]], tick: [500, "sawtooth"], hit: true, pour: "triangle" },
     naruto: { type: "triangle", land: [[659, .1, 0], [784, .1, 100], [880, .1, 200], [1047, .12, 300], [1319, .45, 420]], tick: [1300, "triangle"], hit: true },
@@ -1872,7 +1915,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
   const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
     skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
-    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], formula: [0.95, 1.18], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
   const canSpeak = "speechSynthesis" in window;
   const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
   // fractions and emoji don't read well, so they're spelled out or dropped
@@ -2096,6 +2139,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     naruto: ["fight", 52, "in", [0, 5, 3, 4], { bpm: 132, lead: "triangle" }],
     akatsuki: ["stealth", 45, "in", [0, 1, 5, 0], { bpm: 84, density: 0.2 }],
     kitsune: ["chill", 54, "in", [0, 5, 3, 4], { bpm: 86, lead: "triangle", density: 0.35 }],
+    formula: ["synth", 50, "minor", [0, 5, 6, 4], { bpm: 128, drums: "rock", lead: "sawtooth" }],
   };
   const Music = (() => {
     let ctx = null, master = null, out = null, timer = null, step = 0, nextT = 0, song = null, lead = null, playing = false;
@@ -3686,6 +3730,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     policenauts: { shape: "pixel", colors: ["#ff2bd6", "#00e5ff", "#ffd23f"] },
     naruto: { glyphs: ["🍥", "🍃", "🍜", "🌀"] },
     akatsuki: { shape: "cloud", colors: ["#d0102b", "#b3001b", "#e01b38"], extra: ["💍"] },
+    formula: { shape: "pixel", colors: ["#15151e", "#ffffff", "#ffffff", "#15151e", "#e10600"], extra: ["🏎️", "🏁", "🍾"] },
     kitsune: { shape: "flame", colors: ["#5ef2ff", "#9ffcff", "#2f9dff", "#b9a6ff"], extra: ["🦊", "⛩️"], gravity: 0.06 },
   };
   // what a trophy is called in each theme
@@ -3693,7 +3738,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
     skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
     amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
-    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", cards: "Royal flush" };
+    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", formula: "Podium finish!", cards: "Royal flush" };
   let confettiParts = [], confettiRaf = null;
   function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
     if (S.confetti === false || reduceMotion) return;
