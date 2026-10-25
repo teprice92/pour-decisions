@@ -942,9 +942,28 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .trophies { display: flex; flex-wrap: wrap; gap: 6px; }
 .trophy { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 6px; font-size: .85rem; background: var(--panel-2); }
 .trophy .ti { font-size: 1.1rem; }
-.cat-families { display: grid; gap: 8px; }
-.cat-fam { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.cat-fam .eyebrow { min-width: 6.5em; }
+/* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
+.cat-head { display: grid; gap: 16px; }
+.cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
+.cat-who { display: grid; gap: 4px; justify-items: end; text-align: right; min-width: 200px; }
+.cat-who select { width: 100%; min-width: 200px; }
+.cat-who .muted { font-size: .85rem; }
+.cat-section { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.cat-families { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 16px; align-items: start; }
+.cat-families .fam { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; padding-top: 9px; }
+.cat-families .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip-select { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); font-weight: 700; }
+.chip-select select, html[data-skin] .chip-select select { width: auto; border: 0; box-shadow: none; background: transparent; padding: 6px 8px; font-weight: 700; }
+.cat-add { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; }
+.cat-custom { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+@media (max-width: 640px) {
+  .cat-top { grid-template-columns: 1fr; }
+  .cat-who { justify-items: stretch; text-align: left; min-width: 0; }
+  .cat-families { grid-template-columns: 1fr; gap: 4px; }
+  .cat-families .fam { padding-top: 8px; }
+  .cat-add { grid-template-columns: 1fr; }
+}
 .cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px; }
 .cat-game { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); min-width: 0; }
 .cat-game .t { min-width: 0; overflow-wrap: anywhere; }
@@ -2024,29 +2043,44 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const cur = CATALOG.find((c) => c.id === catConsole);
     const open = who ? who.games.filter((g) => !g.title.trim()).length : 0;
     $("#view-games").innerHTML = `
-      <div class="panel stack">
-        <div class="row" style="justify-content:space-between">
-          <div class="stack" style="gap:4px"><div class="eyebrow">${CATALOG.length} consoles · ${catTotal().toLocaleString()} games</div><h2>Game catalog</h2>
+      <div class="panel cat-head">
+        <div class="cat-top">
+          <div class="stack" style="gap:4px;min-width:0"><div class="eyebrow">${CATALOG.length} consoles · ${catTotal().toLocaleString()} games</div><h2>Game catalog</h2>
             <div class="muted">Every game we have a list for, from single-player one-offs to party games. Tap a game to add it to a player's lineup.</div></div>
-          <label class="field">Adding to<select id="catPlayer">${n.players.map((p) => `<option value="${p.id}" ${who && p.id === who.id ? "selected" : ""}>${esc(pname(p))}</option>`).join("")}</select></label>
+          <div class="cat-who">
+            <label class="field" for="catPlayer">Adding to</label>
+            <select id="catPlayer">${n.players.map((p) => `<option value="${p.id}" ${who && p.id === who.id ? "selected" : ""}>${esc(pname(p))}</option>`).join("")}</select>
+            <div class="muted" id="catSlots">${who ? `${esc(pname(who))} has ${open} empty slot${open === 1 ? "" : "s"} of ${n.perPlayer}.` : ""}</div>
+          </div>
         </div>
-        <div class="muted" style="font-size:.9rem" id="catSlots">${who ? `${esc(pname(who))} has ${open} empty slot${open === 1 ? "" : "s"} of ${n.perPlayer}.` : ""}</div>
-        <div class="cat-families">
-          <div class="cat-fam"><button type="button" class="btn small ${catConsole === "all" ? "primary" : ""}" data-console="all">All consoles</button></div>
-          ${fams.map((f) => `<div class="cat-fam"><span class="eyebrow">${esc(f)}</span>${CATALOG.filter((c) => c.family === f).map((c) => `<button type="button" class="btn small ${catConsole === c.id ? "primary" : ""}" data-console="${c.id}">${esc(c.name)}</button>`).join("")}</div>`).join("")}
+        <div class="cat-section">
+          <div class="eyebrow">Console</div>
+          <div class="cat-families">
+            <span class="fam">All</span>
+            <div class="chips"><button type="button" class="btn small ${catConsole === "all" ? "primary" : ""}" data-console="all">All consoles</button></div>
+            ${fams.map((f) => `<span class="fam">${esc(f)}</span><div class="chips">${CATALOG.filter((c) => c.family === f).map((c) => `<button type="button" class="btn small ${catConsole === c.id ? "primary" : ""}" data-console="${c.id}">${esc(c.name)}</button>`).join("")}</div>`).join("")}
+          </div>
         </div>
-        <div class="row">
-          <input type="text" id="catSearch" value="${esc(catQuery)}" placeholder="${cur ? "Search " + esc(cur.name) + " games" : "Search every game"}" aria-label="Search the catalog" style="flex:1 1 220px">
-          <label class="pick"><input type="checkbox" id="catFav" ${catFav ? "checked" : ""}><span>⭐ Favorites only${Object.values(tags()).filter((x) => x.fav).length ? " (" + Object.values(tags()).filter((x) => x.fav).length + ")" : ""}</span></label>
-          <label class="pick"><input type="checkbox" id="catParty" ${catPartyOnly ? "checked" : ""}><span>🎉 Party friendly only</span></label>
-          <label class="pick"><input type="checkbox" id="catUS" ${catUS ? "checked" : ""}><span>🇺🇸 US releases only</span></label>
-          <label class="field" style="flex-direction:row">Players<select id="catPlayers" aria-label="Number of players">${[[0, "Any"], [1, "1 player"], [2, "2+"], [3, "3+"], [4, "4+"]].map(([v, l]) => `<option value="${v}" ${catPlayers === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
-          <label class="pick"><input type="checkbox" id="catSuffix" ${catSuffix ? "checked" : ""}><span>Add console name</span></label>
+        <div class="cat-section">
+          <div class="eyebrow">Search &amp; filters</div>
+          <input type="text" id="catSearch" value="${esc(catQuery)}" placeholder="${cur ? "Search " + esc(cur.name) + " games" : "Search every game"}" aria-label="Search the catalog">
+          <div class="cat-filters">
+            <label class="pick"><input type="checkbox" id="catFav" ${catFav ? "checked" : ""}><span>⭐ Favorites only${Object.values(tags()).filter((x) => x.fav).length ? " (" + Object.values(tags()).filter((x) => x.fav).length + ")" : ""}</span></label>
+            <label class="pick"><input type="checkbox" id="catParty" ${catPartyOnly ? "checked" : ""}><span>🎉 Party friendly only</span></label>
+            <label class="pick"><input type="checkbox" id="catUS" ${catUS ? "checked" : ""}><span>🇺🇸 US releases only</span></label>
+            <label class="chip-select"><span>👥 Players</span><select id="catPlayers" aria-label="Number of players">${[[0, "Any"], [1, "1 player"], [2, "2+"], [3, "3+"], [4, "4+"]].map(([v, l]) => `<option value="${v}" ${catPlayers === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+            <label class="pick"><input type="checkbox" id="catSuffix" ${catSuffix ? "checked" : ""}><span>Add console name</span></label>
+          </div>
         </div>
-        <div class="row">
-          <button class="btn" type="button" id="catFill">Fill ${esc(who?.name || "")}'s empty slots at random${cur ? " from " + esc(cur.name) : ""}</button>
-          <input type="text" id="catCustom" placeholder="Not listed? Type any game" aria-label="Add a game that isn't listed" style="flex:1 1 200px">
-          <button class="btn" type="button" id="catCustomAdd">Add</button>
+        <div class="cat-section">
+          <div class="eyebrow">Add games</div>
+          <div class="cat-add">
+            <button class="btn" type="button" id="catFill">🎲 Fill ${esc(who?.name || "")}'s empty slots${cur ? " from " + esc(cur.name) : " at random"}</button>
+            <div class="cat-custom">
+              <input type="text" id="catCustom" placeholder="Not listed? Type any game" aria-label="Add a game that isn't listed">
+              <button class="btn" type="button" id="catCustomAdd">Add</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="panel stack" id="catResults"></div>`;
