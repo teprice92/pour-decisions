@@ -2,8 +2,8 @@
 // The page is network-first: online, you always get the latest version from the site;
 // offline (or on a slow connection), the last saved copy opens instead.
 // Bump VERSION when the list of app files below changes.
-const VERSION = "v5";
-const CATALOG_REV = 4; // matches CATALOG_REV in index.html
+const VERSION = "v6";
+const CATALOG_REV = 5; // matches CATALOG_REV in index.html
 const SHELL = `pd-shell-${VERSION}`;
 const FONTS = "pd-fonts";
 const SHELL_FILES = [
