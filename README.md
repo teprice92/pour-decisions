@@ -40,9 +40,10 @@ The complete lists and player counts come from the [No-Intro](https://no-intro.o
 - **Finale bracket**: under Shots → Finale bracket, the top players by tonight's wins play a knockout. The loser of each match drinks.
 - **Night recap**: MVP, most shots, biggest upset, most played game, and a funny title for each player. Share it as an image or copy it as text. It also pops up when you wrap up a night.
 - **Trophy case**: achievements that carry across every night, like Hat trick, Untouchable, Perfect night, Console warrior, and Champion. "How to earn each trophy" explains every one, and tapping a trophy shows what it takes.
-- **Avatars and colors**: tap a player's circle in the Lineup to give them an emoji and a color. There's also a custom drawn husky avatar (black and white fur, blue eyes).
+- **Avatars and colors**: tap a player's circle in the Lineup to give them an emoji and a color. There's also a custom drawn husky avatar (black and white fur, blue eyes), which shows on the wheel next to that player's games.
 - **TV mode**: a big-screen layout with the wheel and a live shot board. Use it on a laptop hooked to the TV, or mirror your phone.
 - **Send tonight to another phone**: History → Send tonight makes a link that opens the night on another phone. It's a copy, so the two phones don't stay in sync.
+- **Choose who spins**: on the Spin tab, tap any player's name in the turn order to make them the next spinner. That way any player's game can go first, with two players or more. Turns carry on around the table from there.
 - **Pick a game**: next to the spin button, **Pick a game** lists everything on the wheel, with a search box for long lists. Tap a game to play it without spinning. The player whose turn it is counts as the spinner.
 - **Undo a wrong winner**: **Undo last** in Tonight's rounds puts a spun game straight back up with the same spinner, so you can record the right winner without spinning again.
 - **House rules card**: the Spin tab has a 📜 House rules card. Tap **Edit** to write your own rules or add ideas like "Phones face down" and "Thumb master", and set what breaking each one costs (¼, ½, or 1). During the night, tap **Broke it** and then pick the player. It pours their penalty and logs it in tonight's rounds. Rules stay for every night until you change them.

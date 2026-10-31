@@ -1227,6 +1227,9 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
 .photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+/* turn-order chips double as "who spins next" buttons */
+button.chip { font: inherit; color: inherit; cursor: pointer; }
+button.chip:not(.now):hover { border-color: var(--accent); }
 /* Theme builder: live preview strip, color swatch grid. The whole page wears the draft while it's open. */
 .tb-preview { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); background-image: var(--bg-art); }
 .tb-wheel { width: 84px; height: 84px; border-radius: 50%; box-shadow: 0 0 0 3px var(--panel-2), 0 0 0 5px var(--accent); }
@@ -2325,12 +2328,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         if (n > 1) { c.strokeStyle = "rgba(0,0,0,.28)"; c.lineWidth = Math.max(1, W * 0.003); c.stroke(); }
         c.save(); c.rotate(a0 + seg / 2);
         c.fillStyle = textOn(col); c.textAlign = "right"; c.textBaseline = "middle";
-        const maxW = R * 0.66; // stops just short of the hub
+        const icon = this.items[i].icon, hasIcon = icon && icon.complete && icon.naturalWidth;
         let label = this.items[i].label, size = fs;
+        const iconW = () => (hasIcon ? size * 1.25 + size * 0.3 : 0);
+        const maxW = () => R * 0.66 - iconW(); // stops just short of the hub
         c.font = `700 ${size}px ${bodyFont}`;
-        while (size > minFs && c.measureText(label).width > maxW) { size = Math.max(minFs, size - 0.5); c.font = `700 ${size}px ${bodyFont}`; }
-        while (label.length > 2 && c.measureText(label).width > maxW) label = label.slice(0, -2) + "…";
+        while (size > minFs && c.measureText(label).width > maxW()) { size = Math.max(minFs, size - 0.5); c.font = `700 ${size}px ${bodyFont}`; }
+        while (label.length > 2 && c.measureText(label).width > maxW()) label = label.slice(0, -2) + "…";
         c.fillText(label, R - W * 0.03, 0);
+        if (hasIcon) { const z = size * 1.25, x = R - W * 0.03 - c.measureText(label).width - size * 0.3 - z; c.drawImage(icon, x, -z / 2, z, z); }
         c.restore();
       }
       // studs on the rim
@@ -2425,11 +2431,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         c.save(); c.translate(0, y0 + h / 2); c.scale(1, sy);
         const rowH = R * step, maxW = x1 - x0 - W * 0.1;
         let fs = Math.min(rowH * 0.5, W * 0.07), label = it.label;
+        const hasIcon = it.icon && it.icon.complete && it.icon.naturalWidth, iconW = () => (hasIcon ? fs * 1.55 : 0);
         c.font = `700 ${fs}px ${body}`;
-        while (fs > rowH * 0.3 && c.measureText(label).width > maxW) { fs -= 1; c.font = `700 ${fs}px ${body}`; }
-        while (label.length > 2 && c.measureText(label).width > maxW) label = label.slice(0, -2) + "…";
+        while (fs > rowH * 0.3 && c.measureText(label).width > maxW - iconW()) { fs -= 1; c.font = `700 ${fs}px ${body}`; }
+        while (label.length > 2 && c.measureText(label).width > maxW - iconW()) label = label.slice(0, -2) + "…";
         c.fillStyle = textOn(it.color); c.textAlign = "center"; c.textBaseline = "middle";
-        c.fillText(label, (x0 + x1) / 2 + W * 0.02, 0);
+        const tw = c.measureText(label).width, mid = (x0 + x1) / 2 + W * 0.02;
+        if (hasIcon) { const z = fs * 1.25, left = mid - (tw + iconW()) / 2; c.drawImage(it.icon, left, -z / 2, z, z); c.textAlign = "left"; c.fillText(label, left + iconW(), 0); }
+        else c.fillText(label, mid, 0);
         c.restore();
       }
       // gloss, and the window around the winning row
@@ -2770,6 +2779,18 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const AVATAR_ART = {
     husky: { emoji: "🐺", label: "Husky", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"> <path d="M9 32 L13 3 L29 17 Z" fill="#2a2d33"/> <path d="M14 10 L17 22 L24 17 Z" fill="#f4c7c7"/> <path d="M55 32 L51 3 L35 17 Z" fill="#2a2d33"/> <path d="M50 10 L47 22 L40 17 Z" fill="#f4c7c7"/> <ellipse cx="32" cy="37" rx="23" ry="22" fill="#2a2d33"/> <path d="M10 41 Q12 58 32 61 Q52 58 54 41 Q47 35 40.5 40 Q37 31 32 31 Q27 31 23.5 40 Q17 35 10 41 Z" fill="#ffffff"/> <path d="M29.5 15 Q32 13 34.5 15 L33.6 31 L30.4 31 Z" fill="#ffffff"/> <ellipse cx="21.5" cy="28" rx="4.2" ry="2.4" fill="#ffffff"/> <ellipse cx="42.5" cy="28" rx="4.2" ry="2.4" fill="#ffffff"/> <ellipse cx="23" cy="38" rx="4.6" ry="3.6" fill="#3aa8ff" stroke="#14161a" stroke-width="1.4"/> <ellipse cx="41" cy="38" rx="4.6" ry="3.6" fill="#3aa8ff" stroke="#14161a" stroke-width="1.4"/> <circle cx="23" cy="38" r="1.7" fill="#0a1a2e"/> <circle cx="41" cy="38" r="1.7" fill="#0a1a2e"/> <circle cx="24.2" cy="36.8" r="0.9" fill="#ffffff"/> <circle cx="42.2" cy="36.8" r="0.9" fill="#ffffff"/> <ellipse cx="32" cy="48" rx="4.4" ry="3.2" fill="#14161a"/> <ellipse cx="30.8" cy="47" rx="1.2" ry="0.7" fill="#5a5f6a"/> <path d="M32 51 Q29 55.5 25.5 53.5 M32 51 Q35 55.5 38.5 53.5" fill="none" stroke="#14161a" stroke-width="1.6" stroke-linecap="round"/></svg>` },
   };
+  // drawn avatars as images for the wheel canvases (a canvas can't draw inline SVG markup)
+  const artImages = {};
+  function artImage(k) {
+    if (!AVATAR_ART[k]) return null;
+    if (!artImages[k]) {
+      const img = new Image();
+      img.onload = () => { mainWheel && !mainWheel.spinning && mainWheel.draw(); };
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(AVATAR_ART[k].svg);
+      artImages[k] = img;
+    }
+    return artImages[k];
+  }
   const avatarHTML = (p) => (p && p.art && AVATAR_ART[p.art] ? `<span class="art-av" aria-hidden="true">${AVATAR_ART[p.art].svg}</span>` : esc(p?.emoji || ""));
   // player name with avatar, for HTML spots that can show the drawing
   const pnameHTML = (p) => (p && p.art && AVATAR_ART[p.art] ? `${avatarHTML(p)} ${esc(p.name)}` : esc(pname(p)));
@@ -3216,8 +3237,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const colors = skinColors();
     const idx = new Map(n.players.map((p, i) => [p.id, i]));
     const items = list.map((g, i) => {
-      const e = playerById(g.by)?.emoji;
-      return { id: g.id, label: (e ? e + " " : "") + g.title, color: colors[(i + (idx.get(g.by) || 0)) % colors.length] };
+      const p = playerById(g.by), icon = p && p.art ? artImage(p.art) : null, e = icon ? "" : p?.emoji;
+      return { id: g.id, label: (e ? e + " " : "") + g.title, icon, color: colors[(i + (idx.get(g.by) || 0)) % colors.length] };
     });
     const wild = wildItems(items.length);
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#ffcc00";
@@ -3264,7 +3285,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <div class="panel up-next">
         <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
         <div class="who">${injected ? "Called shot" : pnameHTML(pend ? playerById(n.pending.spunBy) : sp)}</div>
-        <div class="order">${n.players.map((p, i) => `<span class="chip ${i === n.turn % n.players.length ? "now" : ""}">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}</span>`).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
+        <div class="order">${n.players.map((p, i) => {
+          const now = i === n.turn % n.players.length, inner = `${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}`;
+          return pend || n.wild ? `<span class="chip ${now ? "now" : ""}">${inner}</span>`
+            : `<button type="button" class="chip ${now ? "now" : ""}" data-turn="${i}" aria-pressed="${now}" aria-label="${esc(p.name)} spins next">${inner}</button>`;
+        }).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
+        ${!pend && !n.wild && n.players.length > 1 ? `<div class="muted" style="font-size:.82rem">Tap a name to let them spin next, so any player's game can go first.</div>` : ""}
         ${n.nextMod?.double ? `<div class="note">★ Double or nothing: the next game's shots are doubled.</div>` : ""}
         ${n.nextMod?.grudge ? `<div class="note">⚔️ Next game is a grudge match: <b>${esc(pnameById(n.nextMod.grudge[0]))}</b> vs <b>${esc(pnameById(n.nextMod.grudge[1]))}</b>. Loser drinks double. <button class="btn small ghost" type="button" id="cancelGrudge">Cancel</button></div>` : ""}
         ${!pend && !n.wild && riv && !n.nextMod?.grudge ? `<div class="note">⚔️ Rivalry: <b>${esc(pnameById(riv.a))}</b> has beaten <b>${esc(pnameById(riv.b))}</b> ${riv.w}–${riv.l} tonight. <button class="btn small" type="button" id="grudgeBtn" data-a="${riv.a}" data-b="${riv.b}">Make the next game a grudge match</button></div>` : ""}
@@ -3419,6 +3445,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.dataset.go) return setTab(t.dataset.go);
     if (t.id === "spinBtn") return doSpin();
     if (t.id === "skipTurn") { advanceTurn(n); save(); renderSpin(); return; }
+    if (t.dataset.turn != null && !n.pending && !n.wild) { n.turn = +t.dataset.turn; save(); renderSpin(); toast(`${pname(spinner())} spins next`); return; }
     if (t.id === "wildDone") { n.wild = null; save(); renderSpin(); return; }
     if (t.id === "pickToggle") { pickOpen = !pickOpen; renderSpin(); if (pickOpen) $("#pickSearch")?.focus(); return; }
     if (t.dataset.pickgame) {
