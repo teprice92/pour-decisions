@@ -1227,6 +1227,13 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
 .photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+/* "Everyone spins first" lineup */
+.rq-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rq-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+.rq-n { font-weight: 800; color: var(--accent); font-size: 1.2rem; min-width: 1.2em; text-align: center; }
+.rq-t { min-width: 0; overflow-wrap: anywhere; }
+.rq-btns { display: flex; gap: 4px; }
+.rq-btns .btn { min-width: 36px; }
 /* turn-order chips double as "who spins next" buttons */
 button.chip { font: inherit; color: inherit; cursor: pointer; }
 button.chip:not(.now):hover { border-color: var(--accent); }
@@ -1890,7 +1897,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     return t;
   }
   function wheelPool() {
-    const rem = remaining();
+    const lined = new Set((N().queue || []).map((x) => x.gameId));
+    const rem = remaining().filter((g) => !lined.has(g.id));
     if (N().pool === "own" && spinner()) {
       const own = rem.filter((g) => g.by === spinner().id);
       if (own.length) return { list: own, fallback: false };
@@ -3184,7 +3192,33 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   let pickOpen = false; // the "Pick a game" list under the spin button
 
   // games that are "on deck" (pending or paused) aren't offered again
-  const onDeck = () => new Set([N().pending?.gameId, ...(N().paused || []).map((x) => x.pending.gameId)].filter(Boolean));
+  const onDeck = () => new Set([N().pending?.gameId, ...(N().paused || []).map((x) => x.pending.gameId), ...(N().queue || []).map((x) => x.gameId)].filter(Boolean));
+  // "Everyone spins first": each spin lands in this round's lineup (n.queue) instead of being played right away.
+  // Once the table has set the order, n.queueOn plays the lineup one game at a time; turns don't move while it does.
+  const roundMode = (n = N()) => n.spinMode === "round";
+  function queueSpin(n, g, spunBy) { (n.queue = n.queue || []).push({ gameId: g.id, spunBy, by: g.by }); advanceTurn(n); }
+  function nextFromQueue(n) {
+    if (n.pending || !n.queueOn) return;
+    const q = n.queue || [];
+    if (!q.length) { n.queueOn = false; toast("Round done! Time for everyone to spin again."); say("Round done. Everyone spins again."); return; }
+    n.pending = Object.assign(q.shift(), { queued: true });
+    form = null; mainWheel._parked = false;
+  }
+  function queueHTML(n) {
+    const q = n.queue || []; if (!q.length) return "";
+    const all = q.length >= n.players.length;
+    return `<div class="panel stack round-queue">
+      <div class="row" style="justify-content:space-between"><h3>${n.queueOn ? "Up next this round" : "This round's games"}</h3>
+        <span class="muted num">${n.queueOn ? `${q.length} to go` : `${q.length} of ${n.players.length} spun`}</span></div>
+      <ol class="rq-list">${q.map((x, i) => { const g = gameById(x.gameId); return `<li>
+        <span class="rq-n num">${i + 1}</span>
+        <span class="rq-t"><b>${esc(g?.title || "?")}</b><br><span class="muted">spun by ${pnameHTML(playerById(x.spunBy))}${playerById(x.by) ? ` · ${esc(playerById(x.by).name)}'s pick` : ""}</span></span>
+        <span class="rq-btns"><button class="btn small ghost" type="button" data-qup="${i}" ${i ? "" : "disabled"} aria-label="Move ${esc(g?.title || "")} up">↑</button><button class="btn small ghost" type="button" data-qdown="${i}" ${i < q.length - 1 ? "" : "disabled"} aria-label="Move ${esc(g?.title || "")} down">↓</button><button class="btn small ghost" type="button" data-qdel="${i}" aria-label="Put ${esc(g?.title || "")} back on the wheel">✕</button></span>
+      </li>`; }).join("")}</ol>
+      ${n.queueOn ? "" : `<div class="muted" style="font-size:.85rem">${all ? "Everyone has spun. Set the order with ↑ and ↓, then start the round." : "Keep spinning until everyone has a game, or start with these. Use ↑ and ↓ to set the order."} ✕ puts a game back on the wheel.</div>
+      <div class="row"><button class="btn primary ${all ? "big" : ""}" type="button" id="queueStart">${all ? "Play them in this order" : `Start with these ${q.length}`}</button>${q.length > 1 ? `<button class="btn" type="button" id="queueShuffle">🎲 Shuffle the order</button>` : ""}</div>`}
+    </div>`;
+  }
   const callable = () => { const busy = onDeck(); return remaining().filter((g) => !busy.has(g.id)); };
   // bring back the game that was paused when this one was called in, if any
   function resumePaused() {
@@ -3271,9 +3305,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const pend = n.pending && gameById(n.pending.gameId);
     const injected = !!(n.pending && n.pending.injected);
     const st = streaks(), riv = rivalry();
-    $("#hubSpin").disabled = !!pend || !!n.wild || !list.length || mainWheel.spinning;
+    const lineupFull = roundMode(n) && !n.queueOn && (n.queue || []).length >= n.players.length;
+    $("#hubSpin").disabled = !!pend || !!n.wild || !list.length || mainWheel.spinning || lineupFull || !!n.queueOn;
     $("#poolCtl").innerHTML = `
       <div class="seg" role="group" aria-label="Wheel style"><button type="button" data-wstyle="big" aria-pressed="${wheelStyle() === "big"}">Big wheel</button><button type="button" data-wstyle="classic" aria-pressed="${wheelStyle() === "classic"}">Round wheel</button></div>
+      <div class="seg" role="group" aria-label="Spin mode"><button type="button" data-smode="one" aria-pressed="${!roundMode(n)}">One at a time</button><button type="button" data-smode="round" aria-pressed="${roundMode(n)}">Everyone spins first</button></div>
       <div class="seg" role="group" aria-label="What goes on the wheel">
         <button type="button" data-pool="all" aria-pressed="${n.pool === "all"}">Everyone's games</button>
         <button type="button" data-pool="own" aria-pressed="${n.pool === "own"}">Spinner's games only</button>
@@ -3283,26 +3319,27 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
     let side = `
       <div class="panel up-next">
-        <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? "Spun by" : "Up to spin"} · round ${n.rounds.filter((r) => r.gameId).length + 1}</div>
+        <div class="eyebrow">${injected ? "Called in · no spin needed" : pend ? (n.pending.queued ? "This round's lineup · spun by" : "Spun by") : "Up to spin"} · ${roundMode(n) || n.queueOn ? "game" : "round"} ${n.rounds.filter((r) => r.gameId).length + 1}</div>
         <div class="who">${injected ? "Called shot" : pnameHTML(pend ? playerById(n.pending.spunBy) : sp)}</div>
         <div class="order">${n.players.map((p, i) => {
           const now = i === n.turn % n.players.length, inner = `${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" + st[p.id] : ""}`;
           return pend || n.wild ? `<span class="chip ${now ? "now" : ""}">${inner}</span>`
             : `<button type="button" class="chip ${now ? "now" : ""}" data-turn="${i}" aria-pressed="${now}" aria-label="${esc(p.name)} spins next">${inner}</button>`;
         }).join("")}${(n.dir || 1) < 0 ? `<span class="chip">↺ reversed</span>` : ""}</div>
-        ${!pend && !n.wild && n.players.length > 1 ? `<div class="muted" style="font-size:.82rem">Tap a name to let them spin next, so any player's game can go first.</div>` : ""}
+        ${!pend && !n.wild && !lineupFull && !n.queueOn && n.players.length > 1 ? `<div class="muted" style="font-size:.82rem">Tap a name to let them spin next${roundMode(n) ? "" : ", so any player's game can go first"}.</div>` : ""}
+        ${roundMode(n) && !n.queueOn && !pend && !n.wild ? `<div class="note">🔄 Everyone spins first. ${lineupFull ? "Everyone has spun, so set the order below." : `Each spin goes into this round's lineup (${(n.queue || []).length} of ${n.players.length} so far). Then you choose the order to play them in.`}</div>` : ""}
         ${n.nextMod?.double ? `<div class="note">★ Double or nothing: the next game's shots are doubled.</div>` : ""}
         ${n.nextMod?.grudge ? `<div class="note">⚔️ Next game is a grudge match: <b>${esc(pnameById(n.nextMod.grudge[0]))}</b> vs <b>${esc(pnameById(n.nextMod.grudge[1]))}</b>. Loser drinks double. <button class="btn small ghost" type="button" id="cancelGrudge">Cancel</button></div>` : ""}
         ${!pend && !n.wild && riv && !n.nextMod?.grudge ? `<div class="note">⚔️ Rivalry: <b>${esc(pnameById(riv.a))}</b> has beaten <b>${esc(pnameById(riv.b))}</b> ${riv.w}–${riv.l} tonight. <button class="btn small" type="button" id="grudgeBtn" data-a="${riv.a}" data-b="${riv.b}">Make the next game a grudge match</button></div>` : ""}
         ${fallback ? `<div class="note">${esc(sp.name)} is out of games, so the wheel has everyone's.</div>` : ""}
         ${(n.paused || []).length ? `<div class="note">Paused: ${n.paused.slice().reverse().map((x) => `<b>${esc(gameById(x.pending.gameId)?.title || "?")}</b>`).join(", then ")}. It comes back once this game is recorded.</div>` : ""}
         <div class="row">
-          ${!pend && !n.wild ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${esc(SKINS[S.skin].spin)} the wheel</button>` : ""}
+          ${!pend && !n.wild && !lineupFull && !n.queueOn ? `<button class="btn big primary" type="button" id="spinBtn" ${!list.length || mainWheel.spinning ? "disabled" : ""}>${esc(SKINS[S.skin].spin)} the wheel</button>` : ""}
           <button class="btn ${pend ? "" : "big"}" type="button" id="injectToggle">Log a played game</button>
-          ${!pend && !n.wild && list.length ? `<button class="btn" type="button" id="pickToggle" aria-expanded="${pickOpen}">${pickOpen ? "Close the list" : "Pick a game"}</button>` : ""}
-          ${!pend ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
+          ${!pend && !n.wild && list.length && !lineupFull && !n.queueOn ? `<button class="btn" type="button" id="pickToggle" aria-expanded="${pickOpen}">${pickOpen ? "Close the list" : "Pick a game"}</button>` : ""}
+          ${!pend && !lineupFull && !n.queueOn ? `<button class="btn ghost" type="button" id="skipTurn">Skip turn</button>` : ""}
         </div>
-        ${pickOpen && !pend && !n.wild && list.length ? `<div class="stack pick-list" style="gap:8px">
+        ${pickOpen && !pend && !n.wild && list.length && !lineupFull && !n.queueOn ? `<div class="stack pick-list" style="gap:8px">
           <div class="muted" style="font-size:.88rem">Skip the spin and choose the game yourself. ${esc(sp.name)} counts as the spinner.</div>
           ${list.length > 8 ? `<input type="text" enterkeyhint="search" id="pickSearch" placeholder="Search the wheel…" aria-label="Search the wheel">` : ""}
           <div class="lib-chips">${list.map((g) => `<span class="lib-chip" data-pickname="${esc(g.title.toLowerCase())}"><button type="button" data-pickgame="${g.id}">${esc(g.title)}${playerById(g.by) ? ` <span class="muted">· ${esc(playerById(g.by).name)}</span>` : ""}</button></span>`).join("")}</div>
@@ -3313,6 +3350,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     renderTvBoard();
     if (n.wild) side += wildCardHTML();
     else if (pend) side += recordFormHTML(pend);
+    side += queueHTML(n);
     $("#spinSide").innerHTML = side;
     renderRoundLog();
     refreshWheel();
@@ -3381,7 +3419,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         </details>` : ""}
         <div class="row">
           <button class="btn big primary" type="button" id="recordBtn">Pour it</button>
-          <button class="btn ghost" type="button" id="respinBtn">${injected ? ((n.paused || []).length ? "Cancel, back to " + esc(gameById(n.paused[n.paused.length - 1].pending.gameId)?.title || "the paused game") : "Cancel, back to the wheel") : "Put it back &amp; respin"}</button>
+          <button class="btn ghost" type="button" id="respinBtn">${injected ? ((n.paused || []).length ? "Cancel, back to " + esc(gameById(n.paused[n.paused.length - 1].pending.gameId)?.title || "the paused game") : "Cancel, back to the wheel") : n.pending?.queued ? "Skip it (back on the wheel)" : "Put it back &amp; respin"}</button>
         </div>
       </div>`;
   }
@@ -3451,9 +3489,29 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.dataset.pickgame) {
       pickOpen = false;
       const g = gameById(t.dataset.pickgame);
+      if (roundMode(n) && !n.queueOn) {
+        queueSpin(n, g, n.wild?.spunBy || spinner().id);
+        n.wild = null; mainWheel._parked = false; save(); fanfare(); renderSpin(); return;
+      }
       n.pending = { gameId: g.id, spunBy: n.wild?.spunBy || spinner().id, by: g.by };
       n.wild = null; mainWheel._parked = false; save(); fanfare(); renderSpin();
       say(`${g.title}. Picked by hand.`); return;
+    }
+    if (t.dataset.qup != null || t.dataset.qdown != null) {
+      const q = n.queue || [], i = +(t.dataset.qup ?? t.dataset.qdown), j = t.dataset.qup != null ? i - 1 : i + 1;
+      if (q[i] && q[j]) [q[i], q[j]] = [q[j], q[i]];
+      save(); renderSpin(); $(`#spinSide [data-${t.dataset.qup != null ? "qup" : "qdown"}="${j}"]`)?.focus(); return;
+    }
+    if (t.dataset.qdel != null) {
+      const [x] = (n.queue || []).splice(+t.dataset.qdel, 1);
+      save(); renderSpin(); if (x) toast(`${gameById(x.gameId)?.title || "That game"} is back on the wheel`); return;
+    }
+    if (t.id === "queueShuffle") { const q = n.queue || []; for (let i = q.length - 1; i > 0; i--) { const j = randInt(i + 1); [q[i], q[j]] = [q[j], q[i]]; } save(); renderSpin(); return; }
+    if (t.id === "queueStart") {
+      n.queueOn = true; pickOpen = false; nextFromQueue(n); save(); fanfare(); renderSpin();
+      const g = n.pending && gameById(n.pending.gameId);
+      if (g) say(`Round order set. First up: ${g.title}.`);
+      return;
     }
     if (t.id === "grudgeBtn") { n.nextMod = Object.assign({}, n.nextMod, { grudge: [t.dataset.a, t.dataset.b] }); save(); renderSpin(); toast("Grudge match set for the next game"); return; }
     if (t.id === "cancelGrudge") { if (n.nextMod) delete n.nextMod.grudge; save(); renderSpin(); return; }
@@ -3466,7 +3524,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       d.amt = q4(d.amt + parseFloat(t.dataset.dstep)); if (d.amt > 0) d.on = true;
       return renderSpin();
     }
-    if (t.id === "respinBtn") { dropUnusedExtra(); form = null; if (n.pending?.injected) resumePaused(); else n.pending = null; mainWheel._parked = false; save(); renderSpin(); return; }
+    if (t.id === "respinBtn") { dropUnusedExtra(); form = null; if (n.pending?.injected) resumePaused(); else n.pending = null; mainWheel._parked = false; nextFromQueue(n); save(); renderSpin(); return; }
     if (t.id === "recordBtn") return recordRound();
   });
   $("#poolCtl").addEventListener("click", (e) => {
@@ -3480,6 +3538,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       return;
     }
     if (e.target.closest("#editWilds")) { setTab("history"); $("#wildSettings")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" }); return; }
+    const sm = e.target.closest("[data-smode]");
+    if (sm) {
+      N().spinMode = sm.dataset.smode; save(); renderSpin();
+      toast(sm.dataset.smode === "round" ? "Everyone spins first, then you pick the order" : "Back to one spin, one game");
+      return;
+    }
     const b = e.target.closest("[data-pool]"); if (!b) return;
     N().pool = b.dataset.pool; save(); renderSpin();
   });
@@ -3613,6 +3677,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     await mainWheel.spinTo(k);
     const g = items[k];
     if (g.wild) return landWild(g.wild);
+    if (roundMode(n) && !n.queueOn) {
+      const who = spinner(), game = gameById(g.id);
+      queueSpin(n, game, who.id);
+      mainWheel._parked = false; save(); fanfare(); buzz("land"); renderSpin();
+      toast(`${pname(who)} spun ${game.title}`); say(`${who.name} spun ${game.title}.`);
+      return;
+    }
     n.pending = { gameId: g.id, spunBy: spinner().id, by: allGames().find((x) => x.id === g.id)?.by };
     mainWheel._parked = true;
     save(); fanfare(); buzz("land"); renderSpin();
@@ -3669,9 +3740,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     notes.push(...streakNotes(winner, drinks));
     const before = totals(), trophiesBefore = trophyKeys();
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined });
-    if (!injected) { advanceTurn(n); n.nextMod = null; }
-    form = null; resumePaused();
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined, queued: n.pending.queued || undefined });
+    if (!injected) { if (!n.pending.queued) advanceTurn(n); n.nextMod = null; }
+    form = null; resumePaused(); nextFromQueue(n);
     save(); renderSpin();
     const won = newTrophies(trophiesBefore);
     notes.push(...won.map((t) => t.note));
@@ -3679,7 +3750,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     await pour(drinks, { notes, quiet: won.map((t) => t.note) });
     if (won.length) await celebrate(won);
     await waterCheck(before);
-    if (!injected && N().started && spinner()) say(`${spinner().name}, you're up.`);
+    const up = N().pending?.queued && gameById(N().pending.gameId);
+    if (up) say(`Next up: ${up.title}.`);
+    else if (!injected && N().started && spinner()) say(`${spinner().name}, you're up.`);
   }
 
   function addDrink(drinks, pid, amt) {
@@ -3761,7 +3834,16 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     if (!e.target.closest("#undoRound")) return;
     const n = N(); const r = n.rounds.pop();
-    if (r && r.gameId && !r.injected) advanceTurn(n, -1);
+    if (r && r.queued && !n.wild && gameById(r.gameId)) {
+      if (n.pending?.queued) { const back = Object.assign({}, n.pending); delete back.queued; (n.queue = n.queue || []).unshift(back); }
+      if (!n.pending || n.pending.queued) {
+        n.pending = { gameId: r.gameId, spunBy: r.spunBy, by: r.by, queued: true }; n.queueOn = true;
+        if (r.mod) n.nextMod = r.mod;
+        form = null; mainWheel._parked = false;
+        save(); renderAll(); toast(`Last round undone. ${r.title} is back up, so record it again.`); return;
+      }
+    }
+    if (r && r.gameId && !r.injected && !r.queued) advanceTurn(n, -1);
     // a spun game goes straight back up so it can be recorded again without a respin
     const g = r && r.gameId && !r.injected && !r.finale && !n.pending && !n.wild ? gameById(r.gameId) : null;
     if (g) {
