@@ -2,8 +2,8 @@
 // The page is network-first: online, you always get the latest version from the site;
 // offline (or on a slow connection), the last saved copy opens instead.
 // Bump VERSION when the list of app files below changes.
-const VERSION = "v6";
-const CATALOG_REV = 5; // matches CATALOG_REV in index.html
+const VERSION = "v7";
+const CATALOG_REV = 6; // matches CATALOG_REV in index.html
 const SHELL = `pd-shell-${VERSION}`;
 const FONTS = "pd-fonts";
 const SHELL_FILES = [
@@ -18,7 +18,7 @@ const SHELL_FILES = [
 ];
 const NETWORK_TIMEOUT_MS = 3500;
 // complete game lists for the Games tab; saved in the background after install
-const CATALOG_FILES = ["./catalog/atari.json", "./catalog/dreamcast.json", "./catalog/gb.json", "./catalog/gba.json", "./catalog/gbc.json", "./catalog/gc.json", "./catalog/genesis.json", "./catalog/n64.json", "./catalog/nds.json", "./catalog/nes.json", "./catalog/ps1.json", "./catalog/ps2.json", "./catalog/ps3.json", "./catalog/snes.json", "./catalog/switch.json", "./catalog/switch2.json", "./catalog/wii.json", "./catalog/wiiu.json", "./catalog/x360.json", "./catalog/xbox.json"];
+const CATALOG_FILES = ["./catalog/atari.json", "./catalog/dreamcast.json", "./catalog/gb.json", "./catalog/gba.json", "./catalog/gbc.json", "./catalog/gc.json", "./catalog/genesis.json", "./catalog/n64.json", "./catalog/nds.json", "./catalog/nes.json", "./catalog/ps1.json", "./catalog/ps2.json", "./catalog/pc.json", "./catalog/ps3.json", "./catalog/ps4.json", "./catalog/ps5.json", "./catalog/snes.json", "./catalog/switch.json", "./catalog/switch2.json", "./catalog/wii.json", "./catalog/wiiu.json", "./catalog/x360.json", "./catalog/xbox.json", "./catalog/xone.json", "./catalog/xsx.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));

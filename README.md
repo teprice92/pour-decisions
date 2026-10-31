@@ -15,19 +15,20 @@ Open `index.html` in any browser. No install or build step. Live at https://tepr
 
 ## Games tab
 
-A catalog of about 62,000 games across 27 consoles, including single-player one-offs as well as party games.
+A catalog of about 85,000 games across 27 consoles, including single-player one-offs as well as party games.
 
-- **Complete libraries** for Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Switch 2, Game Boy, Game Boy Color, Game Boy Advance, DS, Genesis, Dreamcast, PlayStation 1–3, Xbox, and Xbox 360.
-- **Hand-picked lists** for PS4, PS5, Xbox One, Xbox Series X|S, PC, arcade, and cards & party games. For anything missing, use **Not listed? Type any game**.
+- **Complete libraries** for Atari 2600, NES, SNES, N64, GameCube, Wii, Wii U, Switch, Switch 2, Game Boy, Game Boy Color, Game Boy Advance, DS, Genesis, Dreamcast, PlayStation 1–5, Xbox, and Xbox 360. PS4 (about 14,000 games) and PS5 (about 9,100) come from the PlayStation Store's own title lists. The PS5 list is native PS5 games only, so play PS4 games on a PS5 from the PS4 list.
+- **Hand-made lists** of well-known games for Xbox One (about 250), Xbox Series X|S (about 150), and PC (about 200), with player counts. There's no Xbox or Steam game database this app can use, so these were entered by hand. They aren't every game, and the Games tab says so.
+- **Hand-picked party lists** for arcade and cards & party games. For anything missing, use **Not listed? Type any game**.
 - **🎉 Party friendly only** narrows any console to the multiplayer, bet-friendly picks.
 - **🇺🇸 US releases only** hides Japan-only and Europe-only games.
-- **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Every 🎉 party pick has a count: the number who can play on one console, or an online count for online-only games like Among Us. Beyond those, counts come from the databases for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch.
+- **Players** filters by max player count (1 player, 2+, 3+, 4+), and each game shows its count where the data has one. Every 🎉 party pick has a count: the number who can play on one console, or an online count for online-only games like Among Us. Beyond those, counts come from the databases for Atari 2600, NES, SNES, N64, Game Boy, Game Boy Color, Game Boy Advance, Genesis, and Switch, and from the hand-made Xbox One, Xbox Series X|S, and PC lists.
 - **Your own tags**: tap ⭐ on any game to favorite it, and 🎉 to mark it as a party game or unmark a built-in one. **⭐ Favorites only** shows just your favorites, which also sort to the top of every list. Tags are included in backups.
 - **Show all** lists every matching game at once. **Show more** pages through 300 at a time.
 
 Search across every console, tap **+ Add** to put a game on a player's list, or fill their empty slots at random. Each console's list loads the first time you open it. The installed app saves them all in the background so the catalog works offline.
 
-The complete lists and player counts come from the [No-Intro](https://no-intro.org) and [Redump](http://redump.org) databases (via [libretro-database](https://github.com/libretro/libretro-database)) and [titledb](https://github.com/blawar/titledb) for Switch and Switch 2. The Switch 2 list covers the eShop data plus well-known releases it's missing, so it may lag behind brand-new games. Betas, demos, prototypes, regional duplicates, cheat discs (Action Replay, GameShark), magazine and demo discs, DLC packs, and streaming apps are removed, and ALL-CAPS store names are tidied. To refresh them, run `tools/build_catalog.py` on fresh copies of those files.
+The complete lists and player counts come from the [No-Intro](https://no-intro.org) and [Redump](http://redump.org) databases (via [libretro-database](https://github.com/libretro/libretro-database)) [titledb](https://github.com/blawar/titledb) for Switch and Switch 2, and [PlayStation-Titles](https://github.com/andshrew/PlayStation-Titles) (PS Store title lists) for PS4 and PS5. A PS4 or PS5 game counts as a US release when it has a US store listing. The Switch 2 list covers the eShop data plus well-known releases it's missing, so it may lag behind brand-new games. Betas, demos, prototypes, regional duplicates, cheat discs (Action Replay, GameShark), magazine and demo discs, DLC packs, store-only extras (themes, avatars, soundtracks, art packs, bonuses), streaming and TV apps, and listings that were never on sale are removed, and ALL-CAPS store names are tidied. To refresh them, run `tools/build_catalog.py` on fresh copies of those files.
 
 ## Party features
 

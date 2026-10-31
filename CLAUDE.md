@@ -16,9 +16,10 @@ Follow every rule here whenever you add or change games, consoles, or catalog da
 
 ### Sources
 
-- **Complete lists come from real databases, never from memory.** Use No-Intro and Redump DATs from `libretro/libretro-database` (`metadat/no-intro`, `metadat/redump`, `dat/` for Wii U), player counts from `metadat/maxusers`, and `blawar/titledb` `US.en.json` for Switch and Switch 2. `raw.githubusercontent.com` is reachable from cloud sessions, but Wikipedia is not.
+- **Complete lists come from real databases, never from memory.** Use No-Intro and Redump DATs from `libretro/libretro-database` (`metadat/no-intro`, `metadat/redump`, `dat/` for Wii U), player counts from `metadat/maxusers`, `blawar/titledb` `US.en.json` for Switch and Switch 2, and `andshrew/PlayStation-Titles` `PS4_Titles.tsv` / `PS5_Titles.tsv` for PS4 and PS5 (put them in `<dats-dir>/psstore/`). `raw.githubusercontent.com` and `git clone` from GitHub work from cloud sessions. Wikipedia, Wikidata, the Microsoft and PlayStation stores, Steam's API, and LaunchBox do not.
 - **Hand additions are allowed only for well-known, already released games** that a database is missing, such as `S2_EXTRA` for Switch 2. Only add a game you're confident is out, and leave out announced or unconfirmed titles. Say in your summary that hand additions come from knowledge, not a database.
-- Consoles with no complete source (PS4, PS5, Xbox One, Series X|S, PC, Arcade, Cards & party) use hand-picked lists only. Don't present them as complete.
+- Xbox One, Xbox Series X|S and PC have no reachable database, so they use hand-made lists in `tools/hand_lists.json` (`hand: 1` in `CATALOG`). Only add well-known games you're confident are out on that platform, give a player count only when you're sure of the couch count (0 otherwise), and keep the Games tab note that says the list isn't every game. If a real source becomes reachable, switch the console to it. Arcade and Cards & party stay hand-picked party lists only. Don't present any hand-made list as complete.
+- PS Store data: rows with no region or region `IP` were never on sale and are skipped. `UP`/`UB` rows mark a US release. Store names lose ™/®, edition and platform tags (`PS_EDITION`), and region tags (`PS_REGION`). Apps, themes, soundtracks, bonuses and test builds are dropped by `PS_APPS`, and odd store spellings are fixed in `PS_FIX`. The PS5 list is native PS5 titles only.
 
 ### Entry format and cleanup (all in `tools/build_catalog.py`)
 

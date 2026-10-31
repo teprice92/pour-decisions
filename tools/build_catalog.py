@@ -1,4 +1,4 @@
-# Builds catalog/<console>.json from No-Intro/Redump DATs, libretro maxusers DATs, and titledb.
+# Builds catalog/<console>.json from No-Intro/Redump DATs, libretro maxusers DATs, titledb, and PS Store title lists.
 # Each entry is [title, released_in_us (1/0), max_players (0 = unknown)].
 import re, json, sys, os
 src, out = sys.argv[1], sys.argv[2]
@@ -102,6 +102,45 @@ def from_titledb(path):
     for t, us, pl in S2_EXTRA: s2.setdefault(key(t), [t, us, pl])
     srt = lambda m: sorted(m.values(), key=lambda x: x[0].lower())
     return srt(s1), srt(s2)
+# PS4 and PS5 come from PS Store title lists (andshrew/PlayStation-Titles). Region UP/UB is the US store.
+PS_APPS = re.compile(r"\b(?:Entitlement|\(Prod\)|Prod\b|Test(?:ing)?\b|Playtest|Benchmark|Share Factory|Media Player|PlayStation(?:®)? ?(?:Vue|Now|Plus|VR Worlds Demo|App)|"
+                     r"Spotify|Twitch|Disney\+|Prime Video|HBO|Max\b|Apple TV|Peacock|Paramount\+|DAZN|Tubi|Pluto TV|Funimation|Vudu|Showtime|Starz|MUBI|Plex|"
+                     r"Crunchyroll|Netflix|Hulu|YouTube|NFL Sunday Ticket|NBA App|MLB\.tv|NHL\.tv|Dynamic Theme|Theme\b|Avatars?\b|Soundtrack|Artbook|Art Book|"
+                     r"Wallpaper|Costume|Upgrade\b|Expansion Pass|Season Pass|Character Pass|Starter Pack|Currency|Coins?\b|V-Bucks|Points\b|Credits\b|"
+                     r"Trial|Demo|Prologue Demo|Beta|Tech Test|Network Test|Stress Test|Kiosk|Not for Resale|Rental|Install Disc|"
+                     r"TV Player|Claro video|Crackle|iHeartRadio|Apple Music|MEGOGO|AquaTV|ClanTV|Gamepass|Fight ?pass|Tracker|Remote App|Mail App|Deluxe Edition App|Sound App|"
+                     r"Art Pack|Track Compilation|Music Concert|Musical Notes|Pre-?order|Item Pack|OST|Making Of|Behind the Scenes|Digital Video|Digital Content|"
+                     r"Season Update|Season Pack|Bonus|System App|Maps App|TestGame|Sound ?Track|Music Album|Official Music|Music from)|[αβ]Test|demo$|_demo|^(?:CUSA|PPSA)\d|^\d{6,}|Webmaf|_QA_|^Test\d|Themes\b|Foxtel|RMC Sport|Filmo TV|Magine TV|NOS TV|^Now TV|NRK TV|BBC Sport|BT Sport|Eurosport|francetv|Rakuten TV|Red Bull TV|UEFA\.tv|Optus Sport|"
+                     r"Redbox|360Channel|Mediaset|Anghami|JOYSOUND|Wild Duck|β Version|IARC|Grada1 TV|Tennis TV|TV 2 Sumo|TV from Sky|NOS Sport|SFR Sport|Sky Sport", re.I)
+# the same game listed once per region by a small publisher ("Boxed Beasts PS4 EU")
+PS_REGION = re.compile(r"_(?:CUSA|PPSA)\d+$|\s+(?:PS[45]\s+)?(?:ASIA|EU|NA|JA|US|UK)$|\s*\((?:Japan|Korea Ver\.|Asia|EU|US)\)$")
+# store names carry editions and platform tags; the game is the same game
+PS_EDITION = re.compile(r"\s*[-–—:(]?\s*(?:(?:Digital|Standard|Deluxe|Digital Deluxe|Gold|Ultimate|Complete|Definitive|Premium|Special|Collector'?s|Legendary|Launch|Day One|Anniversary|"
+                        r"Enhanced|Game of the Year|GOTY|Super Deluxe|Cross-Gen|Champions|Founder'?s|Supporter'?s|Season|Director'?s Cut|Remastered Deluxe)\s*(?:Edition|Bundle|Pack)?|"
+                        r"(?:PS4|PS5)(?:™)?\s*(?:&|and|/)\s*(?:PS4|PS5)(?:™)?|PS4™?|PS5™?|PlayStation®?\s?[45]|for PS[45]|PS[45] Version|Version PS[45])\s*\)?\s*$", re.I)
+# store spellings that lose a space or read oddly
+PS_FIX = {"fallguysultimateknockout": "Fall Guys", "granturismosport": "Gran Turismo Sport", "watchdogs": "Watch Dogs", "watchdogs2": "Watch Dogs 2", "tekken7": "Tekken 7", "tekken8": "Tekken 8", "callofdutyblackops6": "Call of Duty: Black Ops 6", "callofdutyblackops7": "Call of Duty: Black Ops 7"}
+CJK = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af\uff00-\uffef]")
+def from_psstore(path):
+    games = {}
+    for i, line in enumerate(open(path, encoding="utf-8", errors="replace")):
+        cols = line.rstrip("\n").split("\t")
+        if i == 0 or len(cols) < 5: continue
+        name, region = cols[2].strip(), cols[4].strip()
+        # rows with no store region (or Sony-internal IP) were never on sale: placeholders, QA builds, cancelled games
+        if not name or region in ("", "IP") or CJK.search(name): continue
+        name = re.sub(r"\s+", " ", re.sub(r"[™®©]", "", name)).strip()
+        if PS_APPS.search(name) or JUNK.search(name) or BAD.search(name): continue
+        for _ in range(3): name = PS_REGION.sub("", PS_EDITION.sub("", name)).strip(" -–—:")
+        name = polish(name, False)
+        name = PS_FIX.get(key(name), name)
+        if name != name.upper(): name = re.sub(r"(?<=\w )OF(?= \w)", "of", name)   # "Mark OF the Wolves" from shouty store names
+        if len(name) < 2: continue
+        e = games.setdefault(key(name), [name, 0, 0])
+        if region in ("UP", "UB"):
+            if not e[1]: e[0] = name   # prefer the US store's spelling
+            e[1] = 1
+    return sorted(games.values(), key=lambda x: x[0].lower())
 files = {"atari": "atari.dat", "nes": "nes.dat", "snes": "snes.dat", "n64": "n64.dat", "gc": "gc.dat", "wii": "wii.dat", "wiiu": "wiiu.dat",
          "gb": "gb.dat", "gbc": "gbc.dat", "gba": "gba.dat", "nds": "nds.dat", "genesis": "genesis.dat", "dreamcast": "dreamcast.dat",
          "ps1": "ps1.dat", "ps2": "ps2.dat", "ps3": "ps3.dat", "xbox": "xbox.dat", "x360": "x360.dat"}
@@ -118,4 +157,17 @@ for cid, g in zip(("switch", "switch2"), from_titledb(os.path.join(src, "switch.
     total += len(g)
     json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(cid, len(g), "players", sum(1 for x in g if x[2]), os.path.getsize(os.path.join(out, cid + ".json")))
+for cid in ("ps4", "ps5"):
+    g = from_psstore(os.path.join(src, "psstore", cid.upper() + "_Titles.tsv")); total += len(g)
+    json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(cid, len(g), "us", sum(x[1] for x in g), os.path.getsize(os.path.join(out, cid + ".json")))
+# Xbox One, Xbox Series X|S and PC have no game database the build can reach, so they use hand-made lists
+# of well-known released games (tools/hand_lists.json, entered from knowledge). All are US releases.
+hand = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_lists.json"), encoding="utf-8"))
+for cid in ("xone", "xsx", "pc"):
+    g = {}
+    for t, pl in hand[cid]: g.setdefault(key(t), [t, 1, pl])
+    g = sorted(g.values(), key=lambda x: x[0].lower()); total += len(g)
+    json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(cid, len(g), "(hand-made)", os.path.getsize(os.path.join(out, cid + ".json")))
 print("total", total)
