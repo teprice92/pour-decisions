@@ -161,13 +161,36 @@ for cid in ("ps4", "ps5"):
     g = from_psstore(os.path.join(src, "psstore", cid.upper() + "_Titles.tsv")); total += len(g)
     json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(cid, len(g), "us", sum(x[1] for x in g), os.path.getsize(os.path.join(out, cid + ".json")))
-# Xbox One, Xbox Series X|S and PC have no game database the build can reach, so they use hand-made lists
+# Xbox One comes from tools/sources/xbox_one_games.csv (Wikipedia's list of Xbox One games, exported by hand
+# because Wikipedia isn't reachable from the build), plus the hand-made list for well-known games it's missing.
+# Only games with a North American release date that has passed are kept (so all are US releases).
+# Players: "Single-player only" from Wikipedia means 1; multiplayer games keep the hand list's couch count, else 0.
+import csv, datetime
+XB_FIX = {"Way Out": "A Way Out", "Call of Duty: Black Ops IIII": "Call of Duty: Black Ops 4", "Lego Movie Videogame": "The LEGO Movie Videogame",
+          "Lego Movie Videogame 2": "The LEGO Movie 2 Videogame", "Fall Guys: Ultimate Knockout": "Fall Guys"}
+def from_xbox_csv(path):
+    games, today = {}, datetime.date.today()
+    for r in csv.DictReader(open(path, encoding="utf-8-sig")):
+        name = (r.get("Title") or "").strip()
+        try: released = datetime.datetime.strptime((r.get("Release date (NA)") or "").strip(), "%b %d, %Y").date()
+        except ValueError: continue   # TBA / Unreleased
+        if not name or released > today or JUNK.search(name) or BAD.search(name): continue
+        name = XB_FIX.get(name, name)
+        name = re.sub(r"^Lego\b", "LEGO", polish(clean(name), False))
+        solo = r.get("Players") == "Single-player only" and (r.get("Players source") or "").startswith("Wikipedia")
+        e = games.setdefault(key(name), [name, 1, 0])
+        if solo: e[2] = max(e[2], 1)
+    return games
+# Xbox Series X|S and PC have no game database the build can reach, so they use hand-made lists
 # of well-known released games (tools/hand_lists.json, entered from knowledge). All are US releases.
-hand = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_lists.json"), encoding="utf-8"))
+here = os.path.dirname(os.path.abspath(__file__))
+hand = json.load(open(os.path.join(here, "hand_lists.json"), encoding="utf-8"))
 for cid in ("xone", "xsx", "pc"):
-    g = {}
-    for t, pl in hand[cid]: g.setdefault(key(t), [t, 1, pl])
+    g = from_xbox_csv(os.path.join(here, "sources", "xbox_one_games.csv")) if cid == "xone" else {}
+    for t, pl in hand[cid]:
+        e = g.setdefault(key(t), [t, 1, pl])
+        if pl: e[2] = pl   # a hand-entered couch count wins over the CSV's single-player flag
     g = sorted(g.values(), key=lambda x: x[0].lower()); total += len(g)
     json.dump(g, open(os.path.join(out, cid + ".json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print(cid, len(g), "(hand-made)", os.path.getsize(os.path.join(out, cid + ".json")))
+    print(cid, len(g), "players", sum(1 for x in g if x[2]), os.path.getsize(os.path.join(out, cid + ".json")))
 print("total", total)
