@@ -1227,6 +1227,14 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
 .photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+/* Live sync */
+.sync-code { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: .18em; text-align: center; font-weight: 800; color: var(--accent); }
+#syncBtn.sync-live { border-color: var(--accent); color: var(--accent); }
+/* End-the-night choices */
+.end-opts { display: grid; gap: 8px; }
+.end-opt { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); font: inherit; cursor: pointer; }
+.end-opt:hover, .end-opt:focus-visible { border-color: var(--accent); }
+.end-opt span { color: var(--muted); font-size: .9rem; }
 /* "Everyone spins first" lineup */
 .rq-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .rq-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
@@ -1441,10 +1449,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="games" id="tab-games">Games</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
+      <button class="btn small ghost" id="syncBtn" type="button" aria-pressed="false">📡 Sync</button>
       <button class="btn small ghost" id="musicBtn" type="button" aria-pressed="false">♪ Music off</button>
       <button class="btn small ghost tv-toggle" id="tvBtn" type="button">TV mode</button>
       <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
+      <button class="btn small" id="endBtn" type="button" hidden>🏁 End night</button>
     </nav>
   </div>
 </header>
@@ -1829,6 +1839,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   let S = load() || fresh();
   function save() {
     try { localStorage.setItem(STORE, JSON.stringify(S)); } catch { /* storage blocked: keep running in memory */ }
+    if (S.sync && window.pdSyncReady) syncQueue(); // the sync module loads after the first saves
   }
 
   // ---------- Derived data ----------
@@ -3636,6 +3647,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     await waterCheck(before);
   }
   $("#callGame").addEventListener("click", openLog);
+  $("#endBtn").addEventListener("click", () => openSheet("end"));
   $("#closeLog").addEventListener("click", closeLog);
   $("#logGame").addEventListener("click", (e) => {
     if (e.target.id === "logGame") return closeLog();
@@ -4107,6 +4119,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <button class="btn small" type="button" data-sheet="finale">${n.finale?.champion ? "👑 Finale" : "Finale bracket"}</button>
             <button class="btn small" type="button" data-sheet="recap">Night recap</button>
             <button class="btn small" type="button" data-sheet="trophies">Trophy case</button>
+            ${n.started ? `<button class="btn small primary" type="button" data-sheet="end">🏁 End the night</button>` : ""}
           </div>
         </div>
       </div>
@@ -4127,6 +4140,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="penalty">
               <span class="muted" style="font-size:.8rem;align-self:center">Penalty</span>
               ${[0.25, 0.5, 1].map((a) => `<button class="btn small" type="button" data-pen="${a}" data-pid="${p.id}">+${fmtShots(a)}</button>`).join("")}
+              ${lastShot(p.id) ? `<button class="btn small ghost" type="button" data-undoshot="${p.id}">${undoShotArm === p.id ? `Take back ${fmtShots(lastShot(p.id).d.amt)}?` : "↩ Undo shot"}</button>` : ""}
             </div>
           </div>`;
         }).join("")}
@@ -4139,8 +4153,27 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       });
     }));
   }
+  // a player's most recent shot (any round, penalty, or wild slice) so it can be taken back
+  let undoShotArm = null;
+  function lastShot(pid, n = N()) {
+    for (let i = n.rounds.length - 1; i >= 0; i--) { const d = n.rounds[i].drinks.find((x) => x.pid === pid); if (d) return { r: n.rounds[i], d }; }
+    return null;
+  }
   $("#view-scores").addEventListener("click", async (e) => {
     const sh = e.target.closest("[data-sheet]"); if (sh) return openSheet(sh.dataset.sheet);
+    const u = e.target.closest("[data-undoshot]");
+    if (u) {
+      const pid = u.dataset.undoshot, hit = lastShot(pid); if (!hit) return;
+      if (undoShotArm !== pid) { undoShotArm = pid; renderScores(); setTimeout(() => { if (undoShotArm === pid) { undoShotArm = null; renderScores(); } }, 4000); return; }
+      undoShotArm = null;
+      const { r, d } = hit, n = N();
+      r.drinks = r.drinks.filter((x) => x !== d);
+      // a penalty or wild-slice entry with nobody left drinking is removed
+      if (!r.gameId && !r.drinks.length) n.rounds = n.rounds.filter((x) => x !== r);
+      save(); renderAll();
+      toast(`Took back ${fmtShots(d.amt)} from ${pnameById(pid)} (${r.title || r.note || "penalty"})`);
+      return;
+    }
     const b = e.target.closest("[data-pen]"); if (!b) return;
     const amt = parseFloat(b.dataset.pen), p = playerById(b.dataset.pid);
     const d = [{ pid: p.id, amt }];
@@ -4381,6 +4414,204 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     await waterCheck(before);
   }
 
+
+  // ---------- Live sync: several phones, one night ----------
+  // Phones share the night through a free public MQTT relay. The room code picks the relay (its last digit) and is
+  // the encryption key: every message is AES-GCM encrypted with it on a hashed topic, so the relay only sees noise.
+  // Each change sends the whole night plus house rules as one retained message, so a phone that joins late gets it.
+  // The highest version wins (a counter, not the clock, so phone clocks don't matter); ties go to the larger device id.
+  const SYNC_RELAYS = ["wss://broker.hivemq.com:8884/mqtt", "wss://broker.emqx.io:8084/mqtt", "wss://test.mosquitto.org:8081/mqtt"];
+  const MQTT_SRC = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
+  const devSetting = (k) => { try { return localStorage.getItem(k); } catch { return null; } }; // test hooks for a local relay
+  const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const Sync = { client: null, key: null, topic: null, v: 0, last: "", applying: false, peers: new Set(), status: "off", timer: null, joining: false, prefill: "" };
+  if (!S.deviceId) { S.deviceId = uid() + uid(); save(); }
+  const normCode = (t) => { const c = String(t || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return /^[A-Z2-9]{6}[1-3]$/.test(c) ? c : null; };
+  const relayFor = (code) => devSetting("pd.syncRelay") || SYNC_RELAYS[+code.slice(-1) - 1];
+  const syncSnap = () => JSON.stringify({ night: S.night, rules: S.houseRules || null });
+  function loadMqtt() {
+    if (window.mqtt) return Promise.resolve(window.mqtt);
+    return new Promise((res, rej) => {
+      const sc = document.createElement("script"); sc.src = devSetting("pd.mqttSrc") || MQTT_SRC;
+      sc.onload = () => (window.mqtt ? res(window.mqtt) : rej(new Error("mqtt"))); sc.onerror = () => { sc.remove(); rej(new Error("offline")); };
+      document.head.appendChild(sc);
+    });
+  }
+  async function syncKeys(code) {
+    const enc = new TextEncoder(), h = async (t) => new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(t)));
+    const key = await crypto.subtle.importKey("raw", await h("pour-decisions key " + code), "AES-GCM", false, ["encrypt", "decrypt"]);
+    const topic = "pourdecisions/v1/" + [...(await h("pour-decisions room " + code))].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
+    return { key, topic };
+  }
+  async function seal(obj) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, Sync.key, new TextEncoder().encode(JSON.stringify(obj))));
+    const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+  }
+  async function unseal(buf) {
+    const b = new Uint8Array(buf);
+    return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, Sync.key, b.slice(12))));
+  }
+  function syncDisconnect() {
+    const c = Sync.client; Sync.client = null; Sync.peers = new Set(); Sync.status = "off";
+    if (c) { try { if (c.connected) c.publish(`${Sync.topic}/here/${S.deviceId}`, new Uint8Array(0), { retain: true }); c.end(false); } catch { /* already gone */ } }
+  }
+  async function syncConnect(code, timeout = 9000) {
+    const mq = await loadMqtt(), { key, topic } = await syncKeys(code);
+    syncDisconnect();
+    Object.assign(Sync, { key, topic, peers: new Set([S.deviceId]), status: "connecting" }); syncUI();
+    return new Promise((res, rej) => {
+      const me = S.deviceId, here = `${topic}/here/${me}`;
+      const client = mq.connect(relayFor(code), { clientId: `pd_${me.slice(0, 12)}_${uid()}`, clean: true, reconnectPeriod: 3000, connectTimeout: timeout, keepalive: 30,
+        will: { topic: here, payload: new Uint8Array(0), retain: true, qos: 0 } });
+      Sync.client = client;
+      let first = true;
+      const t = setTimeout(() => { if (first) { first = false; try { client.end(true); } catch { /* */ } if (Sync.client === client) Sync.client = null; rej(new Error("timeout")); } }, timeout);
+      client.on("connect", () => {
+        if (Sync.client !== client) return;
+        client.subscribe([`${topic}/state`, `${topic}/here/+`], { qos: 1 });
+        client.publish(here, "1", { retain: true });
+        Sync.status = "on"; syncUI();
+        if (first) { first = false; clearTimeout(t); res(); }
+        else setTimeout(syncPush, 1500); // after a reconnect: take the newer shared night first, then send ours if it's newer
+      });
+      client.on("message", (tp, msg) => { if (Sync.client === client) onSyncMessage(tp, msg); });
+      client.on("offline", () => { if (Sync.client === client) { Sync.status = "reconnecting"; syncUI(); } });
+      client.on("error", () => { /* mqtt.js keeps retrying */ });
+    });
+  }
+  async function onSyncMessage(tp, msg) {
+    if (tp.includes("/here/")) {
+      const id = tp.split("/here/")[1];
+      if (msg.length) Sync.peers.add(id); else Sync.peers.delete(id);
+      Sync.peers.add(S.deviceId); syncUI(); return;
+    }
+    let obj; try { obj = await unseal(msg); } catch { return; } // not ours, or a different code
+    if (!obj || !obj.night) return;
+    if (obj.from === S.deviceId) { Sync.v = Math.max(Sync.v, obj.v); return; }
+    if (obj.v < Sync.v || (obj.v === Sync.v && obj.from < S.deviceId)) return;
+    applyRemote(obj);
+  }
+  function applyRemote(obj) {
+    const old = N(), oldIds = new Set(old.rounds.map((r) => r.id)), joining = Sync.joining;
+    if (joining) {
+      Sync.joining = false;
+      if (old.started && !old.sample && old.id !== obj.night.id) { old.ended = Date.now(); old.pending = null; S.archive.push(old); }
+    }
+    Sync.applying = true;
+    S.night = obj.night; if (obj.rules) S.houseRules = obj.rules;
+    Sync.v = obj.v; Sync.last = syncSnap();
+    save(); Sync.applying = false;
+    const n = N();
+    if (form && (!n.pending || form.gameId !== n.pending.gameId)) form = null;
+    if (!n.pending && !n.wild) mainWheel._parked = false;
+    renderWhenFree();
+    if (joining) { toast("Joined the shared night"); closeSheet(); if (n.started) setTab("spin"); return; }
+    // another phone wrapped up the night: keep it in this phone's History too, and show the recap
+    if (old.id !== n.id && old.started && !S.archive.some((x) => x.id === old.id)) {
+      old.ended = old.ended || Date.now(); old.pending = null; S.archive.push(old); save();
+      toast("Another phone ended the night. It's saved in History."); openSheet("recap", old); return;
+    }
+    // show other phones' pours here too
+    const fresh = n.rounds.filter((r) => !oldIds.has(r.id));
+    const r = fresh[fresh.length - 1];
+    if (r && old.id === n.id && r.drinks.length && !document.hidden && $("#pour").hidden) {
+      pour(r.drinks, { notes: [r.gameId ? `${r.title} · ${r.winner ? "won by " + pnameById(r.winner) : "tie"}` : r.note || "Penalty"] });
+    }
+  }
+  // a re-render while someone types would eat their input, so wait for them to leave the field
+  let renderPending = false;
+  function renderWhenFree() {
+    const a = document.activeElement;
+    if (a && a.matches("input:not([type=checkbox]):not([type=radio]), textarea, select") && !a.closest("#sheet")) {
+      if (renderPending) return; renderPending = true;
+      a.addEventListener("blur", () => { renderPending = false; renderAll(); }, { once: true });
+      return;
+    }
+    renderAll();
+  }
+  function syncQueue() { if (!S.sync || Sync.applying) return; clearTimeout(Sync.timer); Sync.timer = setTimeout(syncPush, 250); }
+  async function syncPush() {
+    if (!S.sync || !Sync.client || !Sync.client.connected) return;
+    const snap = syncSnap(); if (snap === Sync.last) return;
+    Sync.last = snap; Sync.v++;
+    const d = JSON.parse(snap);
+    Sync.client.publish(`${Sync.topic}/state`, await seal({ v: Sync.v, from: S.deviceId, night: d.night, rules: d.rules }), { retain: true, qos: 1 });
+  }
+  async function syncStart() {
+    const tries = devSetting("pd.syncRelay") ? [1] : [1, 2, 3];
+    for (const relay of tries) {
+      const code = Array.from({ length: 6 }, () => CODE_ABC[randInt(CODE_ABC.length)]).join("") + relay;
+      try {
+        Sync.v = 0; Sync.last = ""; Sync.joining = false;
+        await syncConnect(code);
+        S.sync = { code }; save(); await syncPush(); return code;
+      } catch { /* try the next relay */ }
+    }
+    Sync.status = "off"; syncUI();
+    throw new Error("no relay");
+  }
+  async function syncJoin(raw) {
+    const code = normCode(raw); if (!code) throw new Error("code");
+    Sync.v = 0; Sync.last = syncSnap(); Sync.joining = true; // never push this phone's night over the shared one
+    await syncConnect(code);
+    S.sync = { code }; save();
+    setTimeout(() => { if (Sync.joining && S.sync?.code === code) { Sync.joining = false; toast("Connected, but no shared night was found for that code yet."); syncUI(); } }, 5000);
+  }
+  function syncLeave() { syncDisconnect(); S.sync = null; save(); syncUI(); toast("This phone stopped syncing. The night stays here."); }
+  function syncUI() {
+    const b = $("#syncBtn"); if (!b) return;
+    const on = !!S.sync, n = Sync.peers.size;
+    b.textContent = !on ? "📡 Sync" : Sync.status === "on" ? `📡 ${n} phone${n === 1 ? "" : "s"}` : "📡 Reconnecting…";
+    b.setAttribute("aria-pressed", String(on)); b.classList.toggle("sync-live", on && Sync.status === "on");
+    if (sheetKind === "sync" && !$("#sheet").contains(document.activeElement)) renderSheet();
+  }
+  function syncHTML() {
+    if (!S.sync) {
+      return `<div class="muted">Play on several phones at once. Everyone sees the same lineup, wheel, rounds, shots and house rules, and changes show up on every phone within a second or two.</div>
+        <div class="row"><button class="btn primary" type="button" id="syncStartBtn">Start a shared night</button></div>
+        <div class="muted" style="font-size:.88rem">Shares this phone's night with a code you can send to the others.</div>
+        <div class="eyebrow">Or join one</div>
+        <div class="row"><input type="text" id="syncCode" placeholder="Code, like K7M2QX1" maxlength="12" autocapitalize="characters" autocomplete="off" spellcheck="false" value="${esc(Sync.prefill)}" style="flex:1 1 160px"><button class="btn" type="button" id="syncJoinBtn">Join</button></div>
+        <div class="muted" style="font-size:.85rem">Joining switches this phone to the shared night. If you were in the middle of a night here, it's saved to History first. Updates travel through a free public relay, encrypted with the code, so only phones with the code can read them. Photos stay on the phone that took them. Settings, themes and music stay per phone.</div>`;
+    }
+    const n = Sync.peers.size, code = S.sync.code;
+    return `<div class="sync-code num" aria-label="Code ${code.split("").join(" ")}">${code.slice(0, 3)} ${code.slice(3)}</div>
+      <div class="muted" style="text-align:center">${Sync.status === "on" ? `Connected · ${n} phone${n === 1 ? "" : "s"} on this night` : Sync.status === "connecting" ? "Connecting…" : "Reconnecting… changes are saved here and sent when it's back."}</div>
+      <div class="row" style="justify-content:center"><button class="btn primary" type="button" id="syncShare">Share invite link</button><button class="btn" type="button" id="syncCopy">Copy code</button></div>
+      <div class="muted" style="font-size:.85rem">Others open the link, or tap 📡 Sync and enter the code. If two phones change something at the same moment, the last change wins, so let one person record each game.</div>
+      <div class="row"><button class="btn ghost danger" type="button" id="syncLeaveBtn">Stop syncing on this phone</button></div>`;
+  }
+  $("#syncBtn").addEventListener("click", () => openSheet("sync"));
+  $("#sheet").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "syncCode") { e.preventDefault(); $("#syncJoinBtn").click(); } });
+  $("#sheet").addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b || sheetKind !== "sync") return;
+    if (b.id === "syncStartBtn") {
+      b.disabled = true; b.textContent = "Connecting…";
+      try { await syncStart(); renderSheet(); toast("Shared night started. Send the code to the others."); }
+      catch { renderSheet(); toast("Couldn't reach a sync relay. Check the internet connection and try again."); }
+    } else if (b.id === "syncJoinBtn") {
+      const raw = $("#syncCode").value; Sync.prefill = raw;
+      if (!normCode(raw)) { toast("That code should be 7 letters and numbers, like K7M2QX1"); $("#syncCode").focus(); return; }
+      b.disabled = true; b.textContent = "Joining…";
+      try { await syncJoin(raw); Sync.prefill = ""; renderSheet(); }
+      catch { Sync.joining = false; renderSheet(); toast("Couldn't connect. Check the code and the internet connection."); }
+    } else if (b.id === "syncShare" || b.id === "syncCopy") {
+      const code = S.sync.code, url = location.href.split("#")[0] + "#join=" + code;
+      if (b.id === "syncShare" && navigator.share) { try { await navigator.share({ title: "Join our Pour Decisions night", text: `Join our drinking night on Pour Decisions. Code ${code}`, url }); return; } catch { return; } }
+      try { await navigator.clipboard.writeText(b.id === "syncCopy" ? code : url); toast(b.id === "syncCopy" ? "Code copied" : "Invite link copied"); } catch { toast(`The code is ${code}`); }
+    } else if (b.id === "syncLeaveBtn") { syncLeave(); renderSheet(); }
+  });
+  // reconnect on load if this phone was syncing, and retry when the connection comes back
+  function syncResume() {
+    if (!S.sync || Sync.client) return;
+    Sync.v = 0; Sync.last = ""; // the shared night is taken if it's newer than ours; otherwise ours goes out
+    syncConnect(S.sync.code).then(() => setTimeout(syncPush, 1500)).catch(() => { Sync.status = "reconnecting"; syncUI(); });
+  }
+  window.addEventListener("online", syncResume);
+  setInterval(() => { if (S.sync && !Sync.client) syncResume(); }, 20000);
+  window.pdSyncReady = true;
+
   // ---------- Night hand-off link ----------
   const b64u = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
   const unb64u = (str) => { const s = atob(str.replace(/-/g, "+").replace(/_/g, "/")); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
@@ -4401,6 +4632,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   let incomingNight = null;
   async function checkIncoming() {
+    const j = location.hash.match(/^#join=([A-Za-z0-9]+)$/);
+    if (j) {
+      try { history.replaceState(null, "", location.pathname + location.search); } catch { /* ignore */ }
+      if (S.sync?.code === normCode(j[1])) return;
+      if (S.sync) syncLeave();
+      Sync.prefill = j[1].toUpperCase(); openSheet("sync"); return;
+    }
     const m = location.hash.match(/^#night=(.+)$/); if (!m) return;
     try { incomingNight = await unpackNight(m[1]); openSheet("import"); }
     catch { toast("That night link didn't work. Ask for a fresh one."); }
@@ -4414,17 +4652,27 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <div class="row"><button class="btn primary" type="button" id="importNight">Open it here</button><button class="btn ghost" type="button" id="closeSheet2">Cancel</button></div>`;
   }
 
+  function endHTML() {
+    const n = N(), t = totals(), games = n.rounds.filter((r) => r.gameId).length, poured = Object.values(t).reduce((a, x) => a + x.shots, 0);
+    return `<div class="muted">${games} game${games === 1 ? "" : "s"} played and ${fmtShots(poured)} shot${poured === 1 ? "" : "s"} poured tonight. Ending the night saves it to History and shows the recap.</div>
+      <div class="end-opts">
+        <button class="end-opt" type="button" data-end="same"><b>🔁 Same games &amp; players</b><span>Fresh wheel with tonight's games back on. Shots and turns start over.</span></button>
+        <button class="end-opt" type="button" data-end="keep"><b>👥 Keep the crew</b><span>Same players, and everyone picks new games.</span></button>
+        <button class="end-opt" type="button" data-end="new"><b>✨ New crew</b><span>Start over with new players and games.</span></button>
+      </div>
+      <div class="row"><button class="btn ghost" type="button" id="closeSheet2">Keep playing</button></div>`;
+  }
   // ---------- Sheet (recap, trophies, finale) ----------
   let sheetKind = null, sheetNight = null;
   function openSheet(kind, night) { sheetKind = kind; sheetNight = night || N(); $("#sheet").hidden = false; renderSheet(); }
   function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
+    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : finaleHTML();
     if (sheetKind === "builder") previewDraft();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
@@ -4432,6 +4680,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (e.target.id === "sheet") return closeSheet();
     const b = e.target.closest("button"); if (!b) return;
     if (b.id === "closeSheet2" || b.id === "tbCancel") return closeSheet();
+    if (b.dataset.end) { closeSheet(); return endNight(b.dataset.end); }
     if (b.id === "tbSurprise") { draft = cleanTheme(Object.assign(draft, surpriseTheme())); return renderSheet(); }
     if (b.id === "tbSave") {
       if (!draft.label.trim()) { toast("Give your theme a name"); $('#sheetBody [data-tb="label"]').focus(); return; }
@@ -4868,6 +5117,24 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#view-stats").addEventListener("change", (e) => { if (e.target.id === "sgame") { statsGame = e.target.value; renderStats(); } });
 
   // ---------- History ----------
+  // wrap up tonight: archive it and start the next night ("same" keeps games and players, "keep" just the crew)
+  function endNight(mode) {
+    const old = N();
+    old.ended = Date.now(); old.pending = null;
+    S.archive.push(old);
+    const per = old.perPlayer;
+    const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art });
+    const players = mode === "same" ? old.players.map((p) => crew(p, p.games.map((g) => g.title)))
+      : mode === "keep" ? old.players.map((p) => crew(p, []))
+      : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
+    S.night = newNight(players); S.night.perPlayer = per; form = null;
+    if (mode === "same") {
+      // same lineup, fresh wheel: every game is back on, shots and turns start over
+      S.night.pool = old.pool; S.night.started = Date.now();
+      save(); toast("Night saved. Same games and players, fresh wheel."); setTab("spin");
+    } else { save(); toast("Night saved to the hall of fame"); setTab("setup"); }
+    openSheet("recap", old);
+  }
   let deleteArm = null, endArm = false;
   function allTime() {
     const map = {};
@@ -5041,21 +5308,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const mode = b.id === "endKeep" ? "keep" : b.id === "endSame" ? "same" : "new";
       if (endArm !== mode) { endArm = mode; renderHistory(); setTimeout(() => { if (endArm === mode) { endArm = false; renderHistory(); } }, 3500); return; }
       endArm = false;
-      const old = N();
-      old.ended = Date.now(); old.pending = null;
-      S.archive.push(old);
-      const per = old.perPlayer;
-      const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art });
-      const players = mode === "same" ? old.players.map((p) => crew(p, p.games.map((g) => g.title)))
-        : mode === "keep" ? old.players.map((p) => crew(p, []))
-        : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
-      S.night = newNight(players); S.night.perPlayer = per; form = null;
-      if (mode === "same") {
-        // same lineup, fresh wheel: every game is back on, shots and turns start over
-        S.night.pool = old.pool; S.night.started = Date.now();
-        save(); toast("Night saved. Same games and players, fresh wheel."); setTab("spin");
-      } else { save(); toast("Night saved to the hall of fame"); setTab("setup"); }
-      openSheet("recap", old);
+      endNight(mode);
     } else if (b.id === "copyBackup") {
       const txt = backupJSON();
       try { await navigator.clipboard.writeText(txt); toast("Backup copied"); }
@@ -5214,6 +5467,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- Boot ----------
   function renderAll() {
     const n = N();
+    $("#endBtn").hidden = !n.started;
     const pending = n.pending ? 1 : 0;
     $("#tab-spin").innerHTML = `Spin${pending ? '<span class="badge">1</span>' : ""}`;
     if (S.tab === "setup") renderSetup();
@@ -5343,6 +5597,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   applySkin();
   setTab(S.tab || "setup");
   checkIncoming();
+  syncUI(); syncResume();
   window.addEventListener("hashchange", checkIncoming);
 })();
 </script>

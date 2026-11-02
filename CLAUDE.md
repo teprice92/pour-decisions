@@ -61,4 +61,5 @@ Serve the folder with `python3 -m http.server` (a service worker needs http, not
 - Saved state (`S`) must stay backward compatible. Old saves can be missing newer fields, so default them when reading.
 - Avoid full re-renders on `change` or `blur` while someone may be tapping, because they swallow the next tap. Update text in place on `input` instead.
 - When killing the local test server, use `pkill -f "[h]ttp.server 8765"` in its own command. A plain pattern also matches the shell running it and kills it.
+- Live sync sends `S.night` and `S.houseRules` as one encrypted, retained MQTT message per change (see the "Live sync" section in `index.html`). Anything new that belongs to the shared night should live on `S.night` so it syncs. Per-phone things (settings, themes, music, photos) stay outside it. To test sync, run a local relay (`aedes` and `websocket-stream` over ws) and set `localStorage` `pd.syncRelay` to `ws://localhost:<port>` and `pd.mqttSrc` to a local copy of `mqtt.min.js`.
 - Commits go to `main` (GitHub Pages serves it) and end with the session's attribution lines.
