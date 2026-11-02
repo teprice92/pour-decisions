@@ -1227,6 +1227,15 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .photo-strip .photo-thumb span { font-size: .75rem; padding: 4px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-view { display: grid; gap: 12px; max-width: min(900px, 100%); }
 .photo-view img { max-width: 100%; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+/* Share the app: a card in the theme's colors, with the QR code on white so cameras can read it */
+.share-card { display: grid; gap: 12px; justify-items: center; padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--bg); background-image: var(--bg-art); }
+.share-brand { display: flex; align-items: center; gap: 12px; }
+.share-brand svg { width: 56px; height: 56px; flex: none; }
+.share-brand .brand-name { font-size: 1.5rem; }
+.share-qr { width: min(240px, 70vw); aspect-ratio: 1; display: grid; place-items: center; padding: 10px; background: #fff; border-radius: 12px; box-shadow: 0 0 0 3px var(--accent); text-align: center; }
+.share-qr svg { width: 100%; height: 100%; display: block; }
+.share-url { font-weight: 700; color: var(--accent); word-break: break-all; text-align: center; }
+@media (max-width: 520px) { .share-word { display: none; } }
 /* Live sync */
 .sync-code { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: .18em; text-align: center; font-weight: 800; color: var(--accent); }
 #syncBtn.sync-live { border-color: var(--accent); color: var(--accent); }
@@ -1449,6 +1458,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <button class="tab" role="tab" data-tab="games" id="tab-games">Games</button>
       <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
       <span class="spacer"></span>
+      <button class="btn small ghost" id="shareAppBtn" type="button" aria-label="Share Pour Decisions with friends">📤 <span class="share-word">Share</span></button>
       <button class="btn small ghost" id="syncBtn" type="button" aria-pressed="false">📡 Sync</button>
       <button class="btn small ghost" id="musicBtn" type="button" aria-pressed="false">♪ Music off</button>
       <button class="btn small ghost tv-toggle" id="tvBtn" type="button">TV mode</button>
@@ -4623,6 +4633,54 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   setInterval(() => { if (S.sync && !Sync.client) syncResume(); }, 20000);
   window.pdSyncReady = true;
 
+
+  // ---------- Share the app ----------
+  // An installed app has no address bar, so this hands friends the site link: the phone's share sheet,
+  // a copy button, and a QR code to scan across the table. The invite line follows the current theme.
+  const APP_URL = "https://teprice92.github.io/pour-decisions/";
+  const QR_SRC = "https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";
+  const appUrl = () => (/\.github\.io$/.test(location.hostname) ? location.origin + location.pathname.replace(/index\.html$/, "") : APP_URL);
+  const inviteText = () => `Pour Decisions: ${SKINS[S.skin].tagline.replace(/^Bet list night · /, "")}. Spin the wheel for games, bet on who wins, pour the shots.`;
+  function loadQr() {
+    if (window.qrcode) return Promise.resolve(window.qrcode);
+    return new Promise((res, rej) => {
+      const sc = document.createElement("script"); sc.src = devSetting("pd.qrSrc") || QR_SRC;
+      sc.onload = () => (window.qrcode ? res(window.qrcode) : rej(new Error("qr"))); sc.onerror = () => { sc.remove(); rej(new Error("offline")); };
+      document.head.appendChild(sc);
+    });
+  }
+  function shareHTML() {
+    const logo = $(".brand svg").outerHTML.replace(/logoClip/g, "logoClipShare");
+    return `<div class="share-card">
+        <div class="share-brand">${logo}<div><div class="brand-name">Pour Decisions</div><div class="muted">${esc(SKINS[S.skin].tagline)}</div></div></div>
+        <div class="share-qr" id="shareQr" aria-label="QR code for ${esc(appUrl())}"><span class="muted">Making the QR code…</span></div>
+        <div class="muted" style="text-align:center;font-size:.9rem">Scan with a phone camera to open the app</div>
+        <div class="share-url num">${esc(appUrl().replace(/^https:\/\//, ""))}</div>
+      </div>
+      <div class="row" style="justify-content:center">
+        ${navigator.share ? `<button class="btn primary" type="button" id="shareNative">📤 Send to friends</button>` : ""}
+        <button class="btn ${navigator.share ? "" : "primary"}" type="button" id="shareCopy">Copy link</button>
+      </div>
+      <div class="muted" style="font-size:.85rem">Friends open the link, then add it to their home screen to install it. Want them on tonight's night too? Use 📡 Sync after they open it.</div>`;
+  }
+  async function drawShareQr() {
+    const box = $("#shareQr"); if (!box) return;
+    try {
+      const qr = (await loadQr())(0, "M"); qr.addData(appUrl()); qr.make();
+      box.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    } catch { box.innerHTML = `<span class="muted">The QR code needs an internet connection. The link below works anywhere.</span>`; }
+  }
+  $("#shareAppBtn").addEventListener("click", () => openSheet("share"));
+  $("#sheet").addEventListener("click", async (e) => {
+    const b = e.target.closest("button"); if (!b || sheetKind !== "share") return;
+    if (b.id === "shareNative") {
+      try { await navigator.share({ title: "Pour Decisions", text: inviteText(), url: appUrl() }); } catch { /* cancelled */ }
+    } else if (b.id === "shareCopy") {
+      try { await navigator.clipboard.writeText(appUrl()); toast("Link copied. Send it to your friends."); }
+      catch { toast(`The link is ${appUrl()}`); }
+    }
+  });
+
   // ---------- Night hand-off link ----------
   const b64u = (bytes) => { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
   const unb64u = (str) => { const s = atob(str.replace(/-/g, "+").replace(/_/g, "/")); const out = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i); return out; };
@@ -4679,11 +4737,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
+    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
+    if (sheetKind === "share") drawShareQr();
     if (sheetKind === "builder") previewDraft();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
@@ -5284,7 +5343,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (embedded) return "";
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     let body;
-    if (isStandalone()) body = `<div class="muted">You're using the installed app. It works offline and picks up updates automatically the next time you open it online.</div>`;
+    if (isStandalone()) body = `<div class="muted">You're using the installed app. It works offline and picks up updates automatically the next time you open it online.</div><div class="row"><button class="btn" type="button" id="shareFromInstall">📤 Share the app with friends</button></div>`;
     else if (installPrompt) body = `<div class="muted">Add Pour Decisions to your home screen. It opens full screen, works offline, and updates itself from the site.</div><div class="row"><button class="btn primary" type="button" id="installBtn">Install app</button></div>`;
     else if (ios) body = `<div class="muted">On iPhone: tap the Share button in Safari, then <b>Add to Home Screen</b>. It works offline and updates itself from the site.</div>`;
     else body = `<div class="muted">Open your browser's menu and choose <b>Install app</b> or <b>Add to Home screen</b>. It works offline and updates itself from the site.</div>`;
@@ -5309,6 +5368,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const b = e.target.closest("button"); if (!b) return;
     if (b.dataset.viewphoto) return openPhoto(b.dataset.viewphoto);
     if (b.id === "tbNew") return openBuilder();
+    if (b.id === "shareFromInstall") return openSheet("share");
     if (b.dataset.tbedit) return openBuilder(b.dataset.tbedit);
     if (b.dataset.tbuse) { S.skin = b.dataset.tbuse; save(); applySkin(); renderAll(); return toast(`${SKINS[S.skin].label} is on`); }
     if (b.dataset.recap) { const nt = S.archive.find((x) => x.id === b.dataset.recap); if (nt) openSheet("recap", nt); return; }
