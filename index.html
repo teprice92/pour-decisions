@@ -1797,6 +1797,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const q4 = (n) => Math.max(0, Math.round(n * 4) / 4);
   const fmtShots = (n) => {
+    if (n < -0.124) return "−" + fmtShots(-n); // shots taken back can leave a total below zero
     n = q4(n);
     const whole = Math.floor(n);
     const frac = ["", "¼", "½", "¾"][Math.round((n - whole) * 4)];
@@ -3801,7 +3802,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const n = N(), t = totals(), st = streaks();
     const rows = n.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins || t[a.id].shots - t[b.id].shots);
     box.innerHTML = `<div class="row" style="justify-content:space-between"><h3>Shot board</h3><span class="muted">wins · shots</span></div>
-      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh - Math.floor(sh + 1e-9); return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
+      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh > 0 ? sh - Math.floor(sh + 1e-9) : 0; return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
   }
   $("#tvBtn").addEventListener("click", async () => {
     const root = document.documentElement, on = !root.classList.contains("tv");
@@ -4125,7 +4126,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       </div>
       <div class="score-grid">
         ${n.players.map((p) => {
-          const s = t[p.id].shots, whole = Math.floor(s + 1e-9), part = s - whole;
+          const s = t[p.id].shots, whole = Math.max(0, Math.floor(s + 1e-9)), part = s > 0 ? s - whole : 0;
           const cur = part > 0.001 ? part : (whole > 0 ? 1 : 0);
           const shown = Math.min(whole, 20);
           const stk = streaks()[p.id] || 0;
@@ -4140,6 +4141,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="penalty">
               <span class="muted" style="font-size:.8rem;align-self:center">Penalty</span>
               ${[0.25, 0.5, 1].map((a) => `<button class="btn small" type="button" data-pen="${a}" data-pid="${p.id}">+${fmtShots(a)}</button>`).join("")}
+            </div>
+            <div class="penalty">
+              <span class="muted" style="font-size:.8rem;align-self:center">Take off</span>
+              ${[0.25, 0.5, 1].map((a) => `<button class="btn small" type="button" data-pen="-${a}" data-pid="${p.id}" aria-label="Take ${fmtShots(a)} off ${esc(p.name)}">−${fmtShots(a)}</button>`).join("")}
               ${lastShot(p.id) ? `<button class="btn small ghost" type="button" data-undoshot="${p.id}">${undoShotArm === p.id ? `Take back ${fmtShots(lastShot(p.id).d.amt)}?` : "↩ Undo shot"}</button>` : ""}
             </div>
           </div>`;
@@ -4177,6 +4182,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const b = e.target.closest("[data-pen]"); if (!b) return;
     const amt = parseFloat(b.dataset.pen), p = playerById(b.dataset.pid);
     const d = [{ pid: p.id, amt }];
+    // negative amounts take shots off: logged as an adjustment, no pour
+    if (amt < 0) {
+      N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Shots taken off", winner: null, drinks: d });
+      save(); renderAll(); toast(`${fmtShots(amt)} for ${pname(p)}`); buzz("rule");
+      return;
+    }
     const before = totals();
     N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Penalty", winner: null, drinks: d });
     save(); renderScores();
