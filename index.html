@@ -902,6 +902,72 @@ html[data-skin="ganon"] .brand-sub::before { content: "▲ Power // "; color: va
 html[data-skin="ganon"] .eyebrow { color: #e0607a; }
 html[data-skin="ganon"] .btn.primary { box-shadow: 0 0 16px rgba(212, 165, 55, .45), inset 0 -3px 0 rgba(0, 0, 0, .25); }
 html[data-skin="ganon"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); text-shadow: 0 0 10px rgba(224, 51, 122, .8); }
+html[data-skin="temple"] {
+  /* Temple of Time: pale marble, Hylian royal blue, Triforce gold, light pouring in through the high windows */
+  --bg: #ebe7dc;
+  --bg-art: linear-gradient(112deg, transparent 0 22%, rgba(255, 246, 205, .75) 27%, transparent 34%), linear-gradient(104deg, transparent 0 52%, rgba(255, 246, 205, .55) 56%, transparent 62%), linear-gradient(98deg, transparent 0 76%, rgba(255, 246, 205, .45) 79%, transparent 84%), url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='280'%20viewBox='0%200%20300%20280'%3E%3Cg%20transform='translate%2880%2070%29'%20fill='%23c9a23a'%20fill-opacity='.14'%3E%3Cpath%20d='M0%20-30%20L17%200%20L-17%200%20Z'/%3E%3Cpath%20d='M-17%200%20L0%2030%20L-34%2030%20Z'/%3E%3Cpath%20d='M17%200%20L34%2030%20L0%2030%20Z'/%3E%3C/g%3E%3Cg%20transform='translate%28220%20200%29'%20fill='none'%20stroke='%232a4d9b'%20stroke-opacity='.12'%20stroke-width='3'%20stroke-linecap='round'%3E%3Cpath%20d='M0%20-18%20L0%2022'/%3E%3Cpath%20d='M-6%20-10%20L6%20-10'/%3E%3Cpath%20d='M-4%206%20C-20%200%20-34%20-8%20-44%20-22%20C-30%20-18%20-18%20-16%20-8%20-8'/%3E%3Cpath%20d='M4%206%20C20%200%2034%20-8%2044%20-22%20C30%20-18%2018%20-16%208%20-8'/%3E%3C/g%3E%3C/svg%3E"), radial-gradient(900px 500px at 50% -15%, rgba(255, 238, 170, .7), transparent 65%);
+  --panel: rgba(250, 248, 242, .9);
+  --panel-2: #f1ede3;
+  --fg: #1d2742;
+  --muted: #5d6478;
+  --accent: #2a4d9b;
+  --accent-fg: #ffffff;
+  --accent-2: #c9a23a;
+  --danger: #b3261e;
+  --line: rgba(42, 77, 155, .22);
+  --liquid: #8fc6ff;
+  --liquid-2: #2a4d9b;
+  --glass: rgba(29, 39, 66, .06);
+  --glass-edge: rgba(29, 39, 66, .55);
+  --font-display: "Marcellus SC", "Cinzel", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .06em;
+  --display-weight: 400;
+  --radius: 6px;
+  --shadow: 0 0 0 1px var(--line), 0 14px 34px rgba(60, 50, 20, .12);
+  color-scheme: light;
+}
+html[data-skin="temple"] .panel { border-top: 3px solid var(--accent-2); }
+html[data-skin="temple"] h2, html[data-skin="temple"] .up-next .who, html[data-skin="temple"] .brand-name, html[data-skin="temple"] .landed .game-title { text-shadow: 0 1px 0 #fff, 0 0 18px rgba(201, 162, 58, .45); }
+html[data-skin="temple"] .brand-sub::before { content: "▲ "; color: var(--accent-2); }
+html[data-skin="temple"] .eyebrow { color: #9a7a22; }
+html[data-skin="temple"] .btn.primary { box-shadow: 0 0 0 2px #c9a23a inset, 0 6px 16px rgba(42, 77, 155, .25); }
+html[data-skin="temple"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); }
+/* Marcellus SC draws a round small-caps zero, so numbers use the body face */
+html[data-skin="temple"] .scard .total, html[data-skin="temple"] .tv-board .num, html[data-skin="temple"] .tile .tv { font-family: var(--font-body); font-weight: 700; }
+html[data-skin="ocarina"] {
+  /* Ocarina of Time: night over Hyrule Field, the ocarina's blue, N64 C-button yellow notes on a staff */
+  --bg: #0a1830;
+  --bg-art: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='200'%20viewBox='0%200%20320%20200'%3E%3Cpath%20d='M0%2040%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.10'%20stroke-width='1.5'/%3E%3Cpath%20d='M0%2052%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.10'%20stroke-width='1.5'/%3E%3Cpath%20d='M0%2064%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.10'%20stroke-width='1.5'/%3E%3Cpath%20d='M0%2076%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.10'%20stroke-width='1.5'/%3E%3Cpath%20d='M0%2088%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.10'%20stroke-width='1.5'/%3E%3Cg%20fill='%23f6c90e'%20fill-opacity='.22'%3E%3Cellipse%20cx='40'%20cy='76'%20rx='7'%20ry='5'%20transform='rotate%28-20%2040%2076%29'/%3E%3Crect%20x='45.5'%20y='46'%20width='2'%20height='30'/%3E%3C/g%3E%3Cg%20fill='%23f6c90e'%20fill-opacity='.22'%3E%3Cellipse%20cx='100'%20cy='58'%20rx='7'%20ry='5'%20transform='rotate%28-20%20100%2058%29'/%3E%3Crect%20x='105.5'%20y='28'%20width='2'%20height='30'/%3E%3C/g%3E%3Cg%20fill='%233d8bff'%20fill-opacity='.22'%3E%3Cellipse%20cx='160'%20cy='88'%20rx='7'%20ry='5'%20transform='rotate%28-20%20160%2088%29'/%3E%3Crect%20x='165.5'%20y='58'%20width='2'%20height='30'/%3E%3C/g%3E%3Cg%20fill='%23f6c90e'%20fill-opacity='.22'%3E%3Cellipse%20cx='220'%20cy='46'%20rx='7'%20ry='5'%20transform='rotate%28-20%20220%2046%29'/%3E%3Crect%20x='225.5'%20y='16'%20width='2'%20height='30'/%3E%3C/g%3E%3Cg%20fill='%23f6c90e'%20fill-opacity='.22'%3E%3Cellipse%20cx='280'%20cy='70'%20rx='7'%20ry='5'%20transform='rotate%28-20%20280%2070%29'/%3E%3Crect%20x='285.5'%20y='40'%20width='2'%20height='30'/%3E%3C/g%3E%3Cpath%20d='M0%20150%20H320'%20stroke='%239bc4ff'%20stroke-opacity='.06'%20stroke-width='1.5'/%3E%3C/svg%3E"), radial-gradient(1000px 520px at 80% -10%, rgba(61, 139, 255, .30), transparent 60%), radial-gradient(700px 420px at 0% 110%, rgba(246, 201, 14, .12), transparent 60%);
+  --panel: rgba(14, 32, 62, .88);
+  --panel-2: #12284c;
+  --fg: #eef4ff;
+  --muted: #9cb2d4;
+  --accent: #f6c90e;
+  --accent-fg: #1a1400;
+  --accent-2: #3d8bff;
+  --danger: #ff6b6b;
+  --line: rgba(155, 196, 255, .24);
+  --liquid: #7fc2ff;
+  --liquid-2: #2f6fe0;
+  --glass: rgba(238, 244, 255, .08);
+  --glass-edge: rgba(190, 215, 255, .65);
+  --font-display: "Cormorant Garamond", "Cinzel", serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .02em;
+  --display-weight: 600;
+  --radius: 16px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+html[data-skin="ocarina"] .panel { border-top: 3px solid var(--accent-2); }
+html[data-skin="ocarina"] h2, html[data-skin="ocarina"] .up-next .who, html[data-skin="ocarina"] .brand-name, html[data-skin="ocarina"] .landed .game-title { font-style: italic; text-shadow: 0 0 14px rgba(61, 139, 255, .6); }
+html[data-skin="ocarina"] .brand-sub::before { content: "♪ ▲ ◀ ▶ ▼ // "; color: var(--accent); letter-spacing: .06em; }
+html[data-skin="ocarina"] .eyebrow { color: #8fc0ff; }
+html[data-skin="ocarina"] .btn.primary { border-radius: 999px; box-shadow: 0 0 16px rgba(246, 201, 14, .4); }
+html[data-skin="ocarina"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1824,6 +1890,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "The King of Evil has decreed", spin: "Spin",
       quips: ["The Triforce of Power demands a shot.", "Foolish hero. Drink.", "Malice is spreading… to your glass.", "Dead Man's Volley that shot back. Too late.", "Kneel before the Demon King, then drink.", "Gerudo rules: bottoms up.", "Courage won't save you from this round."],
     },
+    temple: {
+      label: "Temple of Time", dot: "#2a4d9b",
+      tagline: "Bet list night · Seven years later, still drinking",
+      wheel: ["#2a4d9b", "#f1ede3", "#c9a23a", "#1d2742", "#8fc6ff", "#7a2e3b", "#4d7a4f"],
+      landed: "The Door of Time opens", spin: "Spin",
+      quips: ["The Master Sword stays put. You drink.", "Seven years pass. The shot remains.", "Sheik saw this coming.", "The Door of Time opens. So does the bottle.", "Rest here, hero. After this shot.", "The Triforce is balanced. Your glass isn't."],
+    },
+    ocarina: {
+      label: "Ocarina", dot: "#3d8bff",
+      tagline: "Bet list night · Learn the Song of Shots",
+      wheel: ["#3d8bff", "#12284c", "#f6c90e", "#2a5a2e", "#eef4ff", "#7b3fa0", "#e06a2b"],
+      landed: "You played the Song of Time", spin: "Spin",
+      quips: ["Hey! Listen! Drink!", "You played the Song of Shots!", "Saria's Song, Saria's shots.", "Song of Storms: it's pouring.", "Epona's Song calls the next round.", "Zelda's Lullaby: sleep it off later.", "Sun's Song can't save you now."],
+    },
     formula: {
       label: "Formula One", dot: "#e10600",
       tagline: "Bet list night · Lights out, glasses up",
@@ -2015,6 +2095,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
     formula: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [880, .5, 1600]], tick: [160, "sawtooth"], pour: "sawtooth" },
     papaya: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [988, .2, 1600], [1319, .45, 1800]], tick: [180, "sawtooth"], pour: "sawtooth" },
+    temple: { type: "sine", land: [[392, .9, 0], [494, .9, 0], [587, .9, 0], [523, .9, 650], [659, .9, 650], [784, 1.4, 1300], [988, 1.4, 1300], [1175, 1.4, 1300]], tick: [1600, "sine"], pour: "sine" },
+    ocarina: { type: "triangle", land: [[440, .3, 0], [294, .45, 300], [349, .3, 760], [440, .3, 1060], [294, .45, 1360], [349, .7, 1820]], tick: [1200, "triangle"], pour: "sine" },
     ganon: { type: "sawtooth", land: [[147, .5, 0], [175, .5, 0], [220, .5, 0], [139, .5, 520], [165, .5, 520], [208, .5, 520], [110, 1.0, 1040], [131, 1.0, 1040], [165, 1.0, 1040]], tick: [380, "sawtooth"], hit: true, pour: "sawtooth" },
     kitsune: { type: "sine", land: [[1175, .12, 0], [1319, .12, 110], [1568, .12, 220], [1760, .12, 330], [2349, .5, 440]], tick: [1800, "sine"], pour: "sine" },
     akatsuki: { type: "sawtooth", land: [[220, .25, 0], [233, .25, 0], [165, .35, 260], [110, .7, 560]], tick: [500, "sawtooth"], hit: true, pour: "triangle" },
@@ -2035,7 +2117,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
   const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
     skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
-    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], temple: [0.9, 0.84], ocarina: [1.25, 1.02], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
   const canSpeak = "speechSynthesis" in window;
   const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
   // fractions and emoji don't read well, so they're spelled out or dropped
@@ -2259,6 +2341,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     naruto: ["fight", 52, "in", [0, 5, 3, 4], { bpm: 132, lead: "triangle" }],
     akatsuki: ["stealth", 45, "in", [0, 1, 5, 0], { bpm: 84, density: 0.2 }],
     kitsune: ["chill", 54, "in", [0, 5, 3, 4], { bpm: 86, lead: "triangle", density: 0.35 }],
+    temple: ["epic", 55, "dorian", [0, 3, 4, 0], { bpm: 62, lead: "sine", drums: null, density: 0.2, cutoff: 2600 }],
+    ocarina: ["waltz", 62, "major", [0, 4, 3, 4], { bpm: 108, lead: "sine", density: 0.4 }],
     ganon: ["gothic", 43, "harmonic", [0, 5, 1, 4], { bpm: 92, lead: "sawtooth", density: 0.4, cutoff: 1900 }],
     formula: ["synth", 50, "minor", [0, 5, 6, 4], { bpm: 128, drums: "rock", lead: "sawtooth" }],
     papaya: ["synth", 52, "major", [0, 4, 5, 3], { bpm: 132, drums: "rock", lead: "square" }],
@@ -3956,6 +4040,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     akatsuki: { shape: "cloud", colors: ["#d0102b", "#b3001b", "#e01b38"], extra: ["💍"] },
     formula: { shape: "pixel", colors: ["#15151e", "#ffffff", "#ffffff", "#15151e", "#e10600"], extra: ["🏎️", "🏁", "🍾"] },
     papaya: { shape: "rect", colors: ["#ff8000", "#ff8000", "#ffb04d", "#47c7fc", "#ffffff", "#16171a"], extra: ["🧡", "🏎️", "🏆"] },
+    temple: { glyphs: ["✦", "✧"], colors: ["#c9a23a", "#e8c766", "#2a4d9b", "#ffffff"], extra: ["🗡️", "🛡️"], gravity: 0.08 },
+    ocarina: { glyphs: ["♪", "♫", "▲", "◀", "▶", "▼"], colors: ["#f6c90e", "#f6c90e", "#3d8bff", "#ffffff"], extra: ["🎶"], size: 1.3 },
     ganon: { shape: "tri", colors: ["#d4a537", "#f7dc8a", "#a8102a", "#e0337a"], extra: ["🐗", "🗡️"] },
     kitsune: { shape: "flame", colors: ["#5ef2ff", "#9ffcff", "#2f9dff", "#b9a6ff"], extra: ["🦊", "⛩️"], gravity: 0.06 },
   };
@@ -3964,7 +4050,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
     skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
     amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
-    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
+    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", temple: "The Master Sword chose you", ocarina: "You learned a new song!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
   let confettiParts = [], confettiRaf = null;
   function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
     if (S.confetti === false || reduceMotion) return;
