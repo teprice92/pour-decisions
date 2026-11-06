@@ -2,10 +2,11 @@
 // The page is network-first: online, you always get the latest version from the site;
 // offline (or on a slow connection), the last saved copy opens instead.
 // Bump VERSION when the list of app files below changes.
-const VERSION = "v8";
+const VERSION = "v9";
 const CATALOG_REV = 7; // matches CATALOG_REV in index.html
 const SHELL = `pd-shell-${VERSION}`;
 const FONTS = "pd-fonts";
+// "pd-voice" holds spoken ElevenLabs lines; the page manages it and it survives updates
 const SHELL_FILES = [
   "./",
   "./index.html",
@@ -27,7 +28,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== FONTS).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== FONTS && k !== "pd-voice").map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
       .then(() => { cacheThemeFonts(); cacheCatalog(); }) // in the background; don't hold up activation
   );
