@@ -934,8 +934,9 @@ html[data-skin="temple"] .brand-sub::before { content: "▲ "; color: var(--acce
 html[data-skin="temple"] .eyebrow { color: #9a7a22; }
 html[data-skin="temple"] .btn.primary { box-shadow: 0 0 0 2px #c9a23a inset, 0 6px 16px rgba(42, 77, 155, .25); }
 html[data-skin="temple"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); }
-/* Marcellus SC draws a round small-caps zero, so numbers use the body face */
-html[data-skin="temple"] .scard .total, html[data-skin="temple"] .tv-board .num, html[data-skin="temple"] .tile .tv { font-family: var(--font-body); font-weight: 700; }
+/* Marcellus SC and IM Fell draw old-style zeros that read as "o", so numbers use the body face */
+html[data-skin="temple"] .scard .total, html[data-skin="temple"] .tv-board .num, html[data-skin="temple"] .tile .tv,
+html[data-skin="majora"] .scard .total, html[data-skin="majora"] .tv-board .num, html[data-skin="majora"] .tile .tv { font-family: var(--font-body); font-weight: 700; }
 html[data-skin="ocarina"] {
   /* Ocarina of Time: night over Hyrule Field, the ocarina's blue, N64 C-button yellow notes on a staff */
   --bg: #0a1830;
@@ -968,6 +969,84 @@ html[data-skin="ocarina"] .brand-sub::before { content: "♪ ▲ ◀ ▶ ▼ // 
 html[data-skin="ocarina"] .eyebrow { color: #8fc0ff; }
 html[data-skin="ocarina"] .btn.primary { border-radius: 999px; box-shadow: 0 0 16px rgba(246, 201, 14, .4); }
 html[data-skin="ocarina"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); }
+html[data-skin="majora"] {
+  /* Majora's Mask: Termina's final night, a bruised purple sky going orange at the horizon, and the moon coming down */
+  --bg: #1a0d2b;
+  --bg-art: none;
+  --panel: rgba(30, 16, 44, .88);
+  --panel-2: #26143a;
+  --fg: #f8ecd8;
+  --muted: #c0a6c8;
+  --accent: #f2a516;
+  --accent-fg: #1d0e00;
+  --accent-2: #9b3fd6;
+  --danger: #ff5f6d;
+  --line: rgba(242, 165, 22, .26);
+  --liquid: #d93a8a;
+  --liquid-2: #6a1f9e;
+  --glass: rgba(248, 236, 216, .07);
+  --glass-edge: rgba(242, 200, 140, .6);
+  --font-display: "IM Fell English", "Cinzel", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .02em;
+  --display-weight: 400;
+  --radius: 10px;
+  --shadow: 0 0 0 1px var(--line), 0 0 26px rgba(155, 63, 214, .15), 0 18px 40px rgba(0, 0, 0, .55);
+  color-scheme: dark;
+}
+html[data-skin="majora"] body {
+  background: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20200%20200'%3E%3Cdefs%3E%3CradialGradient%20id='m'%20cx='.4'%20cy='.35'%20r='.75'%3E%3Cstop%20offset='0'%20stop-color='%23e6d39c'/%3E%3Cstop%20offset='.7'%20stop-color='%23b89a5e'/%3E%3Cstop%20offset='1'%20stop-color='%236e5530'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle%20cx='100'%20cy='100'%20r='94'%20fill='url%28%23m%29'/%3E%3Ccircle%20cx='150'%20cy='60'%20r='9'%20fill='%23000'%20fill-opacity='.12'/%3E%3Ccircle%20cx='40'%20cy='120'%20r='7'%20fill='%23000'%20fill-opacity='.12'/%3E%3Ccircle%20cx='160'%20cy='140'%20r='11'%20fill='%23000'%20fill-opacity='.1'/%3E%3Cpath%20d='M38%2058%20L88%2074'%20stroke='%234a3418'%20stroke-width='9'%20stroke-linecap='round'/%3E%3Cpath%20d='M162%2058%20L112%2074'%20stroke='%234a3418'%20stroke-width='9'%20stroke-linecap='round'/%3E%3Cellipse%20cx='64'%20cy='88'%20rx='22'%20ry='15'%20fill='%23f7efc8'/%3E%3Ccircle%20cx='68'%20cy='88'%20r='9'%20fill='%23e8901c'/%3E%3Ccircle%20cx='69'%20cy='88'%20r='4'%20fill='%232a1408'/%3E%3Cellipse%20cx='136'%20cy='88'%20rx='22'%20ry='15'%20fill='%23f7efc8'/%3E%3Ccircle%20cx='132'%20cy='88'%20r='9'%20fill='%23e8901c'/%3E%3Ccircle%20cx='131'%20cy='88'%20r='4'%20fill='%232a1408'/%3E%3Cpath%20d='M92%2098%20Q100%20118%20108%2098'%20fill='none'%20stroke='%235a4020'%20stroke-width='5'%20stroke-linecap='round'/%3E%3Cpath%20d='M46%20128%20Q100%20182%20154%20128%20Q100%20146%2046%20128%20Z'%20fill='%233a1d10'/%3E%3Crect%20x='56'%20y='132'%20width='9'%20height='13'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='66'%20y='133'%20width='9'%20height='11'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='76'%20y='132'%20width='9'%20height='13'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='86'%20y='133'%20width='9'%20height='11'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='96'%20y='132'%20width='9'%20height='13'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='106'%20y='133'%20width='9'%20height='11'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='116'%20y='132'%20width='9'%20height='13'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='126'%20y='133'%20width='9'%20height='11'%20rx='1.5'%20fill='%23f2ead0'/%3E%3Crect%20x='136'%20y='132'%20width='9'%20height='13'%20rx='1.5'%20fill='%23f2ead0'/%3E%3C/svg%3E") right -80px top 30px / min(440px, 70vw) no-repeat fixed, url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='220'%20viewBox='0%200%20240%20220'%3E%3Cg%20fill='%23ffd9a0'%3E%3Ccircle%20cx='20'%20cy='30'%20r='1.4'%20opacity='.7'/%3E%3Ccircle%20cx='130'%20cy='18'%20r='1'%20opacity='.6'/%3E%3Ccircle%20cx='200'%20cy='80'%20r='1.6'%20opacity='.5'/%3E%3Ccircle%20cx='70'%20cy='120'%20r='1.1'%20opacity='.5'/%3E%3Ccircle%20cx='170'%20cy='170'%20r='1.3'%20opacity='.4'/%3E%3Ccircle%20cx='30'%20cy='190'%20r='1'%20opacity='.4'/%3E%3C/g%3E%3C/svg%3E"), linear-gradient(180deg, #120821 0%, #2b1046 45%, #6b2b4a 78%, #c2611e 100%) fixed;
+  background-color: var(--bg);
+}
+html[data-skin="majora"] .panel { border-top: 3px solid var(--accent-2); }
+html[data-skin="majora"] h2, html[data-skin="majora"] .up-next .who, html[data-skin="majora"] .brand-name, html[data-skin="majora"] .landed .game-title { color: #ffd27a; text-shadow: 0 0 14px rgba(217, 58, 138, .55), 2px 2px 0 #2a0f3a; }
+html[data-skin="majora"] .brand-sub::before { content: "🌕 "; }
+html[data-skin="majora"] .eyebrow { color: #e78ad0; }
+html[data-skin="majora"] .btn.primary { box-shadow: 0 0 16px rgba(242, 165, 22, .45); }
+html[data-skin="majora"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); }
+/* "Dawn of the Final Day" card when the night ends in this theme */
+.dawn { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; background: #000; color: #f4ecd6; text-align: center; font-family: "IM Fell English", serif; animation: dawn 3.4s ease forwards; pointer-events: none; }
+.dawn b { display: block; font-size: clamp(2rem, 8vw, 4.2rem); font-weight: 400; line-height: 1.1; }
+.dawn span { display: block; margin-top: 14px; font-size: clamp(1rem, 3.5vw, 1.4rem); letter-spacing: .12em; }
+@keyframes dawn { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+html[data-skin="windwaker"] {
+  /* Wind Waker: the Great Sea under a bright sky, cel-shaded white swirls, parchment panels, King of Red Lions red */
+  --bg: #1f86d6;
+  --bg-art: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='240'%20viewBox='0%200%20300%20240'%3E%3Cpath%20transform='translate%2830%2060%29%20scale%281%29'%20d='M0%200%20C14%20-16%2038%20-12%2040%204%20C42%2018%2024%2022%2018%2012%20C14%205%2022%200%2026%206'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.32'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20transform='translate%2830%2060%29%20scale%281%29'%20d='M40%204%20C60%206%2080%202%2096%20-6'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.22'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20transform='translate%28170%20150%29%20scale%280.85%29'%20d='M0%200%20C14%20-16%2038%20-12%2040%204%20C42%2018%2024%2022%2018%2012%20C14%205%2022%200%2026%206'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.32'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20transform='translate%28170%20150%29%20scale%280.85%29'%20d='M40%204%20C60%206%2080%202%2096%20-6'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.22'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20transform='translate%28200%2040%29%20scale%280.6%29'%20d='M0%200%20C14%20-16%2038%20-12%2040%204%20C42%2018%2024%2022%2018%2012%20C14%205%2022%200%2026%206'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.32'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20transform='translate%28200%2040%29%20scale%280.6%29'%20d='M40%204%20C60%206%2080%202%2096%20-6'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.22'%20stroke-width='4'%20stroke-linecap='round'/%3E%3Cpath%20d='M0%20215%20Q25%20200%2050%20215%20T100%20215%20T150%20215%20T200%20215%20T250%20215%20T300%20215'%20fill='none'%20stroke='%23fff'%20stroke-opacity='.18'%20stroke-width='3'/%3E%3C/svg%3E"), linear-gradient(180deg, #7fd0ff 0%, #3aa4ec 38%, #1676c9 62%, #0d55a3 100%);
+  --panel: rgba(255, 249, 232, .94);
+  --panel-2: #fff3d6;
+  --fg: #10325a;
+  --muted: #4f6a8a;
+  --accent: #d9412b;
+  --accent-fg: #ffffff;
+  --accent-2: #19a88f;
+  --danger: #c0281b;
+  --line: rgba(16, 50, 90, .18);
+  --liquid: #7be3ff;
+  --liquid-2: #1676c9;
+  --glass: rgba(16, 50, 90, .06);
+  --glass-edge: rgba(16, 50, 90, .5);
+  --font-display: "Baloo 2", "Fredoka", sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .01em;
+  --display-weight: 800;
+  --radius: 18px;
+  --shadow: 0 0 0 2px rgba(16, 50, 90, .9), 0 8px 0 rgba(16, 50, 90, .25);
+  color-scheme: light;
+}
+/* thick dark outlines, like the cel-shaded look */
+html[data-skin="windwaker"] .panel { border: 0; }
+html[data-skin="windwaker"] header.top { background: color-mix(in srgb, #7fd0ff 85%, transparent); }
+html[data-skin="windwaker"] h2, html[data-skin="windwaker"] .up-next .who, html[data-skin="windwaker"] .brand-name, html[data-skin="windwaker"] .landed .game-title { color: var(--accent); -webkit-text-stroke: 1.5px #10325a; paint-order: stroke fill; text-shadow: 3px 3px 0 #10325a; }
+html[data-skin="windwaker"] .brand-sub::before { content: "⛵ "; }
+html[data-skin="windwaker"] .brand-sub { color: #10325a; }
+html[data-skin="windwaker"] .eyebrow { color: #1676c9; }
+html[data-skin="windwaker"] .btn { border-width: 2px; border-color: #10325a; }
+html[data-skin="windwaker"] .btn.primary { box-shadow: 0 4px 0 #10325a; }
+html[data-skin="windwaker"] .tab { color: #10325a; }
+html[data-skin="windwaker"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1904,6 +1983,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "You played the Song of Time", spin: "Spin",
       quips: ["Hey! Listen! Drink!", "You played the Song of Shots!", "Saria's Song, Saria's shots.", "Song of Storms: it's pouring.", "Epona's Song calls the next round.", "Zelda's Lullaby: sleep it off later.", "Sun's Song can't save you now."],
     },
+    majora: {
+      label: "Majora's Mask", dot: "#9b3fd6",
+      tagline: "Bet list night · You've met with a terrible fate, haven't you?",
+      wheel: ["#9b3fd6", "#26143a", "#f2a516", "#3d8b3d", "#d93a8a", "#c2611e", "#f8ecd8"],
+      landed: "The moon draws closer", spin: "Spin",
+      quips: ["You've met with a terrible fate. Drink.", "The moon is getting closer. So is the bottom of your glass.", "Play the Song of Time. Pour it again.", "Dawn of the final shot.", "The Happy Mask Salesman approves.", "Termina rules: bottoms up.", "Keep the moon happy. Drink."],
+    },
+    windwaker: {
+      label: "Wind Waker", dot: "#1f86d6",
+      tagline: "Bet list night · Follow the wind to the next round",
+      wheel: ["#d9412b", "#1676c9", "#f5c400", "#19a88f", "#fff3d6", "#10325a", "#7be3ff"],
+      landed: "Set sail!", spin: "Spin",
+      quips: ["The King of Red Lions says: drink.", "Hoy, small fry! Bottoms up.", "Change the wind, pour the shot.", "Set sail for the bottom of the glass.", "Grandma's soup won't fix this.", "Tingle Tingle Kooloo Limpah! Drink!", "A treasure chart! It leads to your glass."],
+    },
     formula: {
       label: "Formula One", dot: "#e10600",
       tagline: "Bet list night · Lights out, glasses up",
@@ -2095,6 +2188,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     sakura: { type: "sine", land: [[880, .2, 0], [988, .2, 180], [1175, .2, 360], [1319, .5, 540]], tick: [2000, "sine"] },
     formula: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [880, .5, 1600]], tick: [160, "sawtooth"], pour: "sawtooth" },
     papaya: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [988, .2, 1600], [1319, .45, 1800]], tick: [180, "sawtooth"], pour: "sawtooth" },
+    majora: { type: "sine", land: [[262, 1.3, 0], [131, 1.3, 0], [262, 1.3, 1000], [131, 1.3, 1000], [196, 1.8, 2000], [98, 1.8, 2000]], tick: [700, "triangle"], pour: "triangle" },
+    windwaker: { type: "triangle", land: [[523, .12, 0], [659, .12, 110], [784, .12, 220], [1047, .12, 330], [1319, .45, 440]], tick: [1400, "triangle"], pour: "sine" },
     temple: { type: "sine", land: [[392, .9, 0], [494, .9, 0], [587, .9, 0], [523, .9, 650], [659, .9, 650], [784, 1.4, 1300], [988, 1.4, 1300], [1175, 1.4, 1300]], tick: [1600, "sine"], pour: "sine" },
     ocarina: { type: "triangle", land: [[440, .3, 0], [294, .45, 300], [349, .3, 760], [440, .3, 1060], [294, .45, 1360], [349, .7, 1820]], tick: [1200, "triangle"], pour: "sine" },
     ganon: { type: "sawtooth", land: [[147, .5, 0], [175, .5, 0], [220, .5, 0], [139, .5, 520], [165, .5, 520], [208, .5, 520], [110, 1.0, 1040], [131, 1.0, 1040], [165, 1.0, 1040]], tick: [380, "sawtooth"], hit: true, pour: "sawtooth" },
@@ -2117,7 +2212,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
   const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
     skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
-    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], temple: [0.9, 0.84], ocarina: [1.25, 1.02], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], temple: [0.9, 0.84], majora: [0.7, 0.9], windwaker: [1.3, 1.08], ocarina: [1.25, 1.02], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
   const canSpeak = "speechSynthesis" in window;
   const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
   // fractions and emoji don't read well, so they're spelled out or dropped
@@ -2341,6 +2436,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     naruto: ["fight", 52, "in", [0, 5, 3, 4], { bpm: 132, lead: "triangle" }],
     akatsuki: ["stealth", 45, "in", [0, 1, 5, 0], { bpm: 84, density: 0.2 }],
     kitsune: ["chill", 54, "in", [0, 5, 3, 4], { bpm: 86, lead: "triangle", density: 0.35 }],
+    majora: ["gothic", 50, "harmonic", [0, 3, 5, 4], { bpm: 108, lead: "triangle", density: 0.45, cutoff: 2100 }],
+    windwaker: ["waltz", 60, "mixo", [0, 3, 4, 0], { bpm: 132, lead: "triangle", density: 0.5 }],
     temple: ["epic", 55, "dorian", [0, 3, 4, 0], { bpm: 62, lead: "sine", drums: null, density: 0.2, cutoff: 2600 }],
     ocarina: ["waltz", 62, "major", [0, 4, 3, 4], { bpm: 108, lead: "sine", density: 0.4 }],
     ganon: ["gothic", 43, "harmonic", [0, 5, 1, 4], { bpm: 92, lead: "sawtooth", density: 0.4, cutoff: 1900 }],
@@ -4040,6 +4137,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     akatsuki: { shape: "cloud", colors: ["#d0102b", "#b3001b", "#e01b38"], extra: ["💍"] },
     formula: { shape: "pixel", colors: ["#15151e", "#ffffff", "#ffffff", "#15151e", "#e10600"], extra: ["🏎️", "🏁", "🍾"] },
     papaya: { shape: "rect", colors: ["#ff8000", "#ff8000", "#ffb04d", "#47c7fc", "#ffffff", "#16171a"], extra: ["🧡", "🏎️", "🏆"] },
+    majora: { glyphs: ["🎭", "🌝", "⭐"], size: 1.1 },
+    windwaker: { shape: "rupee", colors: ["#2ecc40", "#2ecc40", "#2f7de1", "#e8423f", "#f5c400", "#9b3fd6"], extra: ["🐦", "⛵"] },
     temple: { glyphs: ["✦", "✧"], colors: ["#c9a23a", "#e8c766", "#2a4d9b", "#ffffff"], extra: ["🗡️", "🛡️"], gravity: 0.08 },
     ocarina: { glyphs: ["♪", "♫", "▲", "◀", "▶", "▼"], colors: ["#f6c90e", "#f6c90e", "#3d8bff", "#ffffff"], extra: ["🎶"], size: 1.3 },
     ganon: { shape: "tri", colors: ["#d4a537", "#f7dc8a", "#a8102a", "#e0337a"], extra: ["🐗", "🗡️"] },
@@ -4050,7 +4149,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
     skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
     amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
-    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", temple: "The Master Sword chose you", ocarina: "You learned a new song!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
+    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", temple: "The Master Sword chose you", ocarina: "You learned a new song!", majora: "You got a mask!", windwaker: "Treasure chart found!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
   let confettiParts = [], confettiRaf = null;
   function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
     if (S.confetti === false || reduceMotion) return;
@@ -4084,6 +4183,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else if (q.shape === "heart") { ctx.moveTo(0, z * 0.6); ctx.bezierCurveTo(z, 0, z * 0.5, -z * 0.8, 0, -z * 0.25); ctx.bezierCurveTo(-z * 0.5, -z * 0.8, -z, 0, 0, z * 0.6); ctx.fill(); }
     else if (q.shape === "petal") { ctx.ellipse(0, 0, z * 0.7, z * 0.38, 0, 0, 6.29); ctx.fill(); }
     else if (q.shape === "pixel") { ctx.fillRect(-z / 2, -z / 2, z, z); }
+    else if (q.shape === "rupee") {
+      ctx.moveTo(0, -z); ctx.lineTo(z * 0.5, -z * 0.55); ctx.lineTo(z * 0.5, z * 0.55); ctx.lineTo(0, z); ctx.lineTo(-z * 0.5, z * 0.55); ctx.lineTo(-z * 0.5, -z * 0.55); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.beginPath(); ctx.moveTo(0, -z * 0.6); ctx.lineTo(z * 0.22, -z * 0.3); ctx.lineTo(z * 0.22, z * 0.3); ctx.lineTo(0, z * 0.6); ctx.lineTo(-z * 0.22, z * 0.3); ctx.lineTo(-z * 0.22, -z * 0.3); ctx.closePath(); ctx.fill();
+    }
     else if (q.shape === "flame") {
       ctx.shadowColor = q.c; ctx.shadowBlur = z;
       ctx.moveTo(0, -z); ctx.bezierCurveTo(z * 0.5, -z * 0.4, z * 0.7, 0, z * 0.6, z * 0.35); ctx.arc(0, z * 0.35, z * 0.6, 0, Math.PI); ctx.bezierCurveTo(-z * 0.7, 0, -z * 0.3, -z * 0.3, 0, -z);
@@ -5321,6 +5424,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // ---------- History ----------
   // wrap up tonight: archive it and start the next night ("same" keeps games and players, "keep" just the crew)
   function endNight(mode) {
+    if (skinBase(S.skin) === "majora") {
+      const d = document.createElement("div"); d.className = "dawn"; d.setAttribute("role", "status");
+      d.innerHTML = "<div><b>Dawn of<br>The Final Day</b><span>-24 Hours Remain-</span></div>";
+      document.body.appendChild(d); setTimeout(() => d.remove(), 3600);
+      say("Dawn of the final day. 24 hours remain.");
+    }
     const old = N();
     old.ended = Date.now(); old.pending = null;
     S.archive.push(old);
