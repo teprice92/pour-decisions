@@ -2412,8 +2412,30 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     formula: "[excited]", papaya: "[excited]", temple: "[softly]", ocarina: "[warmly]", sakura: "[warmly]", wedding: "[warmly]", cruise: "[happy]", divebar: "[sarcastic]",
     gta: "[sarcastic]", amongus: "[nervous]", pride: "[excited]", zelda: "[curious]", fallout: "[happy]", skyrim: "[dramatically]", synthwave: "[excited]" };
   // character voices that themes use when they're in the owner's voice library (loaded with the key)
-  const XI_PREFER = { o9B86nZP8mMLaT5FBEzP: ["twilight"], gUU37agQvEpxeWrZUIMk: ["ganon", "akatsuki", "majora"],
-    W3C2vBPukr5b5jvoXhPK: ["zelda", "darkzelda", "temple"], zDBYcuJrpuZ6YQ7AgRUw: ["formula", "papaya", "divebar"] };
+  const XI_PREFER = {
+    d3qrd1ge6zWDvUxIeXiH: ["ganon"],                    // Final Boss: evil, all-powerful villain
+    WzVKtqQpTUUQ2JNx8YxI: ["akatsuki"],                 // Silas: weathered, quietly threatening villain
+    chQx45TGebwefgePtdqT: ["majora"],                   // Creepy Liminal Entity: eerie, childlike menace
+    Tj9l48J9AJbry5yCP5eW: ["castlevania"],              // Nosferatu: ancient vampire lord
+    KTAbPR4QFlhaTpde6md8: ["mortalkombat"],             // Bloodgrin: demonic boss villain
+    XaRY1hVbOF8v4zmguHdl: ["metalgear"],                // Sterling: gravelly, cynical
+    pHD4qotPFeOAuU1YsFjv: ["starwars"],                 // deep, menacing cinematic villain
+    "3YzGaTGef0x5PLEK9yGq": ["darkzelda"],              // Atlas: deep, gravelly narrator
+    zfWx5IjUaWGWTId9hv9t: ["halo"],                     // Atlas: epic trailer announcer
+    oR4uRy4fHDUGGISL0Rev: ["temple", "skyrim"],         // Myrddin: wise wizard narrator
+    "5BTfD9GV7eMTyvzofs0V": ["ocarina"],                // Ella: clear, angelic
+    W3C2vBPukr5b5jvoXhPK: ["zelda"],                    // Kira X: bold, cinematic video game voice
+    o9B86nZP8mMLaT5FBEzP: ["twilight"],                 // Kathie: sassy and playful, for Midna
+    PaxFoHxQqxhfhwITwfVw: ["kitsune"],                  // Kat Dollar: warm, mysterious
+    PPzYpIqttlTYA83688JI: ["windwaker"],                // Pirate Marshal: jovial sea dog
+    S0ypc51SmsvcKXTWvjqJ: ["naruto"],                   // Kai: energetic anime hero
+    unWb9iRIK7Xxf4A5Hfis: ["dbz"],                      // VALF: anime protagonist, battle-ready
+    h3DRPfZTD0Z1BwDc142N: ["formula", "papaya"],        // Kempy: British motoring commentary
+    DcLiO3XaUWTu3gyon6hW: ["xbox", "playstation"],      // Ninja: hype gaming commentary
+    dEc1rkm0ul0kDedEuETS: ["pokemon", "nintendo", "mariokart"], // Alex: lively game-show announcer
+    zDBYcuJrpuZ6YQ7AgRUw: ["fallout", "divebar", "synthwave"],  // Jerry B.: classic radio DJ
+    gUU37agQvEpxeWrZUIMk: ["policenauts"],              // Alaric: intense and measured
+  };
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
   const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* storage blocked */ } };
   const xiKey = () => lsGet("pd.elevenKey") || "";
