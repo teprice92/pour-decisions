@@ -2352,6 +2352,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
   const speechText = (t) => String(t).replace(/\+?(\d*)([¼½¾])/g, (m, w, f) => (w ? w + " and " : "") + { "¼": "a quarter", "½": "a half", "¾": "three quarters" }[f])
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}★↺·]/gu, " ").replace(/\s+/g, " ").trim();
+  // a line that already ends in ! or ? doesn't get another period ("Kamehame-HAAA!" not "Kamehame-HAAA!.")
+  const sentence = (t) => (/[.!?…]$/.test(String(t).trim()) ? String(t).trim() : String(t).trim() + ".");
   const listNames = (ns) => (ns.length < 2 ? ns.join("") : ns.slice(0, -1).join(", ") + " and " + ns[ns.length - 1]);
   let speaking = 0;
   function say(text) {
@@ -2400,11 +2402,23 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     JBFqnCBsd6RMkjVDRZzb: ["zelda", "temple", "fallout", "policenauts"],
     CwhRBWXzGAHq8TQ4Fs17: ["divebar", "cards", "minecraft"],
   };
-  const XI_MODELS = { eleven_flash_v2_5: "Fast, uses fewer credits (Flash)", eleven_multilingual_v2: "Best quality (Multilingual v2)" };
+  const XI_MODELS = { eleven_v4: "Most expressive (v4, newest)", eleven_v3: "Expressive (v3)", eleven_multilingual_v2: "Natural (Multilingual v2)",
+    eleven_turbo_v2_5: "Fast (Turbo v2.5)", eleven_flash_v2_5: "Fastest, fewest credits (Flash v2.5)" };
+  const XI_TAGGED = new Set(["eleven_v4", "eleven_v3"]); // models that perform [audio tags]
+  // how each theme performs its lines on v4/v3
+  const XI_TAGS = { ganon: "[deep voice] [dramatically]", akatsuki: "[deep voice]", majora: "[mischievously]", darkzelda: "[deep voice]", castlevania: "[dramatically]",
+    starwars: "[dramatically]", halo: "[dramatically]", metalgear: "[raspy]", mortalkombat: "[shouting]", streetfighter: "[shouting]", dbz: "[shouting] [excited]",
+    naruto: "[excited]", twilight: "[mischievously]", kitsune: "[mischievously]", windwaker: "[excited]", pokemon: "[excited]", mariokart: "[excited]", nintendo: "[happy]",
+    formula: "[excited]", papaya: "[excited]", temple: "[softly]", ocarina: "[warmly]", sakura: "[warmly]", wedding: "[warmly]", cruise: "[happy]", divebar: "[sarcastic]",
+    gta: "[sarcastic]", amongus: "[nervous]", pride: "[excited]", zelda: "[curious]", fallout: "[happy]", skyrim: "[dramatically]", synthwave: "[excited]" };
+  // character voices that themes use when they're in the owner's voice library (loaded with the key)
+  const XI_PREFER = { o9B86nZP8mMLaT5FBEzP: ["twilight"], gUU37agQvEpxeWrZUIMk: ["ganon", "akatsuki", "majora"],
+    W3C2vBPukr5b5jvoXhPK: ["zelda", "darkzelda", "temple"], zDBYcuJrpuZ6YQ7AgRUw: ["formula", "papaya", "divebar"] };
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
   const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* storage blocked */ } };
   const xiKey = () => lsGet("pd.elevenKey") || "";
-  const xiCfg = () => { try { return Object.assign({ match: true, voice: XI_VOICES[2].id, theme: {}, model: "eleven_flash_v2_5", cap: 10000, used: {} }, JSON.parse(lsGet("pd.elevenCfg") || "{}")); } catch { return { match: true, voice: XI_VOICES[2].id, theme: {}, model: "eleven_flash_v2_5", cap: 10000, used: {} }; } };
+  const XI_DEFAULT = () => ({ match: true, voice: XI_VOICES[2].id, theme: {}, model: "eleven_v4", cap: 10000, used: {}, lib: [] });
+  const xiCfg = () => { try { const c = Object.assign(XI_DEFAULT(), JSON.parse(lsGet("pd.elevenCfg") || "{}")); if (!XI_MODELS[c.model]) c.model = "eleven_v4"; return c; } catch { return XI_DEFAULT(); } };
   const xiSaveCfg = (c) => lsSet("pd.elevenCfg", JSON.stringify(c));
   const xiMonth = () => new Date().toISOString().slice(0, 7);
   const xiUsed = (c = xiCfg()) => c.used[xiMonth()] || 0;
@@ -2413,7 +2427,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function xiVoiceFor(skin = S.skin) {
     const c = xiCfg(), base = skinBase(skin);
     if (c.theme[base]) return c.theme[base];
-    if (c.match) for (const [id, list] of Object.entries(XI_THEME)) if (list.includes(base)) return id;
+    if (c.match) {
+      for (const [id, list] of Object.entries(XI_PREFER)) if (list.includes(base) && c.lib.some((v) => v.id === id)) return id;
+      for (const [id, list] of Object.entries(XI_THEME)) if (list.includes(base)) return id;
+    }
     return c.voice;
   }
   // one <audio> element, unlocked by the first tap, so phones let it play later without a tap
@@ -2423,8 +2440,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     xiAudio.play().catch(() => {}); document.removeEventListener("pointerdown", unlock);
   });
   const xiMem = new Map();
-  async function xiFetch(text) {
-    const c = xiCfg(), voice = xiVoiceFor(), id = `${voice}|${c.model}|${text}`;
+  async function xiFetch(line) {
+    const c = xiCfg(), voice = xiVoiceFor(), tag = XI_TAGGED.has(c.model) && XI_TAGS[skinBase(S.skin)];
+    const text = tag ? `${tag} ${line}` : line, id = `${voice}|${c.model}|${text}`;
     if (xiMem.has(id)) return xiMem.get(id);
     const req = new Request(`https://pour-decisions.voice/${encodeURIComponent(id)}`);
     let cache = null;
@@ -2435,7 +2453,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     const res = await fetch(`${XI_API}/v1/text-to-speech/${voice}?output_format=mp3_44100_64`, {
       method: "POST", headers: { "xi-api-key": xiKey(), "Content-Type": "application/json", Accept: "audio/mpeg" },
-      body: JSON.stringify({ text, model_id: c.model, voice_settings: { stability: 0.4, similarity_boost: 0.8, style: 0.35 } }),
+      // v4 and v3 take their delivery from the tags; the older models from these settings
+      body: JSON.stringify(XI_TAGGED.has(c.model) ? { text, model_id: c.model } : { text, model_id: c.model, voice_settings: { stability: 0.4, similarity_boost: 0.8, style: 0.35 } }),
     });
     if (res.status === 401 || res.status === 403) { xiKeyBad = true; toast("ElevenLabs didn't accept the key. Check it in History → Settings."); if (S.tab === "history") renderHistory(); throw new Error("key"); }
     if (!res.ok) throw new Error("tts " + res.status);
@@ -2463,8 +2482,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     try {
       const r = await fetch(`${XI_API}/v1/voices`, { headers: { "xi-api-key": xiKey() } });
       if (!r.ok) throw new Error(r.status);
-      xiVoiceList = ((await r.json()).voices || []).map((v) => ({ id: v.voice_id, name: v.name }));
-    } catch { xiVoiceList = []; } // keys limited to text-to-speech can't list voices; the premade ones still work
+      xiVoiceList = ((await r.json()).voices || []).filter((v) => v.category !== "premade").map((v) => ({ id: v.voice_id, name: / - /.test(v.name) ? v.name.replace(" - ", " (") + ")" : v.name }));
+      const c = xiCfg(), added = c.lib.filter((v) => v.added);
+      c.lib = [...xiVoiceList, ...added.filter((v) => !xiVoiceList.some((x) => x.id === v.id))]; xiSaveCfg(c);
+    } catch { xiVoiceList = []; } // keys limited to text-to-speech can't list voices; premade and added-by-ID voices still work
     if (S.tab === "history") renderHistory();
   }
   function xiSettingsHTML() {
@@ -2481,7 +2502,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           <li>Paste the key here. Enter it only on your own phone.</li></ol></details>
       </div>`;
     }
-    const c = xiCfg(), list = [...XI_VOICES, ...(xiVoiceList || []).filter((v) => !XI_VOICES.some((x) => x.id === v.id))];
+    const c = xiCfg(), list = [...XI_VOICES, ...c.lib.filter((v) => !XI_VOICES.some((x) => x.id === v.id))];
     const opts = (cur) => list.map((v) => `<option value="${esc(v.id)}" ${v.id === cur ? "selected" : ""}>${esc(v.name)}</option>`).join("");
     const base = skinBase(S.skin), themeName = SKINS[S.skin]?.label || "this theme";
     return `<div class="xi-box stack" style="gap:8px">
@@ -2496,8 +2517,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <label class="field" style="flex:1 1 200px">Limit on this phone<select id="xiCap">${[[0, "No limit"], [5000, "5,000 characters a month"], [10000, "10,000 characters a month"], [30000, "30,000 characters a month"], [100000, "100,000 characters a month"]].map(([v, l]) => `<option value="${v}" ${v === c.cap ? "selected" : ""}>${l}</option>`).join("")}</select></label>
       </div>
       <div class="muted" style="font-size:.85rem">This month on this phone: <b class="num">${xiUsed(c).toLocaleString()}</b> characters sent to ElevenLabs${c.cap ? ` of ${c.cap.toLocaleString()}` : ""}. Lines that were already spoken are saved here and cost nothing again. A busy night is usually a few thousand characters. The key is saved only on this phone and never synced or backed up.</div>
-      <div class="row"><button class="btn" type="button" id="voiceTest2">Test this theme's voice</button>${xiVoiceList === null ? `<button class="btn ghost" type="button" id="xiVoices">Load my voice library</button>` : ""}<button class="btn ghost danger" type="button" id="xiKeyRemove">Remove key from this phone</button></div>
-      ${xiVoiceList && !xiVoiceList.length ? `<div class="muted" style="font-size:.85rem">This key can't list your voice library, so the premade voices are shown. That's fine for a key limited to text-to-speech.</div>` : ""}
+      ${XI_TAGGED.has(c.model) ? `<div class="muted" style="font-size:.85rem">On ${c.model === "eleven_v4" ? "v4" : "v3"}, each theme performs its lines${XI_TAGS[base] ? `. ${esc(themeName)} uses <b>${esc(XI_TAGS[base])}</b>` : ""}. These models use about twice the credits of Flash or Turbo, and take a moment longer to start talking.</div>` : ""}
+      <div class="row"><button class="btn" type="button" id="voiceTest2">Test this theme's voice</button><button class="btn ghost" type="button" id="xiVoices">${c.lib.length ? "Reload my voice library" : "Load my voice library"}</button><button class="btn ghost danger" type="button" id="xiKeyRemove">Remove key from this phone</button></div>
+      ${xiVoiceList && !xiVoiceList.length ? `<div class="muted" style="font-size:.85rem">This key can't list your voice library (it needs "Voices: read"), so only premade voices and ones you add by ID are shown.</div>` : ""}
+      <details class="xi-help"><summary>Add more voices</summary>
+        <ol><li>On elevenlabs.io, open the <b>Voice Library</b>, find a voice you like, and tap <b>Add to My Voices</b>. You can also design a voice from a description, or clone your own (or your friend's, with permission).</li>
+        <li>Back here, tap <b>Reload my voice library</b>. Your voices show up in the voice lists.</li>
+        <li>No "Voices: read" on your key? Copy the voice's ID from elevenlabs.io and add it here:</li></ol>
+        <div class="row" style="margin-top:6px"><input type="text" id="xiAddId" placeholder="Voice ID" autocomplete="off" spellcheck="false" style="flex:1 1 160px"><input type="text" id="xiAddName" placeholder="Name (optional)" style="flex:1 1 120px"><button class="btn" type="button" id="xiAddBtn">Add voice</button></div>
+      </details>
     </div>`;
   }
   $("#view-history").addEventListener("change", (e) => {
@@ -2516,15 +2544,21 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (b.id === "xiKeySave") {
       const v = $("#xiKeyInput").value.trim();
       if (v.length < 20) { toast("That doesn't look like an ElevenLabs API key"); return; }
-      lsSet("pd.elevenKey", v); xiKeyBad = false; xiVoiceList = null; renderHistory();
+      lsSet("pd.elevenKey", v); xiKeyBad = false; xiVoiceList = null; renderHistory(); xiLoadVoices();
       if (!S.voice) { S.voice = true; save(); renderHistory(); }
-      toast("Key saved on this phone"); say(`${SKINS[S.skin].landed}. Let's drink.`);
+      toast("Key saved on this phone"); say(`${sentence(SKINS[S.skin].landed)} Let's drink.`);
     } else if (b.id === "xiKeyRemove") {
       lsSet("pd.elevenKey", null); xiKeyBad = false; xiVoiceList = null; xiMem.clear();
       try { await caches.delete(XI_CACHE); } catch { /* */ }
       renderHistory(); toast("Key removed from this phone");
-    } else if (b.id === "xiVoices") { b.disabled = true; xiLoadVoices(); }
-    else if (b.id === "voiceTest2") say(`${SKINS[S.skin].landed}. GoldenEye 007. Alex, drink one and a half shots.`);
+    } else if (b.id === "xiVoices") { b.disabled = true; xiLoadVoices().then(() => toast(xiVoiceList.length ? `Loaded ${xiVoiceList.length} voice${xiVoiceList.length === 1 ? "" : "s"} from your library` : "Couldn't read your voice library with this key")); }
+    else if (b.id === "xiAddBtn") {
+      const vid = $("#xiAddId").value.trim(), nm = $("#xiAddName").value.trim();
+      if (!/^[A-Za-z0-9]{16,32}$/.test(vid)) { toast("A voice ID is about 20 letters and numbers, like N2lVS1w4EtoT3dr4eOWO"); return; }
+      const c = xiCfg(); if (!c.lib.some((x) => x.id === vid)) c.lib.push({ id: vid, name: nm || `My voice (${vid.slice(0, 6)})`, added: true }); xiSaveCfg(c);
+      renderHistory(); toast("Voice added. Pick it in the voice lists.");
+    }
+    else if (b.id === "voiceTest2") say(`${sentence(SKINS[S.skin].landed)} GoldenEye 007. Alex, drink one and a half shots.`);
   });
 
   // Phones buzz (Android; iPhones don't allow it) and controllers rumble on the same moments
@@ -4228,7 +4262,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     mainWheel._parked = true;
     save(); fanfare(); buzz("land"); renderSpin();
     const pickedBy = playerById(n.pending.by);
-    say(`${SKINS[S.skin].landed}. ${gameById(g.id)?.title || ""}.${pickedBy ? ` ${pickedBy.name}'s pick.` : ""}`);
+    say(`${sentence(SKINS[S.skin].landed)} ${gameById(g.id)?.title || ""}.${pickedBy ? ` ${pickedBy.name}'s pick.` : ""}`);
     $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
   }
 
@@ -5968,7 +6002,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       if (S.voice) say("Announcer is on. Let's drink.");
       else if (canSpeak) speechSynthesis.cancel();
     } else if (b.id === "voiceTest") {
-      say(`${SKINS[S.skin].landed}. GoldenEye 007. Alex, drink one and a half shots.`);
+      say(`${sentence(SKINS[S.skin].landed)} GoldenEye 007. Alex, drink one and a half shots.`);
     } else if (b.id === "vibeBtn") {
       S.vibrate = S.vibrate === false; save(); renderHistory(); buzz("land");
     } else if (b.id === "confettiBtn") {
