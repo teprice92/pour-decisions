@@ -1047,6 +1047,74 @@ html[data-skin="windwaker"] .btn { border-width: 2px; border-color: #10325a; }
 html[data-skin="windwaker"] .btn.primary { box-shadow: 0 4px 0 #10325a; }
 html[data-skin="windwaker"] .tab { color: #10325a; }
 html[data-skin="windwaker"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--accent); }
+html[data-skin="twilight"] {
+  /* Twilight Princess: the Twilight Realm's black and glowing teal, an amber twilight sky, Midna's orange hair */
+  --bg: #07090a;
+  --bg-art: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='280'%20height='260'%20viewBox='0%200%20280%20260'%3E%3Cg%20fill='none'%20stroke='%2333e0c8'%20stroke-opacity='.16'%20stroke-width='2'%3E%3Cpath%20d='M20%2040%20H90%20V90%20H140'/%3E%3Ccircle%20cx='140'%20cy='90'%20r='5'/%3E%3Cpath%20d='M180%20200%20V150%20H250'/%3E%3Ccircle%20cx='250'%20cy='150'%20r='4'/%3E%3Cpath%20d='M40%20220%20H100'/%3E%3Ccircle%20cx='20'%20cy='40'%20r='4'/%3E%3C/g%3E%3Crect%20x='200'%20y='40'%20width='14'%20height='14'%20fill='%23000'%20fill-opacity='0.5'%20stroke='%2333e0c8'%20stroke-opacity='0.25'%20stroke-width='1'/%3E%3Crect%20x='230'%20y='70'%20width='8'%20height='8'%20fill='%23000'%20fill-opacity='0.45'%20stroke='%2333e0c8'%20stroke-opacity='0.23'%20stroke-width='1'/%3E%3Crect%20x='60'%20y='140'%20width='10'%20height='10'%20fill='%23000'%20fill-opacity='0.5'%20stroke='%2333e0c8'%20stroke-opacity='0.25'%20stroke-width='1'/%3E%3Crect%20x='120'%20y='190'%20width='16'%20height='16'%20fill='%23000'%20fill-opacity='0.4'%20stroke='%2333e0c8'%20stroke-opacity='0.20'%20stroke-width='1'/%3E%3Crect%20x='30'%20y='90'%20width='6'%20height='6'%20fill='%23000'%20fill-opacity='0.45'%20stroke='%2333e0c8'%20stroke-opacity='0.23'%20stroke-width='1'/%3E%3Crect%20x='160'%20y='120'%20width='7'%20height='7'%20fill='%23000'%20fill-opacity='0.4'%20stroke='%2333e0c8'%20stroke-opacity='0.20'%20stroke-width='1'/%3E%3C/svg%3E"), radial-gradient(1100px 560px at 50% 115%, rgba(243, 154, 43, .38), transparent 60%), radial-gradient(900px 480px at 85% -10%, rgba(51, 224, 200, .20), transparent 60%);
+  --panel: rgba(10, 16, 16, .9);
+  --panel-2: #0f1a1a;
+  --fg: #efe6cf;
+  --muted: #8fb1aa;
+  --accent: #f39a2b;
+  --accent-fg: #1a0c00;
+  --accent-2: #33e0c8;
+  --danger: #ff6a5f;
+  --line: rgba(51, 224, 200, .26);
+  --liquid: #33e0c8;
+  --liquid-2: #0b3b36;
+  --glass: rgba(239, 230, 207, .06);
+  --glass-edge: rgba(140, 240, 225, .6);
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-body: "Alegreya Sans", system-ui, sans-serif;
+  --display-case: none;
+  --display-track: .05em;
+  --display-weight: 800;
+  --radius: 4px;
+  --shadow: 0 0 0 1px var(--line), 0 0 24px rgba(51, 224, 200, .10), 0 18px 40px rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+/* glyph-lit corners on the panels, like Twilight barrier markings */
+html[data-skin="twilight"] .panel {
+  background: linear-gradient(var(--accent-2), var(--accent-2)) left top / 14px 2px no-repeat, linear-gradient(var(--accent-2), var(--accent-2)) left top / 2px 14px no-repeat,
+    linear-gradient(var(--accent-2), var(--accent-2)) right bottom / 14px 2px no-repeat, linear-gradient(var(--accent-2), var(--accent-2)) right bottom / 2px 14px no-repeat, var(--panel);
+}
+html[data-skin="twilight"] h2, html[data-skin="twilight"] .up-next .who, html[data-skin="twilight"] .brand-name, html[data-skin="twilight"] .landed .game-title { color: #f6e7c4; text-shadow: 0 0 12px rgba(51, 224, 200, .7), 0 0 2px #000; }
+html[data-skin="twilight"] .brand-sub::before { content: "✧ Twilight // "; color: var(--accent-2); letter-spacing: .06em; }
+html[data-skin="twilight"] .eyebrow { color: #5fe8d4; }
+html[data-skin="twilight"] .btn.primary { box-shadow: 0 0 16px rgba(243, 154, 43, .45); }
+html[data-skin="twilight"] .tab[aria-selected="true"] { border-bottom-color: var(--accent-2); text-shadow: 0 0 10px rgba(51, 224, 200, .8); }
+html[data-skin="darkzelda"] {
+  /* Dark Hyrule: Hyrule Field at night, deep forest green-black, Triforce gold, Hylian blue, heart-container red */
+  --bg: #050b07;
+  --bg-art: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='300'%20height='280'%20viewBox='0%200%20300%20280'%3E%3Cg%20transform='translate%2890%2090%29'%20fill='%23c8a23c'%20fill-opacity='.11'%3E%3Cpath%20d='M0%20-22%20L13%200%20L-13%200%20Z'/%3E%3Cpath%20d='M-13%200%20L0%2022%20L-26%2022%20Z'/%3E%3Cpath%20d='M13%200%20L26%2022%20L0%2022%20Z'/%3E%3Cpath%20d='M-30%2010%20C-46%200%20-58%20-16%20-64%20-34%20C-50%20-28%20-40%20-24%20-30%20-14%20C-36%20-24%20-40%20-32%20-40%20-44%20C-30%20-34%20-24%20-24%20-20%20-10%20Z'/%3E%3Cpath%20d='M30%2010%20C46%200%2058%20-16%2064%20-34%20C50%20-28%2040%20-24%2030%20-14%20C36%20-24%2040%20-32%2040%20-44%20C30%20-34%2024%20-24%2020%20-10%20Z'/%3E%3Cpath%20d='M-6%2030%20L0%2048%20L6%2030%20Z'/%3E%3C/g%3E%3Cg%20transform='translate%28225%20215%29%20scale%28.55%29'%20fill='%23c8a23c'%20fill-opacity='.08'%3E%3Cpath%20d='M0%20-22%20L13%200%20L-13%200%20Z'/%3E%3Cpath%20d='M-13%200%20L0%2022%20L-26%2022%20Z'/%3E%3Cpath%20d='M13%200%20L26%2022%20L0%2022%20Z'/%3E%3C/g%3E%3C/svg%3E"), radial-gradient(1000px 520px at 80% -10%, rgba(47, 95, 168, .22), transparent 60%), radial-gradient(800px 460px at 0% 110%, rgba(20, 72, 42, .45), transparent 60%);
+  --panel: rgba(10, 22, 15, .9);
+  --panel-2: #0e1d14;
+  --fg: #ece3c6;
+  --muted: #98a88f;
+  --accent: #c8a23c;
+  --accent-fg: #1a1200;
+  --accent-2: #2f5fa8;
+  --danger: #e2463a;
+  --line: rgba(200, 162, 60, .24);
+  --liquid: #e2463a;
+  --liquid-2: #7a0f16;
+  --glass: rgba(236, 227, 198, .06);
+  --glass-edge: rgba(200, 162, 60, .55);
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-body: "Crimson Pro", Georgia, serif;
+  --display-case: uppercase;
+  --display-track: .08em;
+  --display-weight: 800;
+  --radius: 6px;
+  --shadow: 0 0 0 1px var(--line), 0 18px 40px rgba(0, 0, 0, .65);
+  color-scheme: dark;
+}
+html[data-skin="darkzelda"] .panel { border-top: 3px solid var(--accent-2); box-shadow: inset 0 3px 0 rgba(200, 162, 60, .3), var(--shadow); }
+html[data-skin="darkzelda"] h2, html[data-skin="darkzelda"] .up-next .who, html[data-skin="darkzelda"] .brand-name, html[data-skin="darkzelda"] .landed .game-title { color: #e2c46a; text-shadow: 0 2px 0 #000, 0 0 16px rgba(200, 162, 60, .35); }
+html[data-skin="darkzelda"] .brand-sub::before { content: "▲ "; color: var(--accent); }
+html[data-skin="darkzelda"] .eyebrow { color: #7fa3e0; }
+html[data-skin="darkzelda"] .btn.primary { box-shadow: 0 0 14px rgba(200, 162, 60, .4); }
+html[data-skin="darkzelda"] .tab[aria-selected="true"] { border-bottom-color: var(--accent); }
 html[data-skin="halo"] .brand-name, html[data-skin="halo"] .tab, html[data-skin="halo"] .btn.big { font-size: 1.3em; }
 html[data-skin="halo"] .panel { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
 
@@ -1997,6 +2065,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       landed: "Set sail!", spin: "Spin",
       quips: ["The King of Red Lions says: drink.", "Hoy, small fry! Bottoms up.", "Change the wind, pour the shot.", "Set sail for the bottom of the glass.", "Grandma's soup won't fix this.", "Tingle Tingle Kooloo Limpah! Drink!", "A treasure chart! It leads to your glass."],
     },
+    twilight: {
+      label: "Twilight Princess", dot: "#33e0c8",
+      tagline: "Bet list night · Eee-hee! Drink up, wolf boy",
+      wheel: ["#33e0c8", "#0f1a1a", "#f39a2b", "#1e2a2a", "#efe6cf", "#7a3fb0", "#0b3b36"],
+      landed: "Midna picked one for you", spin: "Spin",
+      quips: ["Eee-hee-hee! Drink!", "Midna says: you're a wolf now. Lap it up.", "The Twilight takes your shot.", "Fused Shadow? More like fused shots.", "Hey, you! Yeah, you. Bottoms up.", "Light or twilight, you're still drinking.", "Don't make Midna laugh at you. Drink."],
+    },
+    darkzelda: {
+      label: "Dark Hyrule", dot: "#c8a23c",
+      tagline: "Bet list night · A shadow falls over Hyrule",
+      wheel: ["#14482a", "#c8a23c", "#0e1d14", "#2f5fa8", "#e2463a", "#2a2a22", "#ece3c6"],
+      landed: "A shadow falls over Hyrule", spin: "Spin",
+      quips: ["It's dangerous to drink alone. Take this.", "A red potion would help. So will this shot.", "Hey! Listen! It's your turn to drink.", "The Hero drinks in the dark.", "Shield up. Glass up.", "Hyrule's night watch: bottoms up.", "Low on hearts? Drink anyway."],
+    },
     formula: {
       label: "Formula One", dot: "#e10600",
       tagline: "Bet list night · Lights out, glasses up",
@@ -2190,6 +2272,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     papaya: { type: "square", land: [[440, .15, 0], [440, .15, 300], [440, .15, 600], [440, .15, 900], [440, .15, 1200], [988, .2, 1600], [1319, .45, 1800]], tick: [180, "sawtooth"], pour: "sawtooth" },
     majora: { type: "sine", land: [[262, 1.3, 0], [131, 1.3, 0], [262, 1.3, 1000], [131, 1.3, 1000], [196, 1.8, 2000], [98, 1.8, 2000]], tick: [700, "triangle"], pour: "triangle" },
     windwaker: { type: "triangle", land: [[523, .12, 0], [659, .12, 110], [784, .12, 220], [1047, .12, 330], [1319, .45, 440]], tick: [1400, "triangle"], pour: "sine" },
+    twilight: { type: "sine", land: [[220, .25, 0], [330, .25, 120], [440, .25, 240], [660, .25, 360], [880, .7, 480], [1320, .5, 600]], tick: [900, "sine"], pour: "triangle" },
+    darkzelda: { type: "square", land: [[392, .12, 0], [370, .12, 120], [311, .12, 240], [220, .12, 360], [208, .12, 480], [330, .12, 600], [415, .12, 720], [523, .45, 840]], tick: [500, "square"] },
     temple: { type: "sine", land: [[392, .9, 0], [494, .9, 0], [587, .9, 0], [523, .9, 650], [659, .9, 650], [784, 1.4, 1300], [988, 1.4, 1300], [1175, 1.4, 1300]], tick: [1600, "sine"], pour: "sine" },
     ocarina: { type: "triangle", land: [[440, .3, 0], [294, .45, 300], [349, .3, 760], [440, .3, 1060], [294, .45, 1360], [349, .7, 1820]], tick: [1200, "triangle"], pour: "sine" },
     ganon: { type: "sawtooth", land: [[147, .5, 0], [175, .5, 0], [220, .5, 0], [139, .5, 520], [165, .5, 520], [208, .5, 520], [110, 1.0, 1040], [131, 1.0, 1040], [165, 1.0, 1040]], tick: [380, "sawtooth"], hit: true, pour: "sawtooth" },
@@ -2212,7 +2296,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // Each theme sets the voice's pitch and speed, so Mortal Kombat booms and Mario Kart squeaks.
   const VOICE_FX = { metalgear: [0.7, 0.95], mortalkombat: [0.5, 0.9], streetfighter: [0.6, 1.05], starwars: [0.6, 0.9], halo: [0.6, 0.92], castlevania: [0.55, 0.85],
     skyrim: [0.65, 0.88], fallout: [0.9, 1], gta: [0.8, 1.05], pokemon: [1.4, 1.12], mariokart: [1.55, 1.15], nintendo: [1.4, 1.1], amongus: [1.3, 1.05], sakura: [1.2, 0.9],
-    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], temple: [0.9, 0.84], majora: [0.7, 0.9], windwaker: [1.3, 1.08], ocarina: [1.25, 1.02], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
+    wedding: [1.1, 0.9], cruise: [1.05, 0.95], pride: [1.25, 1.08], synthwave: [0.8, 0.95], policenauts: [0.8, 0.95], naruto: [1.3, 1.12], akatsuki: [0.55, 0.88], kitsune: [1.15, 0.92], ganon: [0.45, 0.85], temple: [0.9, 0.84], twilight: [1.35, 1.05], darkzelda: [0.75, 0.92], majora: [0.7, 0.9], windwaker: [1.3, 1.08], ocarina: [1.25, 1.02], formula: [0.95, 1.18], papaya: [1.0, 1.16], minecraft: [1.1, 1], divebar: [0.85, 0.95] };
   const canSpeak = "speechSynthesis" in window;
   const speechVoices = () => (canSpeak ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : []);
   // fractions and emoji don't read well, so they're spelled out or dropped
@@ -2438,6 +2522,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     kitsune: ["chill", 54, "in", [0, 5, 3, 4], { bpm: 86, lead: "triangle", density: 0.35 }],
     majora: ["gothic", 50, "harmonic", [0, 3, 5, 4], { bpm: 108, lead: "triangle", density: 0.45, cutoff: 2100 }],
     windwaker: ["waltz", 60, "mixo", [0, 3, 4, 0], { bpm: 132, lead: "triangle", density: 0.5 }],
+    twilight: ["stealth", 47, "minor", [0, 5, 3, 4], { bpm: 84, lead: "triangle", density: 0.25, cutoff: 1500 }],
+    darkzelda: ["epic", 50, "minor", [0, 5, 3, 4], { bpm: 72, lead: "triangle", density: 0.25 }],
     temple: ["epic", 55, "dorian", [0, 3, 4, 0], { bpm: 62, lead: "sine", drums: null, density: 0.2, cutoff: 2600 }],
     ocarina: ["waltz", 62, "major", [0, 4, 3, 4], { bpm: 108, lead: "sine", density: 0.4 }],
     ganon: ["gothic", 43, "harmonic", [0, 5, 1, 4], { bpm: 92, lead: "sawtooth", density: 0.4, cutoff: 1900 }],
@@ -4139,6 +4225,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     papaya: { shape: "rect", colors: ["#ff8000", "#ff8000", "#ffb04d", "#47c7fc", "#ffffff", "#16171a"], extra: ["🧡", "🏎️", "🏆"] },
     majora: { glyphs: ["🎭", "🌝", "⭐"], size: 1.1 },
     windwaker: { shape: "rupee", colors: ["#2ecc40", "#2ecc40", "#2f7de1", "#e8423f", "#f5c400", "#9b3fd6"], extra: ["🐦", "⛵"] },
+    twilight: { shape: "pixel", colors: ["#050707", "#111818", "#33e0c8", "#0b3b36", "#050707"], extra: ["🐺"], gravity: -0.03, rise: true },
+    darkzelda: { glyphs: ["❤", "▲"], colors: ["#e2463a", "#e2463a", "#c8a23c"], size: 1.15 },
     temple: { glyphs: ["✦", "✧"], colors: ["#c9a23a", "#e8c766", "#2a4d9b", "#ffffff"], extra: ["🗡️", "🛡️"], gravity: 0.08 },
     ocarina: { glyphs: ["♪", "♫", "▲", "◀", "▶", "▼"], colors: ["#f6c90e", "#f6c90e", "#3d8bff", "#ffffff"], extra: ["🎶"], size: 1.3 },
     ganon: { shape: "tri", colors: ["#d4a537", "#f7dc8a", "#a8102a", "#e0337a"], extra: ["🐗", "🗡️"] },
@@ -4149,7 +4237,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     mariokart: "Gold cup!", nintendo: "Power-up!", metalgear: "Rank up", castlevania: "Relic found", minecraft: "Advancement made!", fallout: "Perk unlocked",
     skyrim: "Quest completed", streetfighter: "Perfect!", mortalkombat: "Flawless victory", gta: "Mission passed! Respect +", starwars: "The Force is strong",
     amongus: "Task complete", divebar: "On the house", wedding: "Something new", sakura: "In full bloom", cruise: "Captain's honor", pride: "Slay!",
-    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", temple: "The Master Sword chose you", ocarina: "You learned a new song!", majora: "You got a mask!", windwaker: "Treasure chart found!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
+    synthwave: "New high score", policenauts: "Case closed", naruto: "Jutsu mastered!", akatsuki: "Bounty collected", kitsune: "Blessing of Inari", ganon: "Power seized!", temple: "The Master Sword chose you", ocarina: "You learned a new song!", majora: "You got a mask!", windwaker: "Treasure chart found!", twilight: "Fused Shadow obtained!", darkzelda: "Heart Container!", formula: "Podium finish!", papaya: "Papaya podium!", cards: "Royal flush" };
   let confettiParts = [], confettiRaf = null;
   function confetti({ count = 80, rain = false, x = 0.5, y = 0.35 } = {}) {
     if (S.confetti === false || reduceMotion) return;
@@ -4162,8 +4250,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const glyphs = cfg.glyphs || (cfg.extra && Math.random() < 0.2 ? cfg.extra : null);
       const a = rain ? Math.PI / 2 : -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1, v = rain ? Math.random() * 2 : 6 + Math.random() * 9;
       confettiParts.push({
-        x: rain ? Math.random() * W : W * x, y: rain ? -20 - Math.random() * H * 0.5 : H * y,
-        vx: Math.cos(a) * v * (rain ? 0 : 1), vy: Math.sin(a) * v, rot: Math.random() * 6.3, vr: (Math.random() - 0.5) * 0.3,
+        x: rain ? Math.random() * W : W * x, y: rain ? (cfg.rise ? H + 20 + Math.random() * H * 0.4 : -20 - Math.random() * H * 0.5) : H * y,
+        vx: Math.cos(a) * v * (rain ? 0 : 1), vy: rain && cfg.rise ? -(0.4 + Math.random()) : Math.sin(a) * v, rot: Math.random() * 6.3, vr: (Math.random() - 0.5) * 0.3,
         s: (6 + Math.random() * 7) * scale, c: colors[i % colors.length], g: glyphs ? glyphs[Math.floor(Math.random() * glyphs.length)] : null,
         shape: cfg.shape, life: 0, wob: Math.random() * 6.3, grav: cfg.gravity || 0.18,
       });
@@ -4202,9 +4290,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function confettiStep() {
     const cv = $("#confetti"), ctx = cv.getContext("2d"), dpr = cv.width / innerWidth;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
-    confettiParts = confettiParts.filter((q) => q.y < innerHeight + 40 && q.life < 600);
+    confettiParts = confettiParts.filter((q) => q.y < innerHeight + 40 && q.y > -60 - innerHeight * 0.5 && q.life < 600);
     confettiParts.forEach((q) => {
-      q.life++; q.vy += q.grav; q.vx *= 0.985; q.vy = Math.min(q.vy, q.grav < 0.1 ? 1.6 : 7);
+      q.life++; q.vy += q.grav; q.vx *= 0.985; q.vy = Math.min(q.vy, q.grav < 0.1 ? 1.6 : 7); if (q.grav < 0) q.vy = Math.max(q.vy, -2.2);
       q.wob += 0.08; q.x += q.vx + Math.sin(q.wob) * (q.grav < 0.1 ? 1.2 : 0.6); q.y += q.vy; q.rot += q.vr;
       ctx.setTransform(dpr, 0, 0, dpr, q.x * dpr, q.y * dpr); ctx.rotate(q.rot);
       if (!q.g && q.shape !== "ball" && q.shape !== "coin" && q.shape !== "pixel" && q.shape !== "cloud" && q.shape !== "flame") ctx.scale(1, Math.abs(Math.cos(q.wob * 1.5)) * 0.7 + 0.3);
