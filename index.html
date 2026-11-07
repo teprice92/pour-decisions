@@ -1668,7 +1668,7 @@ html.still-art #themeArt, html.still-art #themeArt::after { animation: none; }
 html.still-art #themeArt::after { display: none; }
 @media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::after { animation: none; } #themeArt::after { display: none; } }
 /* a drink sloshes as it lands in the glass */
-.glass .tilt { transform-box: view-box; transform-origin: 50px 0; }
+.glass .tilt { transform-box: view-box; transform-origin: 50px 0; rotate: var(--tilt, 0deg); }
 .glass.slosh .tilt { animation: slosh 1.3s cubic-bezier(.3,.6,.3,1); }
 @keyframes slosh { 0% { transform: rotate(0); } 18% { transform: rotate(-7deg); } 40% { transform: rotate(5deg); } 62% { transform: rotate(-3deg); } 82% { transform: rotate(1.5deg); } 100% { transform: rotate(0); } }
 .p-extras { margin-top: 2px; }
@@ -2920,6 +2920,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <button class="btn" type="button" id="vibeBtn" aria-pressed="${S.vibrate !== false}">${S.vibrate !== false ? "📳 Vibration on" : "📳 Vibration off"}</button>
         <button class="btn" type="button" id="confettiBtn" aria-pressed="${S.confetti !== false}">${S.confetti !== false ? "🎉 Confetti on" : "🎉 Confetti off"}</button>
         <button class="btn" type="button" id="animArtBtn" aria-pressed="${S.animArt !== false}">${S.animArt !== false ? "🌌 Moving backgrounds on" : "🌌 Moving backgrounds off"}</button>
+        ${"DeviceOrientationEvent" in window ? `<button class="btn" type="button" id="tiltBtn" aria-pressed="${S.tilt !== false}">${S.tilt !== false ? "📱 Tilt the drinks on" : "📱 Tilt the drinks off"}</button>` : ""}
         <button class="btn" type="button" id="prevOnBtn" aria-pressed="${S.prevOn !== false}">${S.prevOn !== false ? "📺 \"Previously on\" on" : "📺 \"Previously on\" off"}</button>
       </div>
       ${canSpeak ? `<div class="row" style="align-items:flex-end">
@@ -3317,7 +3318,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <image ${img}/>
       <g clip-path="url(#${id}c)" opacity=".88">
         <g class="liq" style="transform: translateY(${artY(fill, y0, y1)}px)"><g class="tilt">
-          <path class="wave" d="M0 6 Q12.5 0 25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 V140 H0 Z" fill="url(#${id}g)"/>
+          <path class="wave" d="M-150 6 Q-137.5 0 -125 6 T-100 6 T-75 6 T-50 6 T-25 6 T0 6 T25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 T225 6 T250 6 T275 6 T300 6 T325 6 T350 6 V180 H-150 Z" fill="url(#${id}g)"/>
           ${stat ? "" : `<circle class="bub" cx="40" cy="${y0 - y1 - 8}" r="2.2" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="58" cy="${y0 - y1 - 6}" r="1.6" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="49" cy="${y0 - y1 - 4}" r="2" fill="rgba(255,255,255,.7)"/>`}
         </g></g>
       </g>
@@ -3332,7 +3333,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       <path d="M10 6 L90 6 L80 112 L20 112 Z" fill="var(--glass)"/>
       <g clip-path="url(#${id}c)">
         <g class="liq" style="transform: translateY(${liquidY(fill)}px)"><g class="tilt">
-          <path class="wave" d="M0 6 Q12.5 0 25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 V140 H0 Z" fill="url(#${id}g)"/>
+          <path class="wave" d="M-150 6 Q-137.5 0 -125 6 T-100 6 T-75 6 T-50 6 T-25 6 T0 6 T25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 T225 6 T250 6 T275 6 T300 6 T325 6 T350 6 V180 H-150 Z" fill="url(#${id}g)"/>
           ${stat ? "" : `<circle class="bub" cx="40" cy="96" r="2.2" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="58" cy="98" r="1.6" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="49" cy="100" r="2" fill="rgba(255,255,255,.7)"/>`}
         </g></g>
       </g>
@@ -4948,6 +4949,40 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
   });
 
+  // ---------- Tilt: the drink stays level as the phone tilts ----------
+  // Reads the phone's left-right tilt and rotates every glass's liquid the other way, through a springy
+  // follow so a quick tilt sloshes. iPhones ask permission, which needs a tap (Settings, or the first tap
+  // on the page). Off with reduced motion, and the loop only runs while the angle is moving.
+  const Tilt = (() => {
+    let target = 0, cur = 0, vel = 0, raf = 0, on = false;
+    const root = document.documentElement;
+    function onOri(e) {
+      if (e.gamma == null) return;
+      const a = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+      const t = a === 90 ? -e.beta : a === -90 || a === 270 ? e.beta : a === 180 ? -e.gamma : e.gamma;
+      target = Math.max(-35, Math.min(35, -t)); if (!raf && !document.hidden) raf = requestAnimationFrame(step);
+    }
+    function step() {
+      vel = (vel + (target - cur) * 0.09) * 0.86; cur += vel;
+      root.style.setProperty("--tilt", cur.toFixed(2) + "deg");
+      raf = Math.abs(target - cur) > 0.05 || Math.abs(vel) > 0.05 ? requestAnimationFrame(step) : 0;
+    }
+    let asked = false;
+    async function start(ask) {
+      if (reduceMotion || S.tilt === false || !("DeviceOrientationEvent" in window)) return;
+      if (!on) { window.addEventListener("deviceorientation", onOri); on = true; } // most phones send tilt without asking
+      // iPhones (and some newer browsers) only send it after a permission prompt, which needs a tap
+      if (ask && !asked && typeof DeviceOrientationEvent.requestPermission === "function") {
+        asked = true;
+        try { if ((await DeviceOrientationEvent.requestPermission()) !== "granted") { stop(); return; } } catch { /* not allowed here; events may still come */ }
+      }
+    }
+    function stop() { window.removeEventListener("deviceorientation", onOri); on = false; asked = false; cancelAnimationFrame(raf); raf = 0; target = cur = vel = 0; root.style.removeProperty("--tilt"); }
+    return { start, stop, get on() { return on; } };
+  })();
+  Tilt.start(false);
+  document.addEventListener("pointerdown", function askTilt() { document.removeEventListener("pointerdown", askTilt); Tilt.start(true); });
+
   // ---------- Pour animation ----------
   let pourSkip = false;
   async function pour(drinks, { notes = [], water = false, names = [], sayNames = names, quiet = [], intro = "" } = {}) {
@@ -6523,6 +6558,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       say(`${sentence(SKINS[S.skin].landed)} GoldenEye 007. Alex, drink one and a half shots.`);
     } else if (b.id === "vibeBtn") {
       S.vibrate = S.vibrate === false; save(); renderHistory(); buzz("land");
+    } else if (b.id === "tiltBtn") {
+      S.tilt = S.tilt === false; save(); renderHistory();
+      if (S.tilt) { await Tilt.start(true); if (!Tilt.on) toast("This phone didn't allow motion access, so the drinks stay put"); else toast("Tilt your phone 🍹"); } else Tilt.stop();
     } else if (b.id === "animArtBtn") {
       S.animArt = S.animArt === false; save(); applyStillArt(); renderHistory();
     } else if (b.id === "prevOnBtn") {
