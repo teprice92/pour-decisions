@@ -1277,6 +1277,7 @@ label.field { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); }
 .pcard-head { display: flex; gap: 8px; align-items: center; }
 .pcard-head .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
 .pcard-head input { font-weight: 700; font-size: 1.05rem; }
+.pcard .nick-input { font-size: .85rem; padding: 6px 10px; }
 .games-list { display: grid; gap: 6px; counter-reset: g; margin: 0; padding: 0; list-style: none; }
 .games-list li { display: grid; grid-template-columns: 26px 1fr; align-items: center; gap: 6px; }
 .games-list li::before { counter-increment: g; content: counter(g); font-size: .78rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
@@ -2206,6 +2207,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // name with the player's emoji, for display
   const pname = (p) => (p ? (p.emoji ? p.emoji + " " : "") + p.name : "?");
   const pnameById = (id, night = N()) => pname(playerById(id, night));
+  // the announcer sometimes calls a player by one of their nicknames (p.nicks, comma separated)
+  const nickList = (p) => String(p?.nicks || "").split(",").map((x) => x.trim()).filter(Boolean);
+  const sayName = (p) => { if (!p) return "Someone"; const l = nickList(p); return l.length && Math.random() < 0.4 ? pickOne(l) : p.name; };
   // turns go around the table; a Reverse wild slice flips the direction
   function advanceTurn(n, step = 1) {
     const len = n.players.length; if (!len) return;
@@ -3429,6 +3433,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
               <input type="text" id="pname-${p.id}" data-field="name" value="${esc(p.name)}" aria-label="Player name" placeholder="Player name">
               <button class="btn small danger" type="button" data-remove="${p.id}" aria-label="Remove ${esc(p.name)}">${removeArm === p.id ? "Sure?" : "✕"}</button>
             </div>
+            <input type="text" class="nick-input" data-field="nicks" value="${esc(p.nicks || "")}" maxlength="120" aria-label="${esc(p.name)}'s nicknames" placeholder="Nicknames, comma separated" title="The announcer sometimes calls this player by one of these">
             ${avatarOpen === p.id ? `<div class="avatar-pick">
               <div class="emoji-grid">${Object.entries(AVATAR_ART).map(([k, a]) => `<button type="button" data-art="${k}" aria-label="${a.label}" aria-pressed="${p.art === k}">${a.svg}</button>`).join("")}${EMOJIS.map((e) => `<button type="button" data-emoji="${e}" aria-pressed="${!p.art && p.emoji === e}">${e}</button>`).join("")}<button type="button" data-emoji="" aria-label="No emoji">✕</button></div>
               <div class="color-row">${PCOLORS.map((c) => `<button type="button" data-pcolor="${c}" style="background:${c}" aria-label="Color ${c}" aria-pressed="${p.color === c}"></button>`).join("")}</div>
@@ -3479,6 +3484,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!card) return;
     const p = playerById(card.dataset.pid);
     if (el.dataset.field === "name") p.name = el.value;
+    if (el.dataset.field === "nicks") p.nicks = el.value.slice(0, 120);
     if (el.dataset.gid) { const g = p.games.find((x) => x.id === el.dataset.gid); if (g) { g.title = el.value; delete g.console; } }
     n.sample = false;
     save();
@@ -4282,14 +4288,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const who = spinner(), game = gameById(g.id);
       queueSpin(n, game, who.id);
       mainWheel._parked = false; save(); fanfare(); buzz("land"); renderSpin();
-      toast(`${pname(who)} spun ${game.title}`); say(`${who.name} spun ${game.title}.`);
+      toast(`${pname(who)} spun ${game.title}`); say(`${sayName(who)} spun ${game.title}.`);
       return;
     }
     n.pending = { gameId: g.id, spunBy: spinner().id, by: allGames().find((x) => x.id === g.id)?.by };
     mainWheel._parked = true;
     save(); fanfare(); buzz("land"); renderSpin();
     const pickedBy = playerById(n.pending.by);
-    say(`${sentence(SKINS[S.skin].landed)} ${gameById(g.id)?.title || ""}.${pickedBy ? ` ${pickedBy.name}'s pick.` : ""}`);
+    say(`${sentence(SKINS[S.skin].landed)} ${gameById(g.id)?.title || ""}.${pickedBy ? ` ${sayName(pickedBy)}'s pick.` : ""}`);
     $("#landed")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "nearest" });
   }
 
@@ -4353,7 +4359,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     await waterCheck(before);
     const up = N().pending?.queued && gameById(N().pending.gameId);
     if (up) say(`Next up: ${up.title}.`);
-    else if (!injected && N().started && spinner()) say(`${spinner().name}, you're up.`);
+    else if (!injected && N().started && spinner()) say(`${sayName(spinner())}, you're up.`);
   }
 
   function addDrink(drinks, pid, amt) {
@@ -4380,7 +4386,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const after = totals();
     const who = N().players.filter((p) => Math.floor((after[p.id]?.shots || 0) / every) > Math.floor((before[p.id]?.shots || 0) / every));
     if (!who.length) return;
-    await pour([], { water: true, names: who.map(pname) });
+    await pour([], { water: true, names: who.map(pname), sayNames: who.map(sayName) });
   }
 
   function renderTvBoard() {
@@ -4588,7 +4594,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       ov.hidden = false; ov.classList.remove("go"); void ov.offsetWidth; ov.classList.add("go");
       fanfare(); setTimeout(fanfare, 450); buzz(c.champ ? "champ" : "trophy");
       confetti({ count: c.champ ? 220 : 140, rain: true }); confetti({ count: 70, y: 0.45 });
-      say(`${c.word || TROPHY_WORD[skinBase(S.skin)] || "Trophy unlocked"}! ${c.who}, ${c.title}.`);
+      say(`${c.word || TROPHY_WORD[skinBase(S.skin)] || "Trophy unlocked"}! ${(() => { const p = N().players.find((x) => x.name === c.who || pname(x) === c.who); return p ? sayName(p) : c.who; })()}, ${c.title}.`);
       await new Promise((res) => { const t = setTimeout(res, c.champ ? 4200 : 3000); celebSkip = () => { clearTimeout(t); res(); }; });
       ov.hidden = true;
     }
@@ -4673,12 +4679,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
   // ---------- Pour animation ----------
   let pourSkip = false;
-  async function pour(drinks, { notes = [], water = false, names = [], quiet = [] } = {}) {
+  async function pour(drinks, { notes = [], water = false, names = [], sayNames = names, quiet = [] } = {}) {
     if (!drinks.length && !water && !notes.length) return;
-    if (water) say(`Water round. ${listNames(names.map(speechText))}, grab a glass of water.`);
+    if (water) say(`Water round. ${listNames(sayNames.map(speechText))}, grab a glass of water.`);
     else {
       const byAmt = {};
-      drinks.forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(playerById(d.pid)?.name || "Someone"));
+      drinks.forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(sayName(playerById(d.pid))));
       const spoken = notes.filter((t) => !quiet.includes(t));
       say([...Object.entries(byAmt).map(([a, ns]) => `${listNames(ns)}, drink ${spokenShots(+a)}.`), ...spoken].join(" "));
     }
