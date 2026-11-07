@@ -1446,6 +1446,15 @@ details.night .body { padding: 10px 0 0 18px; display: grid; gap: 10px; }
 .tm-form { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
 .tm-form select { width: auto; }
 .tm-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.tm-theme { display: grid; gap: 6px; }
+.tm-list li.on { border-color: var(--accent); }
+.tm-what { display: flex; gap: 8px; align-items: flex-start; min-width: 0; }
+.tm-what > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.tm-n { font-weight: 800; color: var(--accent); min-width: 1.2em; }
+.tm-btns { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex: none; }
+.tm-theme .tm-list li { flex-wrap: wrap; }
+.tm-theme .tm-what { flex: 1 1 220px; }
+.tm-theme .tm-btns { margin-left: auto; }
 .tm-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); font-size: .9rem; }
 .tm-list li > span { min-width: 0; }
 .tm-url { font-size: .78rem; overflow-wrap: anywhere; }
@@ -1792,6 +1801,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 <div class="mini-player" id="miniPlayer" hidden>
   <div class="mp-head">
     <span id="mpTitle">♪ Your music</span>
+    <button type="button" class="mp-btn" id="mpNext" aria-label="Play this theme's next link" hidden>⏭</button>
     <button type="button" class="mp-btn" id="mpToggle" aria-label="Shrink the player">–</button>
     <button type="button" class="mp-btn" id="mpClose" aria-label="Turn music off">✕</button>
   </div>
@@ -4237,7 +4247,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const drinks = Object.entries(f.drinks).filter(([pid, d]) => d.on && d.amt > 0 && playerById(pid)).map(([pid, d]) => ({ pid, amt: d.amt }));
     const before = totals(), trophiesBefore = trophyKeys();
     n.rounds.push({ id: uid(), ts: Date.now(), gameId: game.id, title: game.title, by: null, spunBy: null, injected: true, winner: f.winner === "tie" ? null : f.winner, drinks, skin: S.skin });
-    save(); closeLog(); renderAll();
+    save(); closeLog(); renderAll(); musicAfterGame();
     toast(`${game.title} logged`);
     const won = newTrophies(trophiesBefore), notes = won.map((t) => t.note);
     if (f.winner !== "tie") confetti({ count: 70, y: 0.3 });
@@ -4355,7 +4365,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined, queued: n.pending.queued || undefined });
     if (!injected) { if (!n.pending.queued) advanceTurn(n); n.nextMod = null; }
     form = null; resumePaused(); nextFromQueue(n);
-    save(); renderSpin();
+    save(); renderSpin(); musicAfterGame();
     const won = newTrophies(trophiesBefore);
     notes.push(...won.map((t) => t.note));
     if (winner) confetti({ count: 70, y: 0.3 });
@@ -5055,7 +5065,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const MQTT_SRC = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
   const devSetting = (k) => { try { return localStorage.getItem(k); } catch { return null; } }; // test hooks for a local relay
   const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const Sync = { client: null, key: null, topic: null, v: 0, last: "", histLast: "", applying: false, peers: new Set(), status: "off", timer: null, joining: false, prefill: "" };
+  const Sync = { client: null, key: null, topic: null, v: 0, last: "", histLast: "", musicLast: "", applying: false, peers: new Set(), status: "off", timer: null, joining: false, prefill: "" };
   if (!S.deviceId) { S.deviceId = uid() + uid(); save(); }
   const normCode = (t) => { const c = String(t || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return /^[A-Z2-9]{6}[1-3]$/.test(c) ? c : null; };
   const relayFor = (code) => devSetting("pd.syncRelay") || SYNC_RELAYS[+code.slice(-1) - 1];
@@ -5100,6 +5110,38 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       nights = nights.slice(Math.ceil(nights.length / 5));
     }
     Sync.client.publish(`${Sync.topic}/history`, msg, { retain: true, qos: 1 });
+  }
+  // Music links travel the same way on <topic>/music: each theme's list is merged by link, new ones are added at
+  // the end, and removed links leave "theme|link" in S.musicGone. Which one plays, and the order, stay per phone.
+  const musicOn = () => S.syncMusic !== false;
+  const musicSig = () => JSON.stringify(Object.keys(S.themeMusic || {}).sort().map((k) => [k, tmList(k).map(linkKey).sort()])) + "|" + (S.musicGone || []).join(",");
+  async function musicPush() {
+    if (!S.sync || !musicOn() || !Sync.client || !Sync.client.connected) return;
+    const sig = musicSig(); if (sig === Sync.musicLast) return;
+    Sync.musicLast = sig;
+    const music = {}; Object.keys(S.themeMusic || {}).forEach((k) => { if (SKINS[k] || k === "*" || !/^custom/.test(k)) music[k] = tmList(k).map(({ from, ...x }) => x); });
+    Sync.client.publish(`${Sync.topic}/music`, await sealHist({ from: S.deviceId, music, gone: (S.musicGone || []).slice(-300) }), { retain: true, qos: 1 });
+  }
+  function mergeMusic(obj) {
+    if (!obj || typeof obj.music !== "object") return;
+    const before = musicSig(), gone = (S.musicGone = S.musicGone || []);
+    (obj.gone || []).forEach((g) => { if (typeof g === "string" && !gone.includes(g)) gone.push(g); });
+    if (gone.length > 300) gone.splice(0, gone.length - 300);
+    let added = 0;
+    const keys = new Set([...Object.keys(S.themeMusic || {}), ...Object.keys(obj.music)]);
+    keys.forEach((k) => {
+      const list = tmList(k).filter((x) => !gone.includes(k + "|" + linkKey(x)));
+      (Array.isArray(obj.music[k]) ? obj.music[k] : []).forEach((raw) => {
+        const x = raw && parseMusicLink(raw.url); if (!x) return;
+        const lk = linkKey(x); if (gone.includes(k + "|" + lk) || list.some((y) => linkKey(y) === lk)) return;
+        if (raw.name) x.name = String(raw.name).slice(0, 40);
+        x.from = "the other phone"; list.push(x); added++;
+      });
+      tmSet(k, list);
+    });
+    if (musicSig() === before) return;
+    save(); if (S.music) applyMusic(); if (S.tab === "history") renderWhenFree();
+    if (added) toast(`♪ Got ${added} music link${added === 1 ? "" : "s"} from the other phone`);
   }
   function mergeHistory(obj) {
     if (!obj || !Array.isArray(obj.nights)) return;
@@ -5159,8 +5201,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const t = setTimeout(() => { if (first) { first = false; try { client.end(true); } catch { /* */ } if (Sync.client === client) Sync.client = null; rej(new Error("timeout")); } }, timeout);
       client.on("connect", () => {
         if (Sync.client !== client) return;
-        client.subscribe([`${topic}/state`, `${topic}/here/+`, `${topic}/history`], { qos: 1 });
-        Sync.histLast = ""; setTimeout(histPush, 2000); // after the retained history (if any) has arrived and merged
+        client.subscribe([`${topic}/state`, `${topic}/here/+`, `${topic}/history`, `${topic}/music`], { qos: 1 });
+        Sync.histLast = Sync.musicLast = ""; setTimeout(() => { histPush(); musicPush(); }, 2000); // after the retained history (if any) has arrived and merged
         client.publish(here, "1", { retain: true });
         Sync.status = "on"; syncUI();
         if (first) { first = false; clearTimeout(t); res(); }
@@ -5176,6 +5218,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const id = tp.split("/here/")[1];
       if (msg.length) Sync.peers.add(id); else Sync.peers.delete(id);
       Sync.peers.add(S.deviceId); syncUI(); return;
+    }
+    if (tp.endsWith("/music")) {
+      if (!musicOn() || !msg.length) return;
+      let m; try { m = await unsealHist(msg); } catch { return; }
+      if (m && m.from !== S.deviceId) { mergeMusic(m); musicPush(); }
+      return;
     }
     if (tp.endsWith("/history")) {
       if (!histOn() || !msg.length) return;
@@ -5230,7 +5278,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function syncQueue() { if (!S.sync || Sync.applying) return; clearTimeout(Sync.timer); Sync.timer = setTimeout(syncPush, 250); }
   async function syncPush() {
     if (!S.sync || !Sync.client || !Sync.client.connected) return;
-    histPush();
+    histPush(); musicPush();
     const snap = syncSnap(); if (snap === Sync.last) return;
     Sync.last = snap; Sync.v++;
     const d = JSON.parse(snap);
@@ -5265,8 +5313,15 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (sheetKind === "sync" && !$("#sheet").contains(document.activeElement)) renderSheet();
   }
   const histToggleHTML = () => `<label class="sync-hist"><input type="checkbox" id="syncHist" ${histOn() ? "checked" : ""}>
-    <span>Share past nights too<br><span class="muted" style="font-size:.85rem">History and Stats from every night get merged, so both phones end up with all of them. Deleting a night removes it on both.</span></span></label>`;
+    <span>Share past nights too<br><span class="muted" style="font-size:.85rem">History and Stats from every night get merged, so both phones end up with all of them. Deleting a night removes it on both.</span></span></label>
+    <label class="sync-hist"><input type="checkbox" id="syncMusic" ${musicOn() ? "checked" : ""}>
+    <span>Share music links too<br><span class="muted" style="font-size:.85rem">Spotify and YouTube links for each theme get merged. When a theme ends up with several, pick which one plays and their order in History → Settings.</span></span></label>`;
   $("#sheet").addEventListener("change", (e) => {
+    if (e.target.id === "syncMusic") {
+      S.syncMusic = e.target.checked; save();
+      if (S.syncMusic) { Sync.musicLast = ""; musicPush(); toast("Music links will be shared"); } else toast("Music links stay on this phone");
+      return;
+    }
     if (e.target.id !== "syncHist") return;
     S.syncHistory = e.target.checked; save();
     if (S.syncHistory) { Sync.histLast = ""; histPush(); toast("Past nights will be shared"); } else toast("Past nights stay on this phone");
@@ -6137,13 +6192,25 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     } else if (b.id === "tmSave") {
       const link = parseMusicLink($("#tmUrl").value);
       if (!link) { toast("Paste a Spotify or YouTube link (song, album, or playlist)"); $("#tmUrl").focus(); return; }
-      const which = $("#tmTheme").value;
-      S.themeMusic = Object.assign({}, S.themeMusic, { [which]: link }); save();
-      toast(`${which === "*" ? "Every theme" : SKINS[which].label} will play your ${link.kind === "spotify" ? "Spotify" : "YouTube"} link`);
+      const which = $("#tmTheme").value, name = $("#tmName").value.trim().slice(0, 40), list = tmList(which), lk = linkKey(link);
+      if (name) link.name = name;
+      const have = list.findIndex((x) => linkKey(x) === lk);
+      if (have >= 0) list[have] = Object.assign({}, list[have], name ? { name } : {}); else list.push(link);
+      tmSet(which, list); tmPicks()[which] = lk; S.musicGone = (S.musicGone || []).filter((g) => g !== which + "|" + lk); save();
+      toast(`${which === "*" ? "Every theme" : SKINS[which].label} will play ${list.length > 1 ? "this link (" + list.length + " saved)" : "your " + (link.kind === "spotify" ? "Spotify" : "YouTube") + " link"}`);
       renderHistory(); if (S.music) applyMusic();
     } else if (b.dataset.tmdel) {
-      const m = Object.assign({}, S.themeMusic); delete m[b.dataset.tmdel]; S.themeMusic = m; save();
-      renderHistory(); if (S.music) applyMusic();
+      const [k, lk] = b.dataset.tmdel.split("|");
+      tmSet(k, tmList(k).filter((x) => linkKey(x) !== lk));
+      const gone = (S.musicGone = S.musicGone || []); if (!gone.includes(k + "|" + lk)) gone.push(k + "|" + lk);
+      if (gone.length > 300) gone.splice(0, gone.length - 300);
+      save(); renderHistory(); if (S.music) applyMusic();
+    } else if (b.dataset.tmplay) {
+      const [k, lk] = b.dataset.tmplay.split("|"); tmPicks()[k] = lk; save(); renderHistory(); if (S.music) applyMusic();
+    } else if (b.dataset.tmmove) {
+      const [k, i, d] = b.dataset.tmmove.split("|"), l = tmList(k).slice(), a = +i, z = a + +d;
+      if (z < 0 || z >= l.length) return;
+      [l[a], l[z]] = [l[z], l[a]]; tmSet(k, l); save(); renderHistory(); if (S.music) applyMusic();
     } else if (b.id === "musicBtn2") {
       toggleMusic(); renderHistory();
     } else if (b.id === "voiceBtn") {
@@ -6278,7 +6345,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   // music: the header button and Settings both toggle it; browsers only allow audio after a tap,
   // so a saved "on" starts with the first tap on the page
   // ---------- Your own music: Spotify or YouTube per theme ----------
-  // Links are saved in S.themeMusic (this browser only): { themeKey or "*": { kind, id, type, url } }.
+  // Links are saved in S.themeMusic: { themeKey or "*": [{ kind, id, type, url, name? }, …] } and shared by live sync.
   // A theme with a link plays it in a small embedded player instead of the built-in loop.
   function parseMusicLink(raw) {
     const s = String(raw || "").trim(); if (!s) return null;
@@ -6294,7 +6361,28 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (!vid && !list) return null;
     return { kind: "youtube", id: vid || null, list: list || null, url: s };
   }
-  const musicLinkFor = (skin) => { const m = S.themeMusic || {}; return m[skin] || m[skinBase(skin)] || m["*"] || null; };
+  // Each theme ("*" = all themes) has a list of links: S.themeMusic[k] = [link, …] (older saves hold one link object).
+  // Live sync merges the lists between phones. When a theme has several, this phone picks which one plays
+  // (S.tmPick[k] = link key) and their order, and can move through them in order after each game (S.tmRotate[k]).
+  const linkKey = (l) => l.kind === "spotify" ? `sp:${l.type}:${l.id}` : `yt:${l.id || ""}:${l.list || ""}`;
+  const tmList = (k) => { const v = (S.themeMusic || {})[k]; return !v ? [] : Array.isArray(v) ? v : [v]; };
+  const tmSet = (k, list) => { const m = Object.assign({}, S.themeMusic); if (list.length) m[k] = list; else delete m[k]; S.themeMusic = m; };
+  const tmPicks = () => (S.tmPick = S.tmPick || {});
+  const tmKeyFor = (skin) => [skin, skinBase(skin), "*"].find((k) => tmList(k).length) || null;
+  function tmCurrent(k) { const l = tmList(k); return l.find((x) => linkKey(x) === tmPicks()[k]) || l[0] || null; }
+  const musicLinkFor = (skin) => { const k = tmKeyFor(skin); return k ? tmCurrent(k) : null; };
+  function tmStep(k, by = 1) {
+    const l = tmList(k); if (l.length < 2) return;
+    const i = Math.max(0, l.findIndex((x) => linkKey(x) === linkKey(tmCurrent(k))));
+    tmPicks()[k] = linkKey(l[(i + by + l.length) % l.length]); save();
+  }
+  function musicAfterGame() {
+    const k = tmKeyFor(S.skin); if (!k || !(S.tmRotate || {})[k] || tmList(k).length < 2) return;
+    tmStep(k); if (S.music) applyMusic();
+    const cur = tmCurrent(k); toast(`♪ Next up: ${linkLabel(cur)}`);
+    if (S.tab === "history") renderHistory();
+  }
+  const linkLabel = (l) => l.name || (l.kind === "spotify" ? "Spotify " + l.type : l.list && !l.id ? "YouTube playlist" : "YouTube video");
   function embedSrc(link) {
     if (link.kind === "spotify") return `https://open.spotify.com/embed/${link.type}/${link.id}?utm_source=generator&theme=0`;
     const origin = encodeURIComponent(location.origin);
@@ -6304,24 +6392,37 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     return `https://www.youtube.com/embed/${link.id}?autoplay=1&loop=1&${loopWith}&enablejsapi=1&origin=${origin}`;
   }
   function themeMusicHTML() {
-    const m = S.themeMusic || {};
-    const saved = Object.entries(m);
+    const keys = Object.keys(S.themeMusic || {}).filter((k) => tmList(k).length);
+    const label = (k) => (k === "*" ? "All themes" : SKINS[k]?.label || k);
     return `<div class="stack tm-block" id="themeMusicSet" style="gap:8px">
       <div class="eyebrow">Your own music: Spotify or YouTube</div>
-      <div class="muted" style="font-size:.85rem">Paste a link to a song, album, or playlist from Spotify, YouTube, or YouTube Music. That theme plays it instead of the built-in loop. Saved on this phone only.</div>
+      <div class="muted" style="font-size:.85rem">Paste a link to a song, album, or playlist from Spotify, YouTube, or YouTube Music. That theme plays it instead of the built-in loop. Add more than one to a theme to pick between them or play them in order.${S.sync ? " Links from the other synced phones show up here too." : ""}</div>
       <div class="tm-form">
         <select id="tmTheme" aria-label="Which theme">${[["*", "All themes"], ...Object.entries(SKINS).map(([k, v]) => [k, v.label])].map(([k, l]) => `<option value="${k}" ${k === S.skin ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
         <input type="url" id="tmUrl" placeholder="https://open.spotify.com/playlist/…" aria-label="Spotify or YouTube link" inputmode="url">
-        <button class="btn" type="button" id="tmSave">Save</button>
+        <button class="btn" type="button" id="tmSave">Add</button>
       </div>
-      ${saved.length ? `<ul class="tm-list">${saved.map(([k, l]) => `<li><span><b>${k === "*" ? "All themes" : esc(SKINS[k]?.label || k)}</b> · ${l.kind === "spotify" ? "Spotify " + esc(l.type) : l.list && !l.id ? "YouTube playlist" : "YouTube"}<br><span class="muted tm-url">${esc(l.url)}</span></span><button class="btn small ghost" type="button" data-tmdel="${k}">Remove</button></li>`).join("")}</ul>` : ""}
+      <input type="text" id="tmName" maxlength="40" placeholder="Name it (optional), like Race day mix" aria-label="Name for this link">
+      ${keys.map((k) => {
+        const l = tmList(k), cur = linkKey(tmCurrent(k)), many = l.length > 1;
+        return `<div class="tm-theme"><div class="tm-head"><b>${esc(label(k))}</b>${many ? `<span class="muted"> · ${l.length} links</span>` : ""}</div>
+          <ol class="tm-list">${l.map((x, i) => { const on = linkKey(x) === cur; return `<li class="${many && on ? "on" : ""}">
+            <span class="tm-what">${many ? `<span class="num tm-n">${i + 1}</span>` : ""}<span><b>${esc(linkLabel(x))}</b>${x.from ? ` <span class="tag" title="Added on ${esc(x.from)}">shared</span>` : ""}<br><span class="muted tm-url">${esc(x.url)}</span></span></span>
+            <span class="tm-btns">${many ? `<button class="btn small ${on ? "primary" : ""}" type="button" data-tmplay="${esc(k)}|${esc(linkKey(x))}" aria-pressed="${on}">${on ? "▶ Playing" : "Play"}</button>
+              <button class="btn small ghost" type="button" data-tmmove="${esc(k)}|${i}|-1" aria-label="Move up" ${i ? "" : "disabled"}>▲</button><button class="btn small ghost" type="button" data-tmmove="${esc(k)}|${i}|1" aria-label="Move down" ${i < l.length - 1 ? "" : "disabled"}>▼</button>` : ""}
+              <button class="btn small ghost" type="button" data-tmdel="${esc(k)}|${esc(linkKey(x))}" aria-label="Remove">✕</button></span></li>`; }).join("")}</ol>
+          ${many ? `<label class="sync-hist"><input type="checkbox" data-tmrotate="${esc(k)}" ${(S.tmRotate || {})[k] ? "checked" : ""}><span>Play them in this order, moving to the next one after each game</span></label>` : ""}
+        </div>`;
+      }).join("")}
       <div class="muted" style="font-size:.8rem">Spotify plays 30-second previews unless you're logged in to Spotify in this browser. On phones you may need to tap play in the player once.</div>
     </div>`;
   }
   let embedNow = "";
   function showEmbed(link) {
     const src = embedSrc(link), box = $("#miniPlayer");
-    $("#mpTitle").textContent = `♪ ${link.kind === "spotify" ? "Spotify" : "YouTube"} · ${SKINS[S.skin].label}`;
+    const tk = tmKeyFor(S.skin), tl = tk ? tmList(tk) : [], ti = tl.findIndex((x) => linkKey(x) === linkKey(link));
+    $("#mpTitle").textContent = `♪ ${link.name || (link.kind === "spotify" ? "Spotify" : "YouTube")} · ${SKINS[S.skin].label}${tl.length > 1 ? ` · ${ti + 1} of ${tl.length}` : ""}`;
+    $("#mpNext").hidden = tl.length < 2;
     box.dataset.kind = link.kind; box.hidden = false;
     if (embedNow === src) return; // same link as the last theme: keep playing
     embedNow = src;
@@ -6387,6 +6488,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function syncMusicBtn() { const b = $("#musicBtn"); b.setAttribute("aria-pressed", String(!!S.music)); b.textContent = S.music ? "♪ Music on" : "♪ Music off"; }
   function toggleMusic() { S.music = !S.music; save(); applyMusic(); syncMusicBtn(); }
   $("#musicBtn").addEventListener("click", toggleMusic);
+  $("#view-history").addEventListener("change", (e) => {
+    const k = e.target.dataset.tmrotate; if (k == null) return;
+    S.tmRotate = Object.assign({}, S.tmRotate, { [k]: e.target.checked }); save();
+  });
+  $("#mpNext").addEventListener("click", () => {
+    const k = tmKeyFor(S.skin); if (!k) return;
+    tmStep(k); applyMusic(); toast(`♪ ${linkLabel(tmCurrent(k))}`); if (S.tab === "history") renderHistory();
+  });
   $("#view-history").addEventListener("input", (e) => { if (e.target.id === "musicVol") { S.musicVol = +e.target.value; save(); Music.setVolume(); embedVolume(S.musicVol); } });
   document.addEventListener("pointerdown", function first() { if (S.music && !Music.playing && !embedNow) applyMusic(); document.removeEventListener("pointerdown", first); });
   // the built-in loop pauses in the background; Spotify/YouTube players handle that themselves
