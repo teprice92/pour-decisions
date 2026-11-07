@@ -16,7 +16,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Russo+One&family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&family=Saira+Condensed:wght@500;700;800&family=Saira:wght@400;600&family=VT323&family=Share+Tech+Mono&family=Limelight&family=Crimson+Pro:wght@400;600;700&family=Press+Start+2P&family=Nunito:wght@500;700;900&family=Pirata+One&family=Cinzel:wght@600;800&family=Cinzel+Decorative:wght@700;900&family=Grenze+Gotisch:wght@600;800&family=Almendra+SC&family=MedievalSharp&family=Alegreya+Sans:wght@400;700&family=Teko:wght@500;600&family=Luckiest+Guy&family=Audiowide&family=Bangers&family=Silkscreen&family=Pixelify+Sans:wght@400;600&family=Bungee&family=Lilita+One&family=Metal+Mania&family=Marcellus+SC&family=Anton&family=Fredoka:wght@600;700&family=Pacifico&family=Russo+One&family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&family=Righteous&family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Baloo+2:wght@700;800&family=Rajdhani:wght@500;700&family=IM+Fell+English:ital@0;1&display=swap">
 <style>
 /* Layout: sticky header (logo + skin switcher + tabs), then one view at a time.
    Spin view = wheel left / turn + record panel right; stacks on phones.
@@ -187,7 +187,7 @@ html[data-skin="zelda"] {
   --liquid-2: #8e0f1a;
   --glass: rgba(240, 250, 230, .09);
   --glass-edge: rgba(232, 220, 170, .6);
-  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-display: "Cinzel Decorative", "Cinzel", "Times New Roman", serif;
   --font-body: "Alegreya Sans", system-ui, sans-serif;
   --display-case: uppercase;
   --display-track: .08em;
@@ -883,7 +883,7 @@ html[data-skin="ganon"] {
   --liquid-2: #6b0a1e;
   --glass: rgba(246, 234, 216, .07);
   --glass-edge: rgba(212, 165, 55, .6);
-  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-display: "Grenze Gotisch", "Cinzel", serif;
   --font-body: "Crimson Pro", Georgia, serif;
   --display-case: uppercase;
   --display-track: .1em;
@@ -1064,7 +1064,7 @@ html[data-skin="twilight"] {
   --liquid-2: #0b3b36;
   --glass: rgba(239, 230, 207, .06);
   --glass-edge: rgba(140, 240, 225, .6);
-  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-display: "Almendra SC", "Cinzel", serif;
   --font-body: "Alegreya Sans", system-ui, sans-serif;
   --display-case: none;
   --display-track: .05em;
@@ -1100,7 +1100,7 @@ html[data-skin="darkzelda"] {
   --liquid-2: #7a0f16;
   --glass: rgba(236, 227, 198, .06);
   --glass-edge: rgba(200, 162, 60, .55);
-  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-display: "MedievalSharp", "Cinzel", serif;
   --font-body: "Crimson Pro", Georgia, serif;
   --display-case: uppercase;
   --display-track: .08em;
@@ -1606,6 +1606,23 @@ button.chip:not(.now):hover { border-color: var(--accent); }
 .bg-rec.up { border-color: var(--accent); }
 .bg-rec.up b { color: var(--accent); }
 .tonight-hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 16px; font-size: .95rem; }
+/* Painted backgrounds for the Zelda themes (img/themes, made with Higgsfield), behind a tint so text stays readable */
+html[data-skin="zelda"] body::after, html[data-skin="ganon"] body::after, html[data-skin="temple"] body::after, html[data-skin="ocarina"] body::after, html[data-skin="majora"] body::after, html[data-skin="windwaker"] body::after, html[data-skin="twilight"] body::after, html[data-skin="darkzelda"] body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-position: center top; background-size: cover; background-repeat: no-repeat; }
+html[data-skin="zelda"] body::after { background-image: linear-gradient(rgba(12,31,20,.42), rgba(12,31,20,.72)), url("img/themes/zelda.webp"); }
+html[data-skin="ganon"] body::after { background-image: linear-gradient(rgba(10,6,8,.3), rgba(10,6,8,.62)), url("img/themes/ganon.webp"); }
+html[data-skin="temple"] body::after { background-image: linear-gradient(rgba(235,231,220,.3), rgba(235,231,220,.55)), url("img/themes/temple.webp"); }
+html[data-skin="ocarina"] body::after { background-image: linear-gradient(rgba(10,24,48,.3), rgba(10,24,48,.62)), url("img/themes/ocarina.webp"); }
+html[data-skin="majora"] body::after { background-image: linear-gradient(rgba(26,13,43,.28), rgba(26,13,43,.62)), url("img/themes/majora.webp"); }
+html[data-skin="windwaker"] body::after { background-image: linear-gradient(rgba(31,134,214,.05), rgba(31,134,214,.3)), url("img/themes/windwaker.webp"); }
+html[data-skin="twilight"] body::after { background-image: linear-gradient(rgba(7,9,10,.25), rgba(7,9,10,.6)), url("img/themes/twilight.webp"); }
+html[data-skin="darkzelda"] body::after { background-image: linear-gradient(rgba(5,11,7,.25), rgba(5,11,7,.6)), url("img/themes/darkzelda.webp"); }
+/* let the painted backgrounds show through the panels a little, with a blur so text stays crisp */
+html[data-skin="zelda"] .panel, html[data-skin="ganon"] .panel, html[data-skin="ocarina"] .panel, html[data-skin="majora"] .panel, html[data-skin="darkzelda"] .panel { background: color-mix(in srgb, var(--panel) 82%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+html[data-skin="twilight"] .panel { --panel: rgba(10, 16, 16, .76); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); } /* keeps its corner brackets */
+html[data-skin="temple"] .panel { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+/* their title fonts draw 0 like an O, so scores use the body font */
+html[data-skin="darkzelda"] .scard .total, html[data-skin="darkzelda"] .tv-board .num, html[data-skin="darkzelda"] .tile .tv,
+html[data-skin="twilight"] .scard .total, html[data-skin="twilight"] .tv-board .num, html[data-skin="twilight"] .tile .tv { font-family: var(--font-body); font-weight: 700; }
 /* Games tab header: title + "Adding to" on top, then labeled sections with aligned rows */
 .cat-head { display: grid; gap: 16px; }
 .cat-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: start; }
