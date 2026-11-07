@@ -2456,12 +2456,19 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     dEc1rkm0ul0kDedEuETS: ["pokemon", "nintendo", "mariokart"], // Alex: lively game-show announcer
     zDBYcuJrpuZ6YQ7AgRUw: ["fallout", "divebar", "synthwave"],  // Jerry B.: classic radio DJ
     gUU37agQvEpxeWrZUIMk: ["policenauts"],              // Alaric: intense and measured
-    // backups, used only when the voice above for that theme isn't in the library
-    pL2AN47H9Cgg5ce6LNmO: ["akatsuki"],                 // Haruma: deep, calm Japanese
-    FMgBdHe1YV2Xi0B9anXW: ["kitsune"],                  // Hideo: gentle, Japanese accent
-    "3qrDspkJ47LHgKaaF9hQ": ["formula", "papaya", "xbox", "playstation"], // Dave: energetic, emphatic
-    "2UyW0L6yjNuo3ZH3XnoV": ["gta", "cards"],           // Boom Mike: fun Jersey guy
   };
+  // backups from voices the owner already has, used when a theme's first choice above isn't in the library.
+  // Checked in order, so a theme's earlier backup wins.
+  const XI_BACKUP = [
+    ["pL2AN47H9Cgg5ce6LNmO", ["akatsuki"]],                                  // Haruma: deep, calm Japanese
+    ["FMgBdHe1YV2Xi0B9anXW", ["kitsune"]],                                   // Hideo: gentle, Japanese accent
+    ["d3qrd1ge6zWDvUxIeXiH", ["castlevania", "mortalkombat", "starwars"]],   // Final Boss: all-powerful villain
+    ["3YzGaTGef0x5PLEK9yGq", ["metalgear", "halo", "skyrim"]],               // Atlas: deep, gravelly narrator
+    ["gUU37agQvEpxeWrZUIMk", ["majora", "akatsuki"]],                        // Alaric: theatrical, hidden intent
+    ["W3C2vBPukr5b5jvoXhPK", ["twilight"]],                                  // Kira X: bold and cinematic, for Midna
+    ["3qrDspkJ47LHgKaaF9hQ", ["formula", "papaya", "xbox", "playstation", "streetfighter", "mariokart"]], // Dave: energetic, emphatic
+    ["2UyW0L6yjNuo3ZH3XnoV", ["gta", "cards"]],                              // Boom Mike: fun Jersey guy
+  ];
   const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
   const lsSet = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* storage blocked */ } };
   const xiKey = () => lsGet("pd.elevenKey") || "";
@@ -2476,7 +2483,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const c = xiCfg(), base = skinBase(skin);
     if (c.theme[base]) return c.theme[base];
     if (c.match) {
-      for (const [id, list] of Object.entries(XI_PREFER)) if (list.includes(base) && c.lib.some((v) => v.id === id)) return id;
+      for (const [id, list] of [...Object.entries(XI_PREFER), ...XI_BACKUP]) if (list.includes(base) && c.lib.some((v) => v.id === id)) return id;
       for (const [id, list] of Object.entries(XI_THEME)) if (list.includes(base)) return id;
     }
     return c.voice;
@@ -2532,10 +2539,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       if (!r.ok) throw new Error(r.status);
       xiVoiceList = ((await r.json()).voices || []).filter((v) => v.category !== "premade").map((v) => ({ id: v.voice_id, name: / - /.test(v.name) ? v.name.replace(" - ", " (") + ")" : v.name }));
       const c = xiCfg(), added = c.lib.filter((v) => v.added);
-      c.lib = [...xiVoiceList, ...added.filter((v) => !xiVoiceList.some((x) => x.id === v.id))]; xiSaveCfg(c);
+      c.lib = [...xiVoiceList, ...added.filter((v) => !xiVoiceList.some((x) => x.id === v.id))]; c.libAt = Date.now(); xiSaveCfg(c);
     } catch { xiVoiceList = []; } // keys limited to text-to-speech can't list voices; premade and added-by-ID voices still work
     if (S.tab === "history") renderHistory();
   }
+  // load the voice library by itself: on opening the app (at most every 12 hours) and when the phone comes back online,
+  // so voices added on the ElevenLabs site are matched to themes without tapping Reload
+  function xiAutoLoad() {
+    const c = xiCfg();
+    if (!xiKey() || xiKeyBad || navigator.onLine === false || (c.libAt && Date.now() - c.libAt < 12 * 3600e3)) return;
+    const had = new Set(c.lib.map((v) => v.id));
+    xiLoadVoices().then(() => { const n = (xiVoiceList || []).filter((v) => !had.has(v.id)).length; if (n && had.size) toast(`🎙️ ${n} new voice${n === 1 ? "" : "s"} from your ElevenLabs library`); });
+  }
+  setTimeout(xiAutoLoad, 2500);
+  window.addEventListener("online", () => setTimeout(xiAutoLoad, 1500));
   function xiSettingsHTML() {
     const key = xiKey();
     if (!key) {
