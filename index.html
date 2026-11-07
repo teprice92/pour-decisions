@@ -1580,6 +1580,12 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .hist-filters { gap: 10px; }
 .hist-filters .field { flex: 1 1 160px; min-width: 0; }
 .hist-filters select { width: 100%; }
+.prev-on { display: grid; gap: 12px; }
+.prev-line { display: flex; gap: 10px; align-items: baseline; font-size: 1.1rem; animation: prevIn .6s ease-out both; }
+.prev-line:first-child { display: block; font-size: 1.15rem; }
+.prev-ic { flex: none; width: 1.6em; text-align: center; }
+@keyframes prevIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .prev-line { animation: none; } }
 .sync-hist { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
 .sync-hist input { width: auto; flex: none; margin-top: 4px; }
 .sync-code { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: .18em; text-align: center; font-weight: 800; color: var(--accent); }
@@ -1651,7 +1657,23 @@ button.chip:not(.now):hover { border-color: var(--accent); }
 .tonight-hl { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 6px 16px; font-size: .95rem; }
 /* Painted theme backgrounds (img/themes, made with Higgsfield) on one fixed layer behind everything, under a tint
    so text stays readable. A theme without a picture keeps its pattern background. */
-#themeArt { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: none; background-position: center top; background-size: cover; background-repeat: no-repeat; }
+#themeArt { position: fixed; inset: -4%; z-index: -1; pointer-events: none; display: none; background-position: center top; background-size: cover; background-repeat: no-repeat; }
+/* painted backgrounds drift slowly, with motes of the theme's accent color floating up (off with reduced motion or in Settings) */
+#themeArt { animation: artDrift 48s ease-in-out infinite alternate; }
+#themeArt::after { content: ""; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, #fff) 0 1.5px, transparent 2.5px), radial-gradient(circle, color-mix(in srgb, var(--accent-2) 60%, #fff) 0 1px, transparent 2px);
+  background-size: 180px 240px, 260px 300px; background-position: 0 0, 90px 120px; animation: artMotes 30s linear infinite; mix-blend-mode: screen; }
+@keyframes artDrift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.07) translate(-1.5%, -1.2%); } }
+@keyframes artMotes { from { background-position: 0 0, 90px 120px; } to { background-position: 40px -240px, 50px -180px; } }
+html.still-art #themeArt, html.still-art #themeArt::after { animation: none; }
+html.still-art #themeArt::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::after { animation: none; } #themeArt::after { display: none; } }
+/* a drink sloshes as it lands in the glass */
+.glass .tilt { transform-box: view-box; transform-origin: 50px 0; }
+.glass.slosh .tilt { animation: slosh 1.3s cubic-bezier(.3,.6,.3,1); }
+@keyframes slosh { 0% { transform: rotate(0); } 18% { transform: rotate(-7deg); } 40% { transform: rotate(5deg); } 62% { transform: rotate(-3deg); } 82% { transform: rotate(1.5deg); } 100% { transform: rotate(0); } }
+.p-extras { margin-top: 2px; }
+.p-extras summary { cursor: pointer; padding: 4px 0; }
+.p-extras[open] { display: grid; gap: 6px; }
 html[data-skin="zelda"] #themeArt { display: block; background-image: linear-gradient(rgba(12,31,20,.42), rgba(12,31,20,.72)), url("img/themes/zelda.webp"); }
 html[data-skin="ganon"] #themeArt { display: block; background-image: linear-gradient(rgba(10,6,8,.3), rgba(10,6,8,.62)), url("img/themes/ganon.webp"); }
 html[data-skin="temple"] #themeArt { display: block; background-image: linear-gradient(rgba(235,231,220,.3), rgba(235,231,220,.55)), url("img/themes/temple.webp"); }
@@ -2613,6 +2635,42 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     try { if (cache) await cache.put(req, new Response(blob, { headers: { "Content-Type": "audio/mpeg" } })); } catch { /* storage full: still plays */ }
     const u = URL.createObjectURL(blob); xiMem.set(id, u); return u;
   }
+  // Short sound effects for big moments (a win, a penalty, a big pour), made once per theme with ElevenLabs'
+  // sound-effects model and saved with the spoken lines. Off unless the owner turns it on; each one counts as
+  // STING_COST characters against this phone's monthly limit.
+  const STING_COST = 120;
+  const STING_EVENT = { win: "a short triumphant victory sting, about two seconds", penalty: "a short comedic fail buzzer sting, about two seconds", big: "a short dramatic whoosh and heavy glass clink sting, about two seconds" };
+  const STING_MOOD = { xbox: "sleek futuristic gaming", playstation: "smooth electronic", metalgear: "tense military stealth", cards: "casino jazz", nintendo: "cheerful 8-bit chiptune", castlevania: "gothic organ",
+    zelda: "fantasy adventure", halo: "epic sci-fi choir", pokemon: "bright chiptune adventure", synthwave: "1980s synthesizer", streetfighter: "arcade fighting game", minecraft: "blocky chiptune",
+    fallout: "1950s retro radio", mariokart: "cartoon racing", mortalkombat: "dark martial arts", skyrim: "nordic war drums", gta: "west coast hip hop", amongus: "cartoon space",
+    divebar: "honky-tonk bar", starwars: "space opera orchestral", sakura: "gentle Japanese koto", cruise: "steel drum tropical", pride: "disco celebration", wedding: "elegant string quartet",
+    policenauts: "90s anime sci-fi", naruto: "ninja taiko and flute", akatsuki: "dark taiko", kitsune: "mystical shrine bells", ganon: "ominous pipe organ", temple: "sacred choir",
+    ocarina: "magical flute", majora: "eerie carnival", windwaker: "sea shanty", twilight: "dark ethereal", darkzelda: "brooding orchestral", dbz: "anime power-up rock",
+    formula: "motor racing engine roar", papaya: "motor racing engine roar" };
+  const stingAudio = new Audio();
+  async function stinger(ev) {
+    const c = xiCfg(); if (!c.sfx || !S.sound || !xiReady() || !STING_EVENT[ev]) return;
+    const base = skinBase(S.skin), id = `sfx|${base}|${ev}`, req = new Request(`https://pour-decisions.voice/${encodeURIComponent(id)}`);
+    try {
+      let url = xiMem.get(id);
+      if (!url) {
+        const cache = await caches.open(XI_CACHE), hit = await cache.match(req);
+        if (hit) url = URL.createObjectURL(await hit.blob());
+        else {
+          if (c.cap && xiUsed(c) + STING_COST > c.cap) return;
+          const res = await fetch(`${XI_API}/v1/sound-generation?output_format=mp3_44100_64`, { method: "POST", headers: { "xi-api-key": xiKey(), "Content-Type": "application/json", Accept: "audio/mpeg" },
+            body: JSON.stringify({ text: `${STING_EVENT[ev]}, ${STING_MOOD[base] || "upbeat party game"} style, for a drinking game app`, duration_seconds: 2, prompt_influence: 0.6 }) });
+          if (res.status === 401 || res.status === 403) return;
+          if (!res.ok) return;
+          const blob = await res.blob(), n = xiCfg(); n.used[xiMonth()] = xiUsed(n) + STING_COST; xiSaveCfg(n);
+          try { await cache.put(req, new Response(blob, { headers: { "Content-Type": "audio/mpeg" } })); } catch { /* storage full */ }
+          url = URL.createObjectURL(blob);
+        }
+        xiMem.set(id, url);
+      }
+      stingAudio.src = url; stingAudio.volume = 0.8; stingAudio.play().catch(() => {});
+    } catch { /* offline or no Cache Storage: no stinger */ }
+  }
   // lines are fetched right away but play one after another, like the phone voice's queue
   let xiQueue = Promise.resolve();
   function xiSay(text) {
@@ -2678,6 +2736,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       </div>
       <div class="muted" style="font-size:.85rem">This month on this phone: <b class="num">${xiUsed(c).toLocaleString()}</b> characters sent to ElevenLabs${c.cap ? ` of ${c.cap.toLocaleString()}` : ""}. Lines that were already spoken are saved here and cost nothing again. A busy night is usually a few thousand characters. The key is saved only on this phone and never synced or backed up.</div>
       ${XI_TAGGED.has(c.model) ? `<div class="muted" style="font-size:.85rem">On ${c.model === "eleven_v4" ? "v4" : "v3"}, each theme performs its lines${XI_TAGS[base] ? `. ${esc(themeName)} uses <b>${esc(XI_TAGS[base])}</b>` : ""}. These models use about twice the credits of Flash or Turbo, and take a moment longer to start talking.</div>` : ""}
+      <label class="pick" style="align-self:flex-start"><input type="checkbox" id="xiSfx" ${c.sfx ? "checked" : ""}><span>Sound stingers for wins, penalties, and big pours</span></label>
+      ${c.sfx ? `<div class="muted" style="font-size:.85rem">Each theme makes its 3 stingers once, about ${STING_COST} credits each, then they're saved on this phone. They play when sound effects are on.</div>` : ""}
       <div class="row"><button class="btn" type="button" id="voiceTest2">Test this theme's voice</button><button class="btn ghost" type="button" id="xiVoices">${c.lib.length ? "Reload my voice library" : "Load my voice library"}</button><button class="btn ghost danger" type="button" id="xiKeyRemove">Remove key from this phone</button></div>
       ${xiVoiceList && !xiVoiceList.length ? `<div class="muted" style="font-size:.85rem">This key can't list your voice library (it needs "Voices: read"), so only premade voices and ones you add by ID are shown.</div>` : ""}
       <details class="xi-help"><summary>Add more voices</summary>
@@ -2695,9 +2755,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else if (t.id === "xiThemeVoice") { if (t.value) c.theme[skinBase(S.skin)] = t.value; else delete c.theme[skinBase(S.skin)]; }
     else if (t.id === "xiModel") c.model = t.value;
     else if (t.id === "xiCap") c.cap = +t.value;
+    else if (t.id === "xiSfx") c.sfx = t.checked;
     else return;
     xiSaveCfg(c); xiWarned = false;
-    if (t.id === "xiMatch") renderHistory();
+    if (t.id === "xiMatch" || t.id === "xiSfx") renderHistory();
+    if (t.id === "xiSfx" && c.sfx) stinger("win");
   });
   $("#view-history").addEventListener("click", async (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -2857,6 +2919,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         <button class="btn" type="button" id="voiceBtn" aria-pressed="${!!S.voice}" ${canSpeak || xiKey() ? "" : "disabled"}>${S.voice ? "🎙️ Announcer on" : "🎙️ Announcer off"}</button>
         <button class="btn" type="button" id="vibeBtn" aria-pressed="${S.vibrate !== false}">${S.vibrate !== false ? "📳 Vibration on" : "📳 Vibration off"}</button>
         <button class="btn" type="button" id="confettiBtn" aria-pressed="${S.confetti !== false}">${S.confetti !== false ? "🎉 Confetti on" : "🎉 Confetti off"}</button>
+        <button class="btn" type="button" id="animArtBtn" aria-pressed="${S.animArt !== false}">${S.animArt !== false ? "🌌 Moving backgrounds on" : "🌌 Moving backgrounds off"}</button>
+        <button class="btn" type="button" id="prevOnBtn" aria-pressed="${S.prevOn !== false}">${S.prevOn !== false ? "📺 \"Previously on\" on" : "📺 \"Previously on\" off"}</button>
       </div>
       ${canSpeak ? `<div class="row" style="align-items:flex-end">
         <label class="field" style="flex:1 1 200px">Announcer voice<select id="voicePick"><option value="">Automatic</option>${voices.map((v) => `<option value="${esc(v.name)}" ${v.name === S.voiceName ? "selected" : ""}>${esc(v.name)}</option>`).join("")}</select></label>
@@ -3240,10 +3304,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     return t && GLASS_ART[t.glassArt] ? t.glassArt : null;
   }
   const glassArt = () => GLASS_ART[glassArtKey()] || null;
-  function glassSVG(fill, { cls = "", stat = false, water = false } = {}) {
-    const id = "gl" + (++glassSeq), art = glassArt();
+  // key: a player's own glass pick (p.glass), which wins over the theme's
+  function glassSVG(fill, { cls = "", stat = false, water = false, key = "" } = {}) {
+    const id = "gl" + (++glassSeq), own = key && GLASS_ART[key] ? key : "", art = own ? GLASS_ART[own] : key === "drawn" ? null : glassArt();
     if (art) {
-      const y0 = art.bot + 2, y1 = art.top - 3, img = `href="img/glass/${glassArtKey()}.webp" x="${art.x}" y="0" width="${art.w}" height="130"`;
+      const y0 = art.bot + 2, y1 = art.top - 3, img = `href="img/glass/${own || glassArtKey()}.webp" x="${art.x}" y="0" width="${art.w}" height="130"`;
       return `<svg class="glass art ${stat ? "static" : ""} ${cls}" viewBox="0 0 100 130" aria-hidden="true" data-y0="${y0}" data-y1="${y1}">
       <defs>
         <clipPath id="${id}c"><path d="${art.d}"/></clipPath>
@@ -3251,10 +3316,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       </defs>
       <image ${img}/>
       <g clip-path="url(#${id}c)" opacity=".88">
-        <g class="liq" style="transform: translateY(${artY(fill, y0, y1)}px)">
+        <g class="liq" style="transform: translateY(${artY(fill, y0, y1)}px)"><g class="tilt">
           <path class="wave" d="M0 6 Q12.5 0 25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 V140 H0 Z" fill="url(#${id}g)"/>
           ${stat ? "" : `<circle class="bub" cx="40" cy="${y0 - y1 - 8}" r="2.2" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="58" cy="${y0 - y1 - 6}" r="1.6" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="49" cy="${y0 - y1 - 4}" r="2" fill="rgba(255,255,255,.7)"/>`}
-        </g>
+        </g></g>
       </g>
       <image ${img} opacity=".4"/>
     </svg>`;
@@ -3266,10 +3331,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       </defs>
       <path d="M10 6 L90 6 L80 112 L20 112 Z" fill="var(--glass)"/>
       <g clip-path="url(#${id}c)">
-        <g class="liq" style="transform: translateY(${liquidY(fill)}px)">
+        <g class="liq" style="transform: translateY(${liquidY(fill)}px)"><g class="tilt">
           <path class="wave" d="M0 6 Q12.5 0 25 6 T50 6 T75 6 T100 6 T125 6 T150 6 T175 6 T200 6 V140 H0 Z" fill="url(#${id}g)"/>
           ${stat ? "" : `<circle class="bub" cx="40" cy="96" r="2.2" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="58" cy="98" r="1.6" fill="rgba(255,255,255,.7)"/><circle class="bub" cx="49" cy="100" r="2" fill="rgba(255,255,255,.7)"/>`}
-        </g>
+        </g></g>
       </g>
       <path d="M10 6 L90 6 L80 112 L20 112 Z" fill="none" stroke="var(--glass-edge)" stroke-width="3.5" stroke-linejoin="round"/>
       <path d="M20 112 L80 112 L81 124 L19 124 Z" fill="var(--glass-edge)" opacity=".9"/>
@@ -3281,6 +3346,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const liq = svg.querySelector(".liq");
     if (ms != null) liq.style.transitionDuration = ms + "ms";
     liq.style.transform = `translateY(${svg.dataset.y0 ? artY(f, +svg.dataset.y0, +svg.dataset.y1) : liquidY(f)}px)`;
+    // the drink sloshes as it lands
+    if (!reduceMotion && !svg.classList.contains("static")) { svg.classList.remove("slosh"); void svg.getBoundingClientRect(); svg.classList.add("slosh"); clearTimeout(svg._sl); svg._sl = setTimeout(() => svg.classList.remove("slosh"), 1400); }
   }
 
   // ---------- Toast ----------
@@ -3542,8 +3609,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     $("#skinSelect").innerHTML = builtInSkins().map(opt).join("") +
       (mine.length ? `<optgroup label="Your themes">${mine.map(opt).join("")}</optgroup>` : "") + `<option value="__build">＋ Build your own…</option>`;
   }
+  const applyStillArt = () => document.documentElement.classList.toggle("still-art", S.animArt === false);
   function applySkin() {
-    registerCustomThemes();
+    registerCustomThemes(); applyStillArt();
     document.documentElement.dataset.skin = S.skin;
     $("#tagline").textContent = SKINS[S.skin].tagline;
     $("#hubSpin").textContent = SKINS[S.skin].spin;
@@ -3625,6 +3693,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
               <button class="btn small danger" type="button" data-remove="${p.id}" aria-label="Remove ${esc(p.name)}">${removeArm === p.id ? "Sure?" : "✕"}</button>
             </div>
             <input type="text" class="nick-input" data-field="nicks" value="${esc(p.nicks || "")}" maxlength="120" aria-label="${esc(p.name)}'s nicknames" placeholder="Nicknames, comma separated" title="The announcer sometimes calls this player by one of these">
+            <details class="p-extras"><summary class="eyebrow p-extras-head">Glass and announcer lines</summary>
+              <label class="field">Shot glass<select data-pglass="${p.id}"><option value="">The theme's glass</option><option value="drawn" ${p.glass === "drawn" ? "selected" : ""}>Plain drawn glass</option>${builtInSkins().filter(([k]) => GLASS_ART[k]).map(([k, v]) => `<option value="${k}" ${p.glass === k ? "selected" : ""}>${esc(v.label)}</option>`).join("")}</select></label>
+              <input type="text" class="nick-input" data-field="winLine" value="${esc(p.winLine || "")}" maxlength="70" aria-label="${esc(p.name)}'s win line" placeholder="Win line, like: Too easy. Who's next?">
+              <input type="text" class="nick-input" data-field="drinkLine" value="${esc(p.drinkLine || "")}" maxlength="70" aria-label="${esc(p.name)}'s drink line" placeholder="Drink line, like: I meant to do that.">
+            </details>
             ${avatarOpen === p.id ? `<div class="avatar-pick">
               <div class="emoji-grid">${Object.entries(AVATAR_ART).map(([k, a]) => `<button type="button" data-art="${k}" aria-label="${a.label}" aria-pressed="${p.art === k}">${a.svg}</button>`).join("")}${EMOJIS.map((e) => `<button type="button" data-emoji="${e}" aria-pressed="${!p.art && p.emoji === e}">${e}</button>`).join("")}<button type="button" data-emoji="" aria-label="No emoji">✕</button></div>
               <div class="color-row">${PCOLORS.map((c) => `<button type="button" data-pcolor="${c}" style="background:${c}" aria-label="Color ${c}" aria-pressed="${p.color === c}"></button>`).join("")}</div>
@@ -3676,6 +3749,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const p = playerById(card.dataset.pid);
     if (el.dataset.field === "name") p.name = el.value;
     if (el.dataset.field === "nicks") p.nicks = el.value.slice(0, 120);
+    if (el.dataset.field === "winLine") p.winLine = el.value.slice(0, 70);
+    if (el.dataset.field === "drinkLine") p.drinkLine = el.value.slice(0, 70);
+    if (el.dataset.pglass != null) { p.glass = el.value || undefined; n.sample = false; save(); return; }
     if (el.dataset.gid) { const g = p.games.find((x) => x.id === el.dataset.gid); if (g) { g.title = el.value; delete g.console; } }
     n.sample = false;
     save();
@@ -3699,7 +3775,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     $$("#view-setup [data-pid]").forEach((card) => {
       const p = playerById(card.dataset.pid); if (!p) return;
       const i = N().players.indexOf(p);
-      card.querySelector(".eyebrow").textContent = `Turn ${i + 1} · ${p.games.filter((g) => g.title.trim()).length}/${N().perPlayer} picked`;
+      card.querySelector(".eyebrow:not(.p-extras-head)").textContent = `Turn ${i + 1} · ${p.games.filter((g) => g.title.trim()).length}/${N().perPlayer} picked`;
     });
   }
   $("#view-setup").addEventListener("click", (e) => {
@@ -3760,8 +3836,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const ready = n.players.filter((p) => p.name.trim() && p.games.some((g) => g.title.trim()));
       if (n.players.length < 2) return toast("Add at least two players");
       if (ready.length < n.players.length) return toast("Every player needs a name and at least one game");
+      const first = !n.started;
       if (!n.started) n.started = Date.now();
       save(); setTab("spin");
+      if (first) previouslyOn();
     }
   });
 
@@ -4426,8 +4504,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     save(); closeLog(); renderAll(); musicAfterGame();
     toast(`${game.title} logged`);
     const won = newTrophies(trophiesBefore), notes = won.map((t) => t.note);
-    if (f.winner !== "tie") confetti({ count: 70, y: 0.3 });
-    await pour(drinks, { notes, quiet: notes });
+    if (f.winner !== "tie") { confetti({ count: 70, y: 0.3 }); stinger("win"); }
+    const wp = f.winner !== "tie" && playerById(f.winner), wl = wp && (wp.winLine || "").trim();
+    await pour(drinks, { notes, quiet: notes, intro: wl && Math.random() < 0.75 ? `${sayName(wp)}: ${wl}` : "" });
     if (won.length) await celebrate(won);
     await waterCheck(before);
   }
@@ -4544,8 +4623,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     save(); renderSpin(); musicAfterGame();
     const won = newTrophies(trophiesBefore);
     notes.push(...won.map((t) => t.note));
-    if (winner) confetti({ count: 70, y: 0.3 });
-    await pour(drinks, { notes, quiet: won.map((t) => t.note) });
+    if (winner) { confetti({ count: 70, y: 0.3 }); stinger("win"); }
+    const wp = winner && playerById(winner), wl = wp && (wp.winLine || "").trim();
+    await pour(drinks, { notes, quiet: won.map((t) => t.note), intro: wl && Math.random() < 0.75 ? `${sayName(wp)}: ${wl}` : "" });
     if (won.length) await celebrate(won);
     await waterCheck(before);
     const up = N().pending?.queued && gameById(N().pending.gameId);
@@ -4586,7 +4666,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const n = N(), t = totals(), st = streaks();
     const rows = n.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins || t[a.id].shots - t[b.id].shots);
     box.innerHTML = `<div class="row" style="justify-content:space-between"><h3>Shot board</h3><span class="muted">wins · shots</span></div>
-      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh > 0 ? sh - Math.floor(sh + 1e-9) : 0; return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true })}<span class="nm">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
+      <div class="tv-board">${rows.map((p) => { const sh = t[p.id].shots, part = sh > 0 ? sh - Math.floor(sh + 1e-9) : 0; return `<div class="tv-row">${glassSVG(part > 0.001 ? part : sh > 0 ? 1 : 0, { stat: true, key: p.glass })}<span class="nm">${pnameHTML(p)}${st[p.id] >= 3 ? " 🔥" : ""}</span><span class="num">${t[p.id].wins}</span><span class="num">${fmtShots(sh)}</span></div>`; }).join("")}</div>`;
   }
   $("#tvBtn").addEventListener("click", async () => {
     const root = document.documentElement, on = !root.classList.contains("tv");
@@ -4862,7 +4942,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       ruleArm = null;
       const d = [{ pid: p.id, amt: r.amt }], before = totals();
       N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: `Penalty · ${r.text}`, winner: null, drinks: d });
-      save(); renderAll(); buzz("rule");
+      save(); renderAll(); buzz("rule"); stinger("penalty");
       await pour(d, { notes: [`📜 ${pname(p)} broke a house rule: "${r.text}"`] });
       await waterCheck(before);
     }
@@ -4870,14 +4950,18 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 
   // ---------- Pour animation ----------
   let pourSkip = false;
-  async function pour(drinks, { notes = [], water = false, names = [], sayNames = names, quiet = [] } = {}) {
+  async function pour(drinks, { notes = [], water = false, names = [], sayNames = names, quiet = [], intro = "" } = {}) {
     if (!drinks.length && !water && !notes.length) return;
     if (water) say(`Water round. ${listNames(sayNames.map(speechText))}, grab a glass of water.`);
     else {
       const byAmt = {};
       drinks.forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(sayName(playerById(d.pid))));
       const spoken = notes.filter((t) => !quiet.includes(t));
-      say([...Object.entries(byAmt).map(([a, ns]) => `${listNames(ns)}, drink ${spokenShots(+a)}.`), ...spoken].join(" "));
+      // now and then a drinker's own line follows their call (one per pour, so it stays snappy)
+      const liners = drinks.map((d) => playerById(d.pid)).filter((x) => x && (x.drinkLine || "").trim());
+      const own = liners.length && Math.random() < 0.6 ? pickOne(liners) : null;
+      say([intro ? sentence(intro) : "", ...Object.entries(byAmt).map(([a, ns]) => `${listNames(ns)}, drink ${spokenShots(+a)}.`), own ? `${sayName(own)}: ${sentence(own.drinkLine.trim())}` : "", ...spoken].filter(Boolean).join(" "));
+      if (drinks.some((d) => d.amt >= 2)) stinger("big");
     }
     const max = water ? 1 : drinks.length ? Math.max(...drinks.map((d) => d.amt)) : 0;
     const groups = {};
@@ -4940,9 +5024,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             ${most > 0 && s === most ? `<span class="crown">Most poured</span>` : ""}
             ${topWins > 0 && t[p.id].wins === topWins ? `<span class="crown alt">Top winner</span>` : ""}
             <div class="pname" style="margin-top:18px">${pnameHTML(p)}${stk >= 3 ? ` <span title="${stk} wins in a row">🔥${stk}</span>` : ""}</div>
-            ${glassSVG(prevFill[p.id] ?? 0, { cls: "glass-big" })}
+            ${glassSVG(prevFill[p.id] ?? 0, { cls: "glass-big", key: p.glass })}
             <div class="total num">${fmtShots(s)}</div>
-            <div class="minis" aria-label="${fmtShots(s)} shots">${Array.from({ length: shown }, () => glassSVG(1, { stat: true })).join("")}${part > 0.001 ? glassSVG(part, { stat: true }) : ""}${whole > shown ? `<span class="more">+${whole - shown}</span>` : ""}</div>
+            <div class="minis" aria-label="${fmtShots(s)} shots">${Array.from({ length: shown }, () => glassSVG(1, { stat: true, key: p.glass })).join("")}${part > 0.001 ? glassSVG(part, { stat: true, key: p.glass }) : ""}${whole > shown ? `<span class="more">+${whole - shown}</span>` : ""}</div>
             <div class="stat-row"><span>Wins <b>${t[p.id].wins}</b></span><span>Games left <b>${p.games.filter((g) => g.title.trim() && !playedIds().has(g.id)).length}</b></span></div>
             <div class="penalty">
               <span class="muted" style="font-size:.8rem;align-self:center">Penalty</span>
@@ -4991,12 +5075,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     // negative amounts take shots off: logged as an adjustment, no pour
     if (amt < 0) {
       N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Shots taken off", winner: null, drinks: d });
-      save(); renderAll(); toast(`${fmtShots(amt)} for ${pname(p)}`); buzz("rule");
+      save(); renderAll(); toast(`${fmtShots(amt)} for ${pname(p)}`); buzz("rule"); if (amt > 0) stinger("penalty");
       return;
     }
     const before = totals();
     N().rounds.push({ id: uid(), ts: Date.now(), gameId: null, note: "Penalty", winner: null, drinks: d });
-    save(); renderScores();
+    save(); renderScores(); stinger("penalty");
     await pour(d);
     await waterCheck(before);
   });
@@ -5654,11 +5738,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
+    const heads = { previously: ["Previously on", "Pour Decisions"], recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "previously" ? previouslyHTML() : sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
     if (sheetKind === "share") drawShareQr();
     if (sheetKind === "builder") previewDraft();
   }
@@ -6129,7 +6213,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     old.ended = Date.now(); old.pending = null;
     S.archive.push(old);
     const per = old.perPlayer;
-    const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art, nicks: p.nicks });
+    const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art, nicks: p.nicks, glass: p.glass, winLine: p.winLine, drinkLine: p.drinkLine });
     const players = mode === "same" ? old.players.map((p) => crew(p, p.games.map((g) => g.title)))
       : mode === "keep" ? old.players.map((p) => crew(p, []))
       : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
@@ -6155,6 +6239,35 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       });
     });
     return Object.values(map).sort((a, b) => b.wins - a.wins || a.shots - b.shots);
+  }
+  // "Previously on Pour Decisions": a short recap of the last night when a new one starts, shown and read out
+  function previouslyLines() {
+    const last = S.archive.filter((x) => x.rounds.some((r) => r.gameId)).slice(-1)[0]; if (!last) return null;
+    const sum = nightSummary(last), t = sum.t, ps = last.players;
+    const mvp = ps.slice().sort((a, b) => t[b.id].wins - t[a.id].wins)[0], drunk = ps.slice().sort((a, b) => t[b.id].shots - t[a.id].shots)[0];
+    const counts = {}; sum.played.forEach((r) => (counts[r.title] = (counts[r.title] || 0) + 1));
+    const fav = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const now = new Set(N().players.map((p) => nameKey(p.name)));
+    const board = allTime().filter((m) => now.has(nameKey(m.name)) && m.wins);
+    const out = [[`Last time, ${fmtDate(last.started || last.created)}`, `${sum.played.length} game${sum.played.length === 1 ? "" : "s"} and ${fmtShots(sum.shots)} shots poured.`]];
+    if (mvp && t[mvp.id].wins) out.push(["👑", `${mvp.name} took MVP with ${t[mvp.id].wins} win${t[mvp.id].wins === 1 ? "" : "s"}.`, mvp]);
+    if (drunk && t[drunk.id].shots) out.push(["🥃", `${drunk.name} drank the most: ${fmtShots(t[drunk.id].shots)} shots.`, drunk]);
+    if (fav && fav[1] > 1) out.push(["🎮", `${fav[0]} came up ${fav[1]} times.`]);
+    if (board.length > 1) out.push(["📈", `All time, ${board[0].name} leads with ${board[0].wins} wins. ${board[1].name} is chasing with ${board[1].wins}.`]);
+    else if (board.length) out.push(["📈", `All time, ${board[0].name} leads with ${board[0].wins} wins.`]);
+    out.push(["🍻", "Tonight, it all starts again."]);
+    return out;
+  }
+  function previouslyOn(force) {
+    if ((S.prevOn === false && !force) || !previouslyLines()) return force ? toast("Play a night first, and it'll be recapped next time") : null;
+    openSheet("previously");
+    const ls = previouslyLines();
+    say(["Previously, on Pour Decisions.", ...ls.map(([, txt, p]) => (p ? txt.replace(p.name, sayName(p)) : txt))].join(" "));
+  }
+  function previouslyHTML() {
+    const ls = previouslyLines() || [];
+    return `<div class="prev-on">${ls.map(([ic, txt], i) => `<div class="prev-line" style="animation-delay:${i * 0.6}s">${i ? `<span class="prev-ic">${ic}</span>` : `<span class="eyebrow">${esc(ic)}</span><br>`}<span>${esc(txt)}</span></div>`).join("")}</div>
+      <div class="row"><button class="btn primary" type="button" id="closeSheet2">Let's go</button></div>`;
   }
   function nightSummary(night) {
     const t = totals(night);
@@ -6410,6 +6523,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       say(`${sentence(SKINS[S.skin].landed)} GoldenEye 007. Alex, drink one and a half shots.`);
     } else if (b.id === "vibeBtn") {
       S.vibrate = S.vibrate === false; save(); renderHistory(); buzz("land");
+    } else if (b.id === "animArtBtn") {
+      S.animArt = S.animArt === false; save(); applyStillArt(); renderHistory();
+    } else if (b.id === "prevOnBtn") {
+      S.prevOn = S.prevOn === false; save(); renderHistory(); if (S.prevOn) previouslyOn(true);
     } else if (b.id === "confettiBtn") {
       S.confetti = S.confetti === false; save(); renderHistory(); if (S.confetti) confetti({ count: 90 });
     } else if (b.id === "soundBtn") {
