@@ -8,7 +8,7 @@ A bet-list drinking-night app. It's a single page (`index.html`) with a service 
 - `sw.js` is the offline cache. Pages load network-first, and everything else (including `catalog/*.json`) is stale-while-revalidate.
 - `catalog/<console>.json` holds the complete game list for each console that has one.
 - `tools/build_catalog.py` rebuilds those lists from the source databases.
-- `img/themes/<theme>.webp` are painted theme backgrounds (generated with Higgsfield, 688×1024 WebP around 50 KB each), shown through `html[data-skin="…"] body::after` behind a tint. Prompts avoid characters, logos and text. Publish them with the Claude preview as `files`.
+- `img/themes/<theme>.webp` are painted theme backgrounds (generated with Higgsfield, 688×1024 WebP around 50 KB each), shown on the fixed `#themeArt` layer behind a tint mixed from the theme's `--bg` (`html[data-skin="…"] #themeArt`). A new theme gets a picture by adding its file and one `#themeArt` rule. Prompts avoid characters, logos and text. Publish them with the Claude preview as `files`.
 - `CATALOG` in `index.html` lists every console. Each entry has the hand-picked party games (`party`), their player counts (`pp`), party picks that weren't released in the US (`nonus`), the full-list size (`full`), and whether the full list has player counts (`pl`).
 
 ## Game catalog rules
