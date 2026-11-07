@@ -1523,6 +1523,9 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .xi-help summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: .9rem; }
 .xi-help ol { margin: 6px 0 0; padding-left: 20px; font-size: .88rem; display: grid; gap: 4px; }
 /* Live sync */
+.hist-filters { gap: 10px; }
+.hist-filters .field { flex: 1 1 160px; min-width: 0; }
+.hist-filters select { width: 100%; }
 .sync-hist { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
 .sync-hist input { width: auto; flex: none; margin-top: 4px; }
 .sync-code { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: .18em; text-align: center; font-weight: 800; color: var(--accent); }
@@ -5916,6 +5919,61 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const champ = night.players.slice().sort((a, b) => t[b.id].wins - t[a.id].wins)[0];
     return { played, shots, champ: champ && t[champ.id].wins ? champ.name : "—", t };
   }
+  // ---------- History filters (game and winner), this phone only ----------
+  let histGame = "", histWho = "";
+  const histMatch = (r, night) => !!r.gameId && (!histGame || (r.title || "").trim().toLowerCase() === histGame)
+    && (!histWho || (!!r.winner && nameKey(playerById(r.winner, night)?.name || "") === histWho));
+  function histFilterHTML(games, lb) {
+    if (!games.length) return "";
+    const gs = games.slice().sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+    const who = [...new Map(lb.map((m) => [nameKey(m.name), m.name])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    return `<div class="row hist-filters">
+      <label class="field">Game <select id="histGame"><option value="">All games</option>${gs.map((g) => `<option value="${esc(g.key)}" ${g.key === histGame ? "selected" : ""}>${esc(g.title)} (${g.plays})</option>`).join("")}</select></label>
+      <label class="field">Who won <select id="histWho"><option value="">Anyone</option>${who.map(([k, nm]) => `<option value="${esc(k)}" ${k === histWho ? "selected" : ""}>${esc(nm)}</option>`).join("")}</select></label>
+    </div>`;
+  }
+  function histListHTML() {
+    const filtering = !!(histGame || histWho);
+    const games = gameLibrary();
+    const shown = games.filter((g) => (!histGame || g.key === histGame) && (!histWho || Object.keys(g.wins).some((w) => nameKey(w) === histWho)));
+    const nights = S.archive.slice().reverse().filter((night) => !filtering || night.rounds.some((r) => histMatch(r, night)));
+    return `
+          ${filtering ? `<div class="muted num" role="status">Matches: ${shown.length} game${shown.length === 1 ? "" : "s"} · ${nights.length} past night${nights.length === 1 ? "" : "s"} <button class="btn small ghost" type="button" id="histClear">Clear filters</button></div>` : ""}
+          ${shown.length ? `<div class="table-wrap"><table>
+            <thead><tr><th>Game</th><th class="n">Played</th><th>Won by</th><th>Last played</th></tr></thead>
+            <tbody>${shown.map((g) => `<tr><td><b>${esc(g.title)}</b></td><td class="n">${g.plays}</td><td>${winsText(g.wins)}</td><td>${fmtDate(g.last)}</td></tr>`).join("")}</tbody>
+          </table></div>` : `<div class="muted">${filtering ? "No games match these filters." : "Every game you play shows up here with who won it."}</div>`}
+          <h3 style="margin-top:8px">Past nights</h3>
+          ${nights.length ? nights.map((night) => {
+            const s = nightSummary(night); s.match = night.rounds.filter((r) => histMatch(r, night)).length;
+            return `<details class="night">
+              <summary><b>${fmtDate(night.started || night.created)}</b><span class="muted">${night.players.map((p) => esc(p.name)).join(", ")}</span><span class="num">${s.played.length} games${filtering ? ` (${s.match} match)` : ""} · ${fmtShots(s.shots)} shots · MVP ${esc(s.champ)}</span></summary>
+              <div class="body">
+                <div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Shots</th></tr></thead><tbody>
+                  ${night.players.map((p) => `<tr><td>${esc(p.name)}</td><td class="n">${s.t[p.id].wins}</td><td class="n">${fmtShots(s.t[p.id].shots)}</td></tr>`).join("")}
+                </tbody></table></div>
+                <div class="eyebrow">Games played, in order</div>
+                ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
+                ${filtering ? `<div class="muted" style="font-size:.88rem">Showing the ${s.match} matching game${s.match === 1 ? "" : "s"} of ${s.played.length}.</div>` : ""}
+                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => { if (r.gameId) k++; if (filtering && !histMatch(r, night)) return ""; return `<li><span class="rn num">${r.gameId ? k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`; }).join(""); })()}</ol>
+                ${photoStripHTML(night)}
+                ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
+                <div class="row"><button class="btn small" type="button" data-recap="${night.id}">Night recap</button><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
+              </div>
+            </details>`;
+          }).join("") : `<div class="muted">${filtering ? "No past nights match these filters." : "Nothing archived yet. When you wrap up tonight it lands here."}</div>`}
+    `;
+  }
+  $("#view-history").addEventListener("change", (e) => {
+    if (e.target.id !== "histGame" && e.target.id !== "histWho") return;
+    if (e.target.id === "histGame") histGame = e.target.value; else histWho = e.target.value;
+    $("#histList").innerHTML = histListHTML(); hydratePhotos($("#histList"));
+  });
+  $("#view-history").addEventListener("click", (e) => {
+    if (!e.target.closest("#histClear")) return;
+    histGame = histWho = ""; $("#histGame").value = ""; $("#histWho").value = "";
+    $("#histList").innerHTML = histListHTML(); hydratePhotos($("#histList"));
+  });
   function renderHistory() {
     const lb = allTime();
     const n = N();
@@ -5935,28 +5993,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
           <h3 style="margin-top:8px">Trophy case</h3>
           ${trophyCaseHTML()}
           <h3 style="margin-top:8px">Game history</h3>
-          ${games.length ? `<div class="table-wrap"><table>
-            <thead><tr><th>Game</th><th class="n">Played</th><th>Won by</th><th>Last played</th></tr></thead>
-            <tbody>${games.map((g) => `<tr><td><b>${esc(g.title)}</b></td><td class="n">${g.plays}</td><td>${winsText(g.wins)}</td><td>${fmtDate(g.last)}</td></tr>`).join("")}</tbody>
-          </table></div>` : `<div class="muted">Every game you play shows up here with who won it.</div>`}
-          <h3 style="margin-top:8px">Past nights</h3>
-          ${nights.length ? nights.map((night) => {
-            const s = nightSummary(night);
-            return `<details class="night">
-              <summary><b>${fmtDate(night.started || night.created)}</b><span class="muted">${night.players.map((p) => esc(p.name)).join(", ")}</span><span class="num">${s.played.length} games · ${fmtShots(s.shots)} shots · MVP ${esc(s.champ)}</span></summary>
-              <div class="body">
-                <div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Shots</th></tr></thead><tbody>
-                  ${night.players.map((p) => `<tr><td>${esc(p.name)}</td><td class="n">${s.t[p.id].wins}</td><td class="n">${fmtShots(s.t[p.id].shots)}</td></tr>`).join("")}
-                </tbody></table></div>
-                <div class="eyebrow">Games played, in order</div>
-                ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
-                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => `<li><span class="rn num">${r.gameId ? ++k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`).join(""); })()}</ol>
-                ${photoStripHTML(night)}
-                ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
-                <div class="row"><button class="btn small" type="button" data-recap="${night.id}">Night recap</button><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
-              </div>
-            </details>`;
-          }).join("") : `<div class="muted">Nothing archived yet. When you wrap up tonight it lands here.</div>`}
+          ${histFilterHTML(games, lb)}
+          <div class="stack" id="histList">${histListHTML()}</div>
         </div>
         <div class="stack">
           <div class="panel stack">
