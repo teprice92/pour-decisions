@@ -1523,6 +1523,8 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .xi-help summary { cursor: pointer; color: var(--accent); font-weight: 700; font-size: .9rem; }
 .xi-help ol { margin: 6px 0 0; padding-left: 20px; font-size: .88rem; display: grid; gap: 4px; }
 /* Live sync */
+.sync-hist { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.sync-hist input { width: auto; flex: none; margin-top: 4px; }
 .sync-code { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: .18em; text-align: center; font-weight: 800; color: var(--accent); }
 #syncBtn.sync-live { border-color: var(--accent); color: var(--accent); }
 /* End-the-night choices */
@@ -5050,11 +5052,70 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   const MQTT_SRC = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
   const devSetting = (k) => { try { return localStorage.getItem(k); } catch { return null; } }; // test hooks for a local relay
   const CODE_ABC = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  const Sync = { client: null, key: null, topic: null, v: 0, last: "", applying: false, peers: new Set(), status: "off", timer: null, joining: false, prefill: "" };
+  const Sync = { client: null, key: null, topic: null, v: 0, last: "", histLast: "", applying: false, peers: new Set(), status: "off", timer: null, joining: false, prefill: "" };
   if (!S.deviceId) { S.deviceId = uid() + uid(); save(); }
   const normCode = (t) => { const c = String(t || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return /^[A-Z2-9]{6}[1-3]$/.test(c) ? c : null; };
   const relayFor = (code) => devSetting("pd.syncRelay") || SYNC_RELAYS[+code.slice(-1) - 1];
   const syncSnap = () => JSON.stringify({ night: S.night, rules: S.houseRules || null });
+  // History (past nights) travels separately on <topic>/history: each phone sends everything it has, and the
+  // other merges by night id, so the two end up with the same History. Deleted nights leave their id in
+  // S.archiveGone so the delete spreads instead of the night coming back. Per phone: S.syncHistory (on by default).
+  const goneNights = () => (S.archiveGone = S.archiveGone || []);
+  const histOn = () => S.syncHistory !== false;
+  const histSig = () => S.archive.map((x) => x.id + ":" + x.rounds.length).join(",") + "|" + goneNights().join(",");
+  const HIST_MAX = 200000; // bytes after compression; public relays cap message size
+  async function packBytes(obj) {
+    const raw = new TextEncoder().encode(JSON.stringify(obj));
+    if (!window.CompressionStream) return [106, raw];
+    const z = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+    return [122, z];
+  }
+  async function unpackBytes(kind, bytes) {
+    if (kind === 122) bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  async function sealHist(obj) {
+    const [kind, body] = await packBytes(obj), plain = new Uint8Array(body.length + 1);
+    plain[0] = kind; plain.set(body, 1);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, Sync.key, plain));
+    const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+  }
+  async function unsealHist(buf) {
+    const b = new Uint8Array(buf);
+    const plain = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(0, 12) }, Sync.key, b.slice(12)));
+    return unpackBytes(plain[0], plain.slice(1));
+  }
+  async function histPush() {
+    if (!S.sync || !histOn() || !Sync.client || !Sync.client.connected) return;
+    const sig = histSig(); if (sig === Sync.histLast) return;
+    Sync.histLast = sig;
+    let nights = S.archive.slice(), msg;
+    for (;;) { // a huge History sends its newest nights only
+      msg = await sealHist({ from: S.deviceId, nights, gone: goneNights().slice(-500) });
+      if (msg.length <= HIST_MAX || nights.length <= 1) break;
+      nights = nights.slice(Math.ceil(nights.length / 5));
+    }
+    Sync.client.publish(`${Sync.topic}/history`, msg, { retain: true, qos: 1 });
+  }
+  function mergeHistory(obj) {
+    if (!obj || !Array.isArray(obj.nights)) return;
+    const gone = goneNights(), before = histSig();
+    (obj.gone || []).forEach((id) => { if (!gone.includes(id)) gone.push(id); });
+    if (gone.length > 500) gone.splice(0, gone.length - 500);
+    S.archive = S.archive.filter((x) => !gone.includes(x.id));
+    let added = 0;
+    obj.nights.forEach((nt) => {
+      if (!nt || !nt.id || !Array.isArray(nt.rounds) || !Array.isArray(nt.players) || gone.includes(nt.id) || nt.id === S.night.id) return;
+      const i = S.archive.findIndex((x) => x.id === nt.id);
+      if (i < 0) { S.archive.push(nt); added++; }
+      else if (nt.rounds.length > S.archive[i].rounds.length) S.archive[i] = nt; // the copy with more rounds logged wins
+    });
+    if (histSig() === before) return;
+    S.archive.sort((a, b) => (a.started || a.created) - (b.started || b.created));
+    save(); renderWhenFree();
+    if (added) toast(`Added ${added} past night${added === 1 ? "" : "s"} from the other phone`);
+  }
   function loadMqtt() {
     if (window.mqtt) return Promise.resolve(window.mqtt);
     return new Promise((res, rej) => {
@@ -5095,7 +5156,8 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const t = setTimeout(() => { if (first) { first = false; try { client.end(true); } catch { /* */ } if (Sync.client === client) Sync.client = null; rej(new Error("timeout")); } }, timeout);
       client.on("connect", () => {
         if (Sync.client !== client) return;
-        client.subscribe([`${topic}/state`, `${topic}/here/+`], { qos: 1 });
+        client.subscribe([`${topic}/state`, `${topic}/here/+`, `${topic}/history`], { qos: 1 });
+        Sync.histLast = ""; setTimeout(histPush, 2000); // after the retained history (if any) has arrived and merged
         client.publish(here, "1", { retain: true });
         Sync.status = "on"; syncUI();
         if (first) { first = false; clearTimeout(t); res(); }
@@ -5111,6 +5173,12 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const id = tp.split("/here/")[1];
       if (msg.length) Sync.peers.add(id); else Sync.peers.delete(id);
       Sync.peers.add(S.deviceId); syncUI(); return;
+    }
+    if (tp.endsWith("/history")) {
+      if (!histOn() || !msg.length) return;
+      let h; try { h = await unsealHist(msg); } catch { return; }
+      if (h && h.from !== S.deviceId) { mergeHistory(h); histPush(); } // send back anything the other phone was missing
+      return;
     }
     let obj; try { obj = await unseal(msg); } catch { return; } // not ours, or a different code
     if (!obj || !obj.night) return;
@@ -5159,6 +5227,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function syncQueue() { if (!S.sync || Sync.applying) return; clearTimeout(Sync.timer); Sync.timer = setTimeout(syncPush, 250); }
   async function syncPush() {
     if (!S.sync || !Sync.client || !Sync.client.connected) return;
+    histPush();
     const snap = syncSnap(); if (snap === Sync.last) return;
     Sync.last = snap; Sync.v++;
     const d = JSON.parse(snap);
@@ -5192,9 +5261,17 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     b.setAttribute("aria-pressed", String(on)); b.classList.toggle("sync-live", on && Sync.status === "on");
     if (sheetKind === "sync" && !$("#sheet").contains(document.activeElement)) renderSheet();
   }
+  const histToggleHTML = () => `<label class="sync-hist"><input type="checkbox" id="syncHist" ${histOn() ? "checked" : ""}>
+    <span>Share past nights too<br><span class="muted" style="font-size:.85rem">History and Stats from every night get merged, so both phones end up with all of them. Deleting a night removes it on both.</span></span></label>`;
+  $("#sheet").addEventListener("change", (e) => {
+    if (e.target.id !== "syncHist") return;
+    S.syncHistory = e.target.checked; save();
+    if (S.syncHistory) { Sync.histLast = ""; histPush(); toast("Past nights will be shared"); } else toast("Past nights stay on this phone");
+  });
   function syncHTML() {
     if (!S.sync) {
       return `<div class="muted">Play on several phones at once. Everyone sees the same lineup, wheel, rounds, shots and house rules, and changes show up on every phone within a second or two.</div>
+        ${histToggleHTML()}
         <div class="row"><button class="btn primary" type="button" id="syncStartBtn">Start a shared night</button></div>
         <div class="muted" style="font-size:.88rem">Shares this phone's night with a code you can send to the others.</div>
         <div class="eyebrow">Or join one</div>
@@ -5205,6 +5282,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     return `<div class="sync-code num" aria-label="Code ${code.split("").join(" ")}">${code.slice(0, 3)} ${code.slice(3)}</div>
       <div class="muted" style="text-align:center">${Sync.status === "on" ? `Connected · ${n} phone${n === 1 ? "" : "s"} on this night` : Sync.status === "connecting" ? "Connecting…" : "Reconnecting… changes are saved here and sent when it's back."}</div>
       <div class="row" style="justify-content:center"><button class="btn primary" type="button" id="syncShare">Share invite link</button><button class="btn" type="button" id="syncCopy">Copy code</button></div>
+      ${histToggleHTML()}
       <div class="muted" style="font-size:.85rem">Others open the link, or tap 📡 Sync and enter the code. If two phones change something at the same moment, the last change wins, so let one person record each game.</div>
       <div class="row"><button class="btn ghost danger" type="button" id="syncLeaveBtn">Stop syncing on this phone</button></div>`;
   }
@@ -5804,7 +5882,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     old.ended = Date.now(); old.pending = null;
     S.archive.push(old);
     const per = old.perPlayer;
-    const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art });
+    const crew = (p, titles) => Object.assign(mkPlayer(p.name, titles, Math.max(per, titles.length)), { emoji: p.emoji, color: p.color, art: p.art, nicks: p.nicks });
     const players = mode === "same" ? old.players.map((p) => crew(p, p.games.map((g) => g.title)))
       : mode === "keep" ? old.players.map((p) => crew(p, []))
       : [mkPlayer("Player 1", [], per), mkPlayer("Player 2", [], per)];
@@ -5985,7 +6063,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (b.dataset.recap) { const nt = S.archive.find((x) => x.id === b.dataset.recap); if (nt) openSheet("recap", nt); return; }
     if (b.dataset.del) {
       if (deleteArm !== b.dataset.del) { deleteArm = b.dataset.del; renderHistory(); const d = $(`[data-del="${deleteArm}"]`); d && (d.closest("details").open = true); return; }
-      S.archive = S.archive.filter((x) => x.id !== b.dataset.del); deleteArm = null; save(); renderHistory(); toast("Night deleted");
+      S.archive = S.archive.filter((x) => x.id !== b.dataset.del); goneNights().push(b.dataset.del); deleteArm = null; save(); renderHistory(); toast("Night deleted");
     } else if (b.id === "endKeep" || b.id === "endNew" || b.id === "endSame") {
       const mode = b.id === "endKeep" ? "keep" : b.id === "endSame" ? "same" : "new";
       if (endArm !== mode) { endArm = mode; renderHistory(); setTimeout(() => { if (endArm === mode) { endArm = false; renderHistory(); } }, 3500); return; }
