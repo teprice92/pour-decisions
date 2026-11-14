@@ -4660,7 +4660,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
       const right = bets.filter((b) => b.right).map((b) => pnameById(b.pid));
       const wrong = bets.filter((b) => !b.right).map((b) => pnameById(b.pid));
       if (right.length) notes.push(`🔮 ${right.join(", ")} called it. Hand out ${fmtShots(stake)}.`);
-      if (wrong.length) notes.push(`🎲 ${wrong.join(", ")} bet wrong: +${fmtShots(stake)}.`);
+      if (wrong.length && stake > 0) notes.push(`🎲 ${wrong.join(", ")} bet wrong: ${fmtShots(stake)} more.`);
     }
     notes.push(...streakNotes(winner, drinks));
     const before = totals(), trophiesBefore = trophyKeys();
@@ -4681,6 +4681,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   }
 
   function addDrink(drinks, pid, amt) {
+    if (!(amt > 0)) return; // a bonus set to Off adds nothing
     const d = drinks.find((x) => x.pid === pid);
     if (d) d.amt = q4(d.amt + amt); else drinks.push({ pid, amt });
   }
@@ -4689,9 +4690,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const prev = streaks(), out = [];
     if (!winner) return out;
     const broke = Object.keys(prev).filter((pid) => pid !== winner && prev[pid] >= 3);
+    const bonus = S.streakBonus ?? 0.5;
     broke.forEach((pid) => {
-      addDrink(drinks, pid, S.streakBonus ?? 0.5);
-      out.push(`🧊 Streak breaker! ${pnameById(winner)} ended ${pnameById(pid)}'s ${prev[pid]}-win streak. ${pnameById(pid)} drinks +${fmtShots(S.streakBonus ?? 0.5)}.`);
+      addDrink(drinks, pid, bonus);
+      // with the bonus turned off, the streak is still called out, just without the extra drink
+      out.push(`🧊 Streak breaker! ${pnameById(winner)} ended ${pnameById(pid)}'s ${prev[pid]}-win streak.${bonus > 0 ? ` ${pnameById(pid)} drinks ${fmtShots(bonus)} more.` : ""}`);
     });
     if (form) form._broke = broke.length ? broke : undefined;
     const now = (prev[winner] || 0) + 1;
@@ -5120,7 +5123,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (water) say(`Water round. ${listNames(sayNames.map(speechText))}, grab a glass of water.`);
     else {
       const byAmt = {};
-      drinks.forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(sayName(playerById(d.pid))));
+      drinks.filter((d) => d.amt > 0).forEach((d) => (byAmt[d.amt] = byAmt[d.amt] || []).push(sayName(playerById(d.pid))));
       const spoken = notes.filter((t) => !quiet.includes(t));
       // now and then a drinker's own line follows their call (one per pour, so it stays snappy)
       const liners = drinks.map((d) => playerById(d.pid)).filter((x) => x && (x.drinkLine || "").trim());
