@@ -4741,12 +4741,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const total = r.drinks.reduce((a, d) => a + d.amt, 0);
         return `<li><span class="rn num">${r.gameId ? num : "+"}</span>
           <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">logged</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
-          <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}${r.gameId && r.title ? `<br><button class="btn small ghost" type="button" data-again="${r.id}" aria-label="Put ${esc(r.title)} back on the wheel">↺ Play again</button>` : ""}
+          <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}<br><button class="btn small ghost" type="button" data-editround="${r.id}" aria-label="Edit ${esc(r.title || r.note || "this round")}">✎ Edit</button>${r.gameId && r.title ? `<br><button class="btn small ghost" type="button" data-again="${r.id}" aria-label="Put ${esc(r.title)} back on the wheel">↺ Play again</button>` : ""}
             ${r.gameId ? (r.photo ? `<br><button type="button" class="photo-thumb" data-viewphoto="${r.id}" aria-label="See the photo from ${esc(r.title)}"><img data-photo-id="${r.id}" alt=""></button>` : `<br><button class="btn small ghost" type="button" data-addphoto="${r.id}" aria-label="Add a photo to ${esc(r.title)}">📷 Photo</button>`) : ""}</span></li>`;
       }).join("")}</ol>` : `<div class="muted">No rounds yet. Spin the wheel to play the first game.</div>`}`;
     hydratePhotos($("#roundLog"));
   }
   $("#roundLog").addEventListener("click", (e) => {
+    const ed = e.target.closest("[data-editround]"); if (ed) return openRoundEdit(ed.dataset.editround);
     const ag = e.target.closest("[data-again]");
     if (ag) {
       // a new copy goes on the original picker's list (or the spinner's), so the game can come up again tonight
@@ -4779,6 +4780,88 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     save(); renderAll(); toast(g ? `Last round undone. ${g.title} is back up, so record it again.` : "Last round undone");
   });
 
+
+  // ---------- Edit any round ----------
+  // Fix the game, winner, or shots of any round tonight (not just the last one). Edits change the record only:
+  // nothing pours again, and turn order and the wheel are left alone.
+  let roundEdit = null;
+  function openRoundEdit(rid) {
+    const r = N().rounds.find((x) => x.id === rid); if (!r) return;
+    const drinks = {}; N().players.forEach((p) => (drinks[p.id] = { on: false, amt: 1 }));
+    r.drinks.forEach((d) => { if (drinks[d.pid]) drinks[d.pid] = { on: true, amt: drinks[d.pid].on ? drinks[d.pid].amt + d.amt : d.amt }; });
+    roundEdit = { rid, title: r.title || "", note: r.note || "", winner: r.gameId ? (r.winner || "tie") : null, drinks, delArm: false };
+    openSheet("roundEdit");
+  }
+  function roundEditHTML() {
+    const f = roundEdit, n = N(), r = f && n.rounds.find((x) => x.id === f.rid);
+    if (!r) return `<div class="muted">That round is gone.</div>`;
+    const num = r.gameId ? n.rounds.filter((x) => x.gameId).indexOf(r) + 1 : 0;
+    return `<div class="stack" style="gap:14px">
+      <div class="muted">${r.gameId ? `Game ${num}` : "Extra round"} · ${new Date(r.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Saving changes the record only. Nothing pours again.</div>
+      ${r.gameId ? `<label class="field">Game<input type="text" id="reTitle" maxlength="80" value="${esc(f.title)}" list="reList" autocomplete="off"></label>
+        <datalist id="reList">${[...new Set([...allGames().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
+        <div class="stack" style="gap:6px"><div class="eyebrow">Who won?</div>
+          <div class="winner-grid" role="radiogroup" aria-label="Winner">
+            ${n.players.map((p) => `<label class="pick"><input type="radio" name="reWinner" value="${p.id}" ${f.winner === p.id ? "checked" : ""}><span>${pnameHTML(p)}</span></label>`).join("")}
+            <label class="pick"><input type="radio" name="reWinner" value="tie" ${f.winner === "tie" ? "checked" : ""}><span>Tie / nobody</span></label>
+          </div></div>`
+        : `<label class="field">What it was<input type="text" id="reNote" maxlength="80" value="${esc(f.note)}"></label>`}
+      <div class="stack" style="gap:6px"><div class="eyebrow">Who drank, and how much?</div>
+        <div class="drink-grid">${n.players.map((p) => { const d = f.drinks[p.id]; return `
+          <div class="drinker ${d.on ? "" : "off"}" data-repid="${p.id}">
+            <label><input type="checkbox" data-reon="${p.id}" ${d.on ? "checked" : ""}> ${pnameHTML(p)}</label>
+            <button type="button" data-restep="-0.25" aria-label="Less for ${esc(p.name)}">−</button>
+            <span class="mini-amt num">${fmtShots(d.amt)}</span>
+            <button type="button" data-restep="0.25" aria-label="More for ${esc(p.name)}">+</button>
+          </div>`; }).join("")}</div>
+        <div class="muted num" id="reTotal" style="font-size:.9rem"></div></div>
+      <div class="row">
+        <button class="btn primary" type="button" id="reSave">Save changes</button>
+        <button class="btn ghost" type="button" id="closeSheet2">Cancel</button>
+        <button class="btn ghost danger" type="button" id="reDelete">${f.delArm ? "Tap again to delete" : "Delete round"}</button>
+      </div>
+    </div>`;
+  }
+  function reTotal() {
+    const el = $("#reTotal"); if (!el || !roundEdit) return;
+    const tot = Object.values(roundEdit.drinks).filter((d) => d.on).reduce((a, d) => a + d.amt, 0);
+    el.textContent = `${fmtShots(tot)} shot${tot === 1 ? "" : "s"} in this round`;
+  }
+  // typing, ticking, and stepping update the form in place, so taps never get swallowed by a re-render
+  $("#sheet").addEventListener("input", (e) => {
+    if (sheetKind !== "roundEdit" || !roundEdit) return;
+    const t = e.target;
+    if (t.id === "reTitle") roundEdit.title = t.value;
+    else if (t.id === "reNote") roundEdit.note = t.value;
+    else if (t.name === "reWinner") roundEdit.winner = t.value;
+    else if (t.dataset.reon) { const d = roundEdit.drinks[t.dataset.reon]; d.on = t.checked; t.closest(".drinker").classList.toggle("off", !d.on); reTotal(); }
+  });
+  $("#sheet").addEventListener("click", (e) => {
+    if (sheetKind !== "roundEdit" || !roundEdit) return;
+    const st = e.target.closest("[data-restep]");
+    if (st) {
+      const box = st.closest("[data-repid]"), d = roundEdit.drinks[box.dataset.repid];
+      d.amt = Math.max(0.25, q4(d.amt + parseFloat(st.dataset.restep))); d.on = true;
+      box.querySelector(".mini-amt").textContent = fmtShots(d.amt); box.classList.remove("off"); box.querySelector("[data-reon]").checked = true; reTotal();
+      return;
+    }
+    const b = e.target.closest("button"); if (!b) return;
+    const n = N(), i = n.rounds.findIndex((x) => x.id === roundEdit.rid), r = n.rounds[i];
+    if (b.id === "reDelete") {
+      if (!roundEdit.delArm) { roundEdit.delArm = true; b.textContent = "Tap again to delete"; return; }
+      if (r) n.rounds.splice(i, 1);
+      roundEdit = null; save(); closeSheet(); renderAll(); toast("Round deleted"); return;
+    }
+    if (b.id !== "reSave" || !r) return;
+    if (r.gameId) {
+      const title = roundEdit.title.trim(); if (!title) { toast("The game needs a name"); return $("#reTitle").focus(); }
+      r.title = title; r.winner = roundEdit.winner === "tie" ? null : roundEdit.winner;
+      (r.bets || []).forEach((bt) => (bt.right = !!r.winner && bt.pick === r.winner));
+    } else r.note = roundEdit.note.trim() || r.note;
+    r.drinks = Object.entries(roundEdit.drinks).filter(([, d]) => d.on && d.amt > 0).map(([pid, d]) => ({ pid, amt: d.amt }));
+    r.edited = Date.now();
+    roundEdit = null; save(); closeSheet(); renderAll(); toast("Round updated");
+  });
 
   // ---------- Confetti and trophy celebrations ----------
   // Confetti borrows each theme's shapes and colors: PlayStation face buttons, card suits, Zelda triangles,
@@ -5823,13 +5906,14 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { previously: ["Previously on", "Pour Decisions"], recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
+    const heads = { roundEdit: ["Fix a round", "Edit round"], previously: ["Previously on", "Pour Decisions"], recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "previously" ? previouslyHTML() : sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "roundEdit" ? roundEditHTML() : sheetKind === "previously" ? previouslyHTML() : sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
     if (sheetKind === "share") drawShareQr();
     if (sheetKind === "builder") previewDraft();
+    if (sheetKind === "roundEdit") reTotal();
   }
   $("#closeSheet").addEventListener("click", closeSheet);
   $("#sheet").addEventListener("click", async (e) => {
