@@ -1648,6 +1648,8 @@ html[data-skin="nintendo"] .pour-card .count { font-size: 34px; }
 .hist-filters { gap: 10px; }
 .hist-filters .field { flex: 1 1 160px; min-width: 0; }
 .hist-filters select { width: 100%; }
+.sub-tag { display: inline-block; font-size: .78rem; font-weight: 700; padding: 0 7px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--fg); vertical-align: 1px; }
+.sub-pick .lib-chip button { padding-right: 12px; }
 .prev-on { display: grid; gap: 12px; }
 .prev-line { display: flex; gap: 10px; align-items: baseline; font-size: 1.1rem; animation: prevIn .6s ease-out both; }
 .prev-line:first-child { display: block; font-size: 1.15rem; }
@@ -4344,6 +4346,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
             <div class="game-title">${esc(g.title)}</div>
           </div>
         </div>
+        ${subPickerHTML(g)}
         ${form.grudge ? `<div class="note">⚔️ Grudge match: ${esc(pnameById(form.grudge[0]))} vs ${esc(pnameById(form.grudge[1]))}. Loser drinks double.</div>` : ""}
         ${n.nextMod?.double && !injected ? `<div class="note">★ Double or nothing: shots on the line are doubled.</div>` : ""}
         <div class="stack" style="gap:6px">
@@ -4480,6 +4483,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (t.id === "grudgeBtn") { n.nextMod = Object.assign({}, n.nextMod, { grudge: [t.dataset.a, t.dataset.b] }); save(); renderSpin(); toast("Grudge match set for the next game"); return; }
     if (t.id === "cancelGrudge") { if (n.nextMod) delete n.nextMod.grudge; save(); renderSpin(); return; }
     if (t.id === "injectToggle") return openLog();
+    if (t.id === "subRandom") return rollSub();
+    if (t.id === "subEdit") { const g = n.pending && gameById(n.pending.gameId); if (g) openSubEdit(g.title); return; }
+    if (t.dataset.sub != null) { if (subRolling) return; return setSub(n.pending && n.pending.sub === t.dataset.sub ? null : t.dataset.sub); }
     if (!form) return;
     if (t.dataset.amt) return setAmount(parseFloat(t.dataset.amt));
     if (t.dataset.step) return setAmount(form.amount + parseFloat(t.dataset.step));
@@ -4706,7 +4712,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     }
     notes.push(...streakNotes(winner, drinks));
     const before = totals(), trophiesBefore = trophyKeys();
-    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined, queued: n.pending.queued || undefined });
+    n.rounds.push({ id: uid(), ts: Date.now(), gameId: g.id, title: g.title, by: g.by, console: g.console, spunBy: n.pending.spunBy, injected, winner, drinks, bets, skin: S.skin, broke: form._broke, mod: !injected ? n.nextMod || undefined : undefined, queued: n.pending.queued || undefined, sub: n.pending.sub || undefined });
     if (!injected) { if (!n.pending.queued) advanceTurn(n); n.nextMod = null; }
     form = null; resumePaused(); nextFromQueue(n);
     save(); renderSpin(); musicAfterGame();
@@ -4785,7 +4791,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
         const drinkers = r.drinks.map((d) => `${esc(playerById(d.pid)?.name || "?")} ${fmtShots(d.amt)}`).join(", ");
         const total = r.drinks.reduce((a, d) => a + d.amt, 0);
         return `<li><span class="rn num">${r.gameId ? num : "+"}</span>
-          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.injected ? ' <span class="tag">logged</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
+          <span class="what">${r.gameId ? `<b>${esc(r.title)}</b>${r.sub ? ` <span class="sub-tag">${esc(r.sub)}</span>` : ""}${r.injected ? ' <span class="tag">logged</span>' : ""} · ${r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner)?.name || "?") + "</span>" : "tie"}` : `<b>${esc(r.note || "Penalty")}</b>`}<br><span class="muted">${drinkers || "nobody drank"}</span></span>
           <span class="shots">${fmtShots(total)} shot${total === 1 ? "" : "s"}<br><button class="btn small ghost" type="button" data-editround="${r.id}" aria-label="Edit ${esc(r.title || r.note || "this round")}">✎ Edit</button>${r.gameId && r.title ? `<br><button class="btn small ghost" type="button" data-again="${r.id}" aria-label="Put ${esc(r.title)} back on the wheel">↺ Play again</button>` : ""}
             ${r.gameId ? (r.photo ? `<br><button type="button" class="photo-thumb" data-viewphoto="${r.id}" aria-label="See the photo from ${esc(r.title)}"><img data-photo-id="${r.id}" alt=""></button>` : `<br><button class="btn small ghost" type="button" data-addphoto="${r.id}" aria-label="Add a photo to ${esc(r.title)}">📷 Photo</button>`) : ""}</span></li>`;
       }).join("")}</ol>` : `<div class="muted">No rounds yet. Spin the wheel to play the first game.</div>`}`;
@@ -4826,6 +4832,94 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   });
 
 
+  // ---------- Mini-games ----------
+  // Party games with several mini-games or modes can have them listed; when one lands on the wheel the result card
+  // shows them, with a dice to pick one at random. Built-in lists (from knowledge, for well-known games) are matched by
+  // catKey of the title; S.subGames[key] (this phone, in backups) holds the owner's own lists and overrides them.
+  // The pick lives on the night (n.pending.sub, then round.sub), so it syncs.
+  const HALO_MODES = ["Slayer", "Team Slayer", "Capture the Flag", "Oddball", "King of the Hill"];
+  const SUB_BUILTIN = {
+    "Wii Sports": ["Tennis", "Baseball", "Bowling", "Golf", "Boxing"],
+    "Wii Sports Resort": ["Swordplay", "Wakeboarding", "Frisbee", "Archery", "Basketball", "Table Tennis", "Golf", "Bowling", "Power Cruising", "Canoeing", "Cycling", "Air Sports"],
+    "Nintendo Switch Sports": ["Volleyball", "Badminton", "Bowling", "Soccer", "Chambara", "Tennis", "Golf"],
+    "Kinect Sports": ["Bowling", "Boxing", "Track and Field", "Table Tennis", "Soccer", "Beach Volleyball"],
+    "Nintendo Land": ["Metroid Blast", "Pikmin Adventure", "The Legend of Zelda: Battle Quest", "Mario Chase", "Luigi's Ghost Mansion", "Animal Crossing: Sweet Day", "Donkey Kong's Crash Course", "Takamaru's Ninja Castle", "Captain Falcon's Twister Race", "Balloon Trip Breeze", "Yoshi's Fruit Cart", "Octopus Dance"],
+    "Mario Party Superstars": ["Yoshi's Tropical Island", "Space Land", "Peach's Birthday Cake", "Woody Woods", "Horror Land"],
+    "Super Mario Party": ["Whomp's Domino Ruins", "King Bob-omb's Powderkeg Mine", "Megafruit Paradise", "Kamek's Tantalizing Tower"],
+    "Mario Kart 8 Deluxe": ["Grand Prix", "VS Race", "Balloon Battle", "Renegade Roundup", "Bob-omb Blast", "Coin Runners", "Shine Thief"],
+    "Mario Kart World": ["Grand Prix", "Knockout Tour", "VS Race", "Balloon Battle", "Coin Runners"],
+    "Mario Kart Wii": ["Grand Prix", "VS Race", "Balloon Battle", "Coin Runners"],
+    "Mario Kart 64": ["Grand Prix", "VS Race", "Battle"],
+    "Super Smash Bros. Ultimate": ["Stock battle", "Time battle", "Stamina battle", "Squad Strike", "Smashdown"],
+    "Super Smash Bros. Melee": ["Stock battle", "Time battle"],
+    "Super Smash Bros. Brawl": ["Stock battle", "Time battle"],
+    "Super Smash Bros.": ["Stock battle", "Time battle"],
+    "GoldenEye 007": ["Normal", "You Only Live Twice", "The Living Daylights", "The Man with the Golden Gun", "Licence to Kill"],
+    "Rocket League": ["Soccar 1v1", "Soccar 2v2", "Soccar 3v3", "Hoops", "Snow Day", "Rumble", "Dropshot", "Heatseeker"],
+    "Halo: Combat Evolved": HALO_MODES, "Halo 2": HALO_MODES, "Halo 3": HALO_MODES, "Halo: Reach": HALO_MODES,
+    "Halo: The Master Chief Collection": HALO_MODES, "Halo Infinite": HALO_MODES,
+  };
+  const SUB_BUILTIN_K = Object.fromEntries(Object.entries(SUB_BUILTIN).map(([t, l]) => [catKey(t), l]));
+  const subKey = (title) => catKey(String(title || ""));
+  const subsFor = (title) => { const k = subKey(title); const mine = (S.subGames || {})[k]; return Array.isArray(mine) ? mine : SUB_BUILTIN_K[k] || []; };
+  const subIsMine = (title) => Array.isArray((S.subGames || {})[subKey(title)]);
+  function subPickerHTML(g) {
+    const n = N(), list = subsFor(g.title), cur = n.pending && n.pending.sub;
+    if (!list.length) return `<div class="row sub-row"><button class="btn small ghost" type="button" id="subEdit">＋ Add mini-games for ${esc(g.title)}</button></div>`;
+    return `<div class="stack sub-pick" style="gap:6px">
+      <div class="row" style="justify-content:space-between"><div class="eyebrow">Which mini-game?</div>
+        <span class="row" style="gap:6px"><button class="btn small" type="button" id="subRandom">🎲 Pick one</button><button class="btn small ghost" type="button" id="subEdit">Edit list</button></span></div>
+      <div class="lib-chips" id="subChips">${list.map((x) => `<span class="lib-chip ${x === cur ? "picked" : ""}"><button type="button" data-sub="${esc(x)}" aria-pressed="${x === cur}">${esc(x)}</button></span>`).join("")}</div>
+      ${cur ? `<div class="muted" style="font-size:.85rem">Playing <b>${esc(cur)}</b>. Tap it again to clear.</div>` : ""}
+    </div>`;
+  }
+  function setSub(name, { announce = true } = {}) {
+    const n = N(); if (!n.pending) return;
+    n.pending.sub = name || undefined; save(); renderSpin();
+    if (name && announce) say(`${gameById(n.pending.gameId)?.title || ""}: ${sentence(name)}`);
+  }
+  // a quick flicker across the chips before it settles, like a tiny wheel
+  let subRolling = false;
+  async function rollSub() {
+    const n = N(); if (!n.pending || subRolling) return;
+    const list = subsFor(gameById(n.pending.gameId)?.title); if (!list.length) return;
+    const pick = list[randInt(list.length)], chips = [...document.querySelectorAll("#subChips .lib-chip")];
+    subRolling = true;
+    if (!reduceMotion && chips.length > 1) {
+      for (let i = 0, k = randInt(chips.length); i < 14; i++, k = (k + 1) % chips.length) {
+        chips.forEach((c, j) => c.classList.toggle("picked", j === k)); tickSound(); await new Promise((r) => setTimeout(r, 45 + i * 8));
+      }
+    }
+    subRolling = false; fanfare(); setSub(pick);
+  }
+  let subEditTitle = null;
+  function openSubEdit(title) { subEditTitle = title; openSheet("subEdit"); }
+  function subEditHTML() {
+    const t = subEditTitle || "", list = subsFor(t), mine = subIsMine(t), built = SUB_BUILTIN_K[subKey(t)];
+    return `<div class="stack" style="gap:12px">
+      <div class="muted">One per line. These show up whenever <b>${esc(t)}</b> lands on the wheel, on this phone. Use them for mini-games, sports, modes, boards, or maps.</div>
+      <label class="field">Mini-games for ${esc(t)}<textarea id="subText" rows="8" placeholder="Bowling&#10;Tennis&#10;Golf">${esc(list.join("\n"))}</textarea></label>
+      <div class="row">
+        <button class="btn primary" type="button" id="subSave">Save list</button>
+        <button class="btn ghost" type="button" id="closeSheet2">Cancel</button>
+        ${mine && built ? `<button class="btn ghost" type="button" id="subReset">Back to the built-in list</button>` : ""}
+      </div>
+      ${built && !mine ? `<div class="muted" style="font-size:.85rem">This is the built-in list. Your changes replace it on this phone.</div>` : ""}
+    </div>`;
+  }
+  $("#sheet").addEventListener("click", (e) => {
+    if (sheetKind !== "subEdit") return;
+    const b = e.target.closest("button"); if (!b) return;
+    const k = subKey(subEditTitle);
+    if (b.id === "subSave") {
+      const list = [...new Set($("#subText").value.split("\n").map((x) => x.trim().slice(0, 60)).filter(Boolean))].slice(0, 60);
+      S.subGames = Object.assign({}, S.subGames, { [k]: list }); save(); closeSheet(); renderAll();
+      toast(list.length ? `Saved ${list.length} mini-game${list.length === 1 ? "" : "s"} for ${subEditTitle}` : `No mini-games for ${subEditTitle}`);
+    } else if (b.id === "subReset") {
+      const m = Object.assign({}, S.subGames); delete m[k]; S.subGames = m; save(); closeSheet(); renderAll(); toast("Back to the built-in list");
+    }
+  });
+
   // ---------- Edit any round ----------
   // Fix the game, winner, or shots of any round tonight (not just the last one). Edits change the record only:
   // nothing pours again, and turn order and the wheel are left alone.
@@ -4834,7 +4928,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const r = N().rounds.find((x) => x.id === rid); if (!r) return;
     const drinks = {}; N().players.forEach((p) => (drinks[p.id] = { on: false, amt: 1 }));
     r.drinks.forEach((d) => { if (drinks[d.pid]) drinks[d.pid] = { on: true, amt: drinks[d.pid].on ? drinks[d.pid].amt + d.amt : d.amt }; });
-    roundEdit = { rid, title: r.title || "", note: r.note || "", winner: r.gameId ? (r.winner || "tie") : null, drinks, delArm: false };
+    roundEdit = { rid, title: r.title || "", sub: r.sub || "", note: r.note || "", winner: r.gameId ? (r.winner || "tie") : null, drinks, delArm: false };
     openSheet("roundEdit");
   }
   function roundEditHTML() {
@@ -4844,6 +4938,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     return `<div class="stack" style="gap:14px">
       <div class="muted">${r.gameId ? `Game ${num}` : "Extra round"} · ${new Date(r.ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}. Saving changes the record only. Nothing pours again.</div>
       ${r.gameId ? `<label class="field">Game<input type="text" id="reTitle" maxlength="80" value="${esc(f.title)}" list="reList" autocomplete="off"></label>
+        ${subsFor(r.title).length || r.sub ? `<label class="field">Mini-game<select id="reSub"><option value="">None</option>${[...new Set([...subsFor(r.title), ...(r.sub ? [r.sub] : [])])].map((x) => `<option value="${esc(x)}" ${x === f.sub ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></label>` : ""}
         <datalist id="reList">${[...new Set([...allGames().map((g) => g.title), ...gameLibrary().map((g) => g.title)])].map((t) => `<option value="${esc(t)}"></option>`).join("")}</datalist>
         <div class="stack" style="gap:6px"><div class="eyebrow">Who won?</div>
           <div class="winner-grid" role="radiogroup" aria-label="Winner">
@@ -4877,6 +4972,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (sheetKind !== "roundEdit" || !roundEdit) return;
     const t = e.target;
     if (t.id === "reTitle") roundEdit.title = t.value;
+    else if (t.id === "reSub") roundEdit.sub = t.value;
     else if (t.id === "reNote") roundEdit.note = t.value;
     else if (t.name === "reWinner") roundEdit.winner = t.value;
     else if (t.dataset.reon) { const d = roundEdit.drinks[t.dataset.reon]; d.on = t.checked; t.closest(".drinker").classList.toggle("off", !d.on); reTotal(); }
@@ -4900,7 +4996,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     if (b.id !== "reSave" || !r) return;
     if (r.gameId) {
       const title = roundEdit.title.trim(); if (!title) { toast("The game needs a name"); return $("#reTitle").focus(); }
-      r.title = title; r.winner = roundEdit.winner === "tie" ? null : roundEdit.winner;
+      r.title = title; r.winner = roundEdit.winner === "tie" ? null : roundEdit.winner; r.sub = roundEdit.sub || undefined;
       (r.bets || []).forEach((bt) => (bt.right = !!r.winner && bt.pick === r.winner));
     } else r.note = roundEdit.note.trim() || r.note;
     r.drinks = Object.entries(roundEdit.drinks).filter(([, d]) => d.on && d.amt > 0).map(([pid, d]) => ({ pid, amt: d.amt }));
@@ -5952,11 +6048,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function closeSheet() { const was = sheetKind; $("#sheet").hidden = true; sheetKind = null; if (was === "builder" && draft) endBuilder(); }
   function renderSheet() {
     if (!sheetKind) return;
-    const heads = { roundEdit: ["Fix a round", "Edit round"], previously: ["Previously on", "Pour Decisions"], recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
+    const heads = { subEdit: ["Mini-games", "Edit the list"], roundEdit: ["Fix a round", "Edit round"], previously: ["Previously on", "Pour Decisions"], recap: ["End of the night", "Night recap"], trophies: ["Across every night", "Trophy case"], finale: ["Tonight's grand finale", "Finale bracket"], end: ["Wrap up tonight", "End the night"], sync: ["Several phones, one night", "Live sync"], share: ["Bring your friends", "Share the app"], import: ["From another phone", "Open this night?"], builder: [draftEditing ? "Edit your theme" : "Make it yours", "Theme builder"] };
     $("#sheetEyebrow").textContent = heads[sheetKind][0];
     $("#sheetTitle").textContent = heads[sheetKind][1];
     setTimeout(() => hydratePhotos($("#sheetBody")), 0);
-    $("#sheetBody").innerHTML = sheetKind === "roundEdit" ? roundEditHTML() : sheetKind === "previously" ? previouslyHTML() : sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
+    $("#sheetBody").innerHTML = sheetKind === "subEdit" ? subEditHTML() : sheetKind === "roundEdit" ? roundEditHTML() : sheetKind === "previously" ? previouslyHTML() : sheetKind === "recap" ? recapHTML(sheetNight) : sheetKind === "trophies" ? trophyCaseHTML(true) : sheetKind === "import" ? importHTML() : sheetKind === "builder" ? builderHTML() : sheetKind === "end" ? endHTML() : sheetKind === "sync" ? syncHTML() : sheetKind === "share" ? shareHTML() : finaleHTML();
     if (sheetKind === "share") drawShareQr();
     if (sheetKind === "builder") previewDraft();
     if (sheetKind === "roundEdit") reTotal();
@@ -6527,7 +6623,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
                 <div class="eyebrow">Games played, in order</div>
                 ${s.played.length ? "" : `<div class="muted">No games were played this night.</div>`}
                 ${filtering ? `<div class="muted" style="font-size:.88rem">Showing the ${s.match} matching game${s.match === 1 ? "" : "s"} of ${s.played.length}.</div>` : ""}
-                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => { if (r.gameId) k++; if (filtering && !histMatch(r, night)) return ""; return `<li><span class="rn num">${r.gameId ? k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`; }).join(""); })()}</ol>
+                <ol class="log">${(() => { let k = 0; return night.rounds.map((r) => { if (r.gameId) k++; if (filtering && !histMatch(r, night)) return ""; return `<li><span class="rn num">${r.gameId ? k : "+"}</span><span class="what"><b>${esc(r.title || r.note || "Penalty")}</b>${r.sub ? ` <span class="sub-tag">${esc(r.sub)}</span>` : ""}${r.injected ? ' <span class="tag">logged</span>' : ""}${r.gameId ? " · " + (r.winner ? 'won by <span class="win-name">' + esc(playerById(r.winner, night)?.name || "?") + "</span>" : "tie") : ""}<br><span class="muted">${r.drinks.map((d) => esc(playerById(d.pid, night)?.name || "?") + " " + fmtShots(d.amt)).join(", ") || "nobody drank"}</span></span><span class="shots">${fmtShots(r.drinks.reduce((a, d) => a + d.amt, 0))}</span></li>`; }).join(""); })()}</ol>
                 ${photoStripHTML(night)}
                 ${(night.rolls || []).length ? `<div class="muted">Chaos rolls: ${night.rolls.map((r) => `${r.result}${r.note ? " (" + esc(r.note) + ")" : ""}`).join(", ")}</div>` : ""}
                 <div class="row"><button class="btn small" type="button" data-recap="${night.id}">Night recap</button><button class="btn small danger" type="button" data-del="${night.id}">${deleteArm === night.id ? "Tap again to delete" : "Delete this night"}</button></div>
