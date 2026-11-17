@@ -1927,6 +1927,20 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 .status-chip.live { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
 .status-chip.live::before { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .setup-actions { align-items: end; }
+/* sync state on the icon: amber pulse while connecting, hollow dot when alone, count badge when linked */
+#syncBtn { position: relative; }
+#syncBtn[data-state="wait"]::after, #syncBtn[data-state="alone"]::after, #syncBtn[data-state="linked"]::after {
+  content: ""; position: absolute; top: -5px; right: -5px; min-width: 12px; height: 12px; border-radius: 999px; box-sizing: border-box;
+}
+#syncBtn[data-state="wait"]::after { background: #f5b83d; box-shadow: 0 0 0 2px var(--bg); animation: syncPulse 1.2s ease-in-out infinite; }
+#syncBtn[data-state="alone"]::after { border: 2px solid var(--accent); background: var(--bg); }
+#syncBtn[data-state="linked"]::after {
+  content: attr(data-peers); height: 18px; min-width: 18px; padding: 0 5px; top: -7px; right: -7px;
+  font: 800 .7rem/18px var(--font-body); letter-spacing: 0; text-align: center;
+  background: var(--accent); color: var(--accent-fg); box-shadow: 0 0 0 2px var(--bg);
+}
+@keyframes syncPulse { 50% { opacity: .55; transform: scale(.85); } }
+@media (prefers-reduced-motion: reduce) { #syncBtn[data-state="wait"]::after { animation: none; } }
 .tabs { align-items: center; }
 /* on wide screens the less-used toggles are icon buttons so the tabs and actions share one row */
 @media (min-width: 680px) {
@@ -1975,8 +1989,6 @@ input, textarea { caret-color: var(--accent); }
   .hdr-actions { width: 100%; flex-wrap: nowrap; gap: 6px; }
   .hdr-actions .lbl, .hdr-actions .share-word { display: none; }
   .hdr-actions .btn.ghost { width: 38px; min-height: 40px; padding: 0; flex: none; }
-  .hdr-actions #syncBtn.sync-live { width: auto; padding: 0 10px; }
-  .hdr-actions #syncBtn.sync-live .lbl { display: inline; }
   .hdr-actions #callGame, .hdr-actions #openRng, .hdr-actions #endBtn { flex: 1 1 0; min-height: 40px; padding: 0 6px; font-size: .82rem; white-space: nowrap; min-width: 0; }
   .hdr-actions #callGame { margin-left: auto; }
   .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
@@ -5960,6 +5972,11 @@ input, textarea { caret-color: var(--accent); }
     const on = !!S.sync, n = Sync.peers.size;
     b.querySelector(".lbl").textContent = !on ? "Sync" : Sync.status === "on" ? `${n} phone${n === 1 ? "" : "s"}` : "Reconnecting…";
     b.setAttribute("aria-pressed", String(on)); b.classList.toggle("sync-live", on && Sync.status === "on");
+    // the icon carries the state on phones, where the label is hidden: a count badge once other phones are linked
+    const st = !on ? "off" : Sync.status !== "on" ? "wait" : n > 1 ? "linked" : "alone";
+    b.dataset.state = st; b.dataset.peers = String(n);
+    b.title = st === "off" ? "Sync phones" : st === "wait" ? "Sync is reconnecting…" : st === "alone" ? "Sync is on. Waiting for another phone to join." : `Synced: ${n} phones linked`;
+    b.setAttribute("aria-label", b.title);
     if (sheetKind === "sync" && !$("#sheet").contains(document.activeElement)) renderSheet();
   }
   const histToggleHTML = () => `<label class="sync-hist"><input type="checkbox" id="syncHist" ${histOn() ? "checked" : ""}>
