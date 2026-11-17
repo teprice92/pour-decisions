@@ -1910,6 +1910,84 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Polish pass ----------
+   Shared across every theme: drawn icons in place of emoji, themed browser surfaces,
+   a status chip instead of a kicker label, and a thumb-reach tab bar on phones. */
+.ti { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab-list { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab { display: inline-flex; align-items: center; gap: 8px; position: relative; }
+.tab .ti { display: none; }
+.hdr-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.hdr-actions .btn.ghost[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: color-mix(in srgb, var(--accent) 70%, transparent); color: var(--fg); }
+.hdr-actions .btn.ghost[aria-pressed="true"] .ti { color: var(--accent); }
+.head-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.status-chip { display: inline-flex; align-items: center; gap: 7px; font: 700 .75rem/1 var(--font-body); letter-spacing: .02em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; background: color-mix(in srgb, var(--panel-2) 70%, transparent); white-space: nowrap; }
+.status-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .55; }
+.status-chip.live { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.status-chip.live::before { opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.setup-actions { align-items: end; }
+.tabs { align-items: center; }
+/* on wide screens the less-used toggles are icon buttons so the tabs and actions share one row */
+@media (min-width: 680px) {
+  .hdr-actions #shareAppBtn .share-word, .hdr-actions #musicBtn .lbl, .hdr-actions #voiceHdrBtn .lbl, .hdr-actions #tvBtn .lbl { display: none; }
+  .hdr-actions #shareAppBtn, .hdr-actions #musicBtn, .hdr-actions #voiceHdrBtn, .hdr-actions #tvBtn { width: 40px; padding: 0; }
+  html.tv .hdr-actions #tvBtn { width: auto; padding: 0 12px; }
+  html.tv .hdr-actions #tvBtn .lbl { display: inline; }
+}
+
+/* browser surfaces take the theme's colors instead of defaults */
+html { accent-color: var(--accent); scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent; }
+::selection { background: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--fg); }
+input, textarea { caret-color: var(--accent); }
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 679px) {
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+  /* a backdrop-filter would trap the fixed tab bar inside the header */
+  .top { backdrop-filter: none; background: color-mix(in srgb, var(--bg) 95%, transparent); }
+  .top-inner { gap: 10px 12px; padding-block: 10px; }
+  .brand { gap: 10px; }
+  .brand svg, .brand-art { width: 40px; height: 40px; }
+  .brand-name { font-size: 1.15rem; }
+  .brand-sub { display: none; }
+  .skin-select .eyebrow { display: none; }
+  .skin-select select { max-width: 124px; font-size: .85rem; padding: 6px 8px; }
+  .tabs { gap: 0; }
+  .tabs .spacer { display: none; }
+  /* sections move to a bottom bar the thumb can reach */
+  .tab-list {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px;
+    padding: 6px max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+    background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line); box-shadow: 0 -10px 30px rgba(0, 0, 0, .35);
+  }
+  .tab, html[data-skin] .tab {
+    flex-direction: column; justify-content: center; gap: 4px; min-height: 54px; padding: 6px 0;
+    font-size: .62rem; letter-spacing: .03em; border-bottom: 0; border-radius: 12px; min-width: 0;
+  }
+  html[data-skin="nintendo"] .tab { font-size: 7px; letter-spacing: 0; }
+  .tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab .ti { display: block; width: 22px; height: 22px; }
+  .tab[aria-selected="true"], html[data-skin] .tab[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, transparent); }
+  .tab .badge { position: absolute; top: 3px; left: calc(50% + 6px); margin: 0; padding: 2px 6px; font-size: .62rem; }
+  .hdr-actions { width: 100%; flex-wrap: nowrap; gap: 6px; }
+  .hdr-actions .lbl, .hdr-actions .share-word { display: none; }
+  .hdr-actions .btn.ghost { width: 38px; min-height: 40px; padding: 0; flex: none; }
+  .hdr-actions #syncBtn.sync-live { width: auto; padding: 0 10px; }
+  .hdr-actions #syncBtn.sync-live .lbl { display: inline; }
+  .hdr-actions #callGame, .hdr-actions #openRng, .hdr-actions #endBtn { flex: 1 1 0; min-height: 40px; padding: 0 6px; font-size: .82rem; white-space: nowrap; min-width: 0; }
+  .hdr-actions #callGame { margin-left: auto; }
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .mini-player { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .setup-actions { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .setup-actions .field { width: auto !important; }
+  .setup-actions #shuffleOrder, .setup-actions #startNight { grid-column: 1 / -1; }
+  .board-tools { justify-items: start !important; width: 100%; }
+  .board-tools .row { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .board-tools .row > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
 </style>
 </head>
 <body>
@@ -1941,22 +2019,26 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     </div>
     <div class="skins" id="skins" role="group" aria-label="Theme"></div>
     <label class="skin-select"><span class="eyebrow">Theme</span><select id="skinSelect" aria-label="Theme"></select></label>
-    <nav class="tabs" role="tablist" aria-label="Sections">
-      <button class="tab" role="tab" data-tab="setup" id="tab-setup">Lineup</button>
-      <button class="tab" role="tab" data-tab="spin" id="tab-spin">Spin</button>
-      <button class="tab" role="tab" data-tab="scores" id="tab-scores">Shots</button>
-      <button class="tab" role="tab" data-tab="stats" id="tab-stats">Stats</button>
-      <button class="tab" role="tab" data-tab="games" id="tab-games">Games</button>
-      <button class="tab" role="tab" data-tab="history" id="tab-history">History</button>
+    <nav class="tabs" aria-label="Sections">
+      <div class="tab-list" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" data-tab="setup" id="tab-setup"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/></svg><span>Lineup</span></button>
+      <button class="tab" role="tab" data-tab="spin" id="tab-spin"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 13V5M12 13l6.9 4M12 13l-6.9 4M10 2.5h4L12 5z"/></svg><span>Spin</span></button>
+      <button class="tab" role="tab" data-tab="scores" id="tab-scores"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14l-2 16H7z"/><path d="M6.2 11h11.6"/></svg><span>Shots</span></button>
+      <button class="tab" role="tab" data-tab="stats" id="tab-stats"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 20v-6M12 20V5M17 20v-9"/></svg><span>Stats</span></button>
+      <button class="tab" role="tab" data-tab="games" id="tab-games"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 7h9a4.5 4.5 0 0 1 4.3 5.8l-1.1 3.8a2.3 2.3 0 0 1-3.9.9L14 16h-4l-1.8 1.5a2.3 2.3 0 0 1-3.9-.9l-1.1-3.8A4.5 4.5 0 0 1 7.5 7z"/><path d="M8 10.5v3M6.5 12h3"/><circle cx="16" cy="11" r=".6"/><circle cx="17.5" cy="13" r=".6"/></svg><span>Games</span></button>
+      <button class="tab" role="tab" data-tab="history" id="tab-history"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4M12 7.5V12l3 2"/></svg><span>History</span></button>
+      </div>
       <span class="spacer"></span>
-      <button class="btn small ghost" id="shareAppBtn" type="button" aria-label="Share Pour Decisions with friends">📤 <span class="share-word">Share</span></button>
-      <button class="btn small ghost" id="syncBtn" type="button" aria-pressed="false">📡 Sync</button>
-      <button class="btn small ghost" id="musicBtn" type="button" aria-pressed="false">♪ Music off</button>
-      <button class="btn small ghost" id="voiceHdrBtn" type="button" aria-pressed="false" aria-label="Announcer">🎙️ Off</button>
-      <button class="btn small ghost tv-toggle" id="tvBtn" type="button">TV mode</button>
+      <div class="hdr-actions">
+      <button class="btn small ghost" id="shareAppBtn" type="button" aria-label="Share Pour Decisions with friends" title="Share"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6h14v-6"/></svg><span class="share-word">Share</span></button>
+      <button class="btn small ghost" id="syncBtn" type="button" aria-pressed="false" title="Sync phones"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9a7 7 0 0 1 12-3l2 2M19 4v4h-4M19 15a7 7 0 0 1-12 3l-2-2M5 20v-4h4"/></svg><span class="lbl">Sync</span></button>
+      <button class="btn small ghost" id="musicBtn" type="button" aria-pressed="false" aria-label="Music" title="Music off. Tap to play."><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span class="lbl">Music</span></button>
+      <button class="btn small ghost" id="voiceHdrBtn" type="button" aria-pressed="false" aria-label="Announcer" title="Announcer off. Tap to turn on."><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg><span class="lbl">Announcer</span></button>
+      <button class="btn small ghost tv-toggle" id="tvBtn" type="button"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg><span class="lbl">TV mode</span></button>
       <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
       <button class="btn small" id="endBtn" type="button" hidden>🏁 End night</button>
+      </div>
     </nav>
   </div>
 </header>
@@ -3762,11 +3844,10 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     $("#view-setup").innerHTML = `
       <div class="panel setup-head">
         <div class="stack" style="gap:6px;min-width:0">
-          <div class="eyebrow">${n.started ? "Night in progress · started " + fmtDate(n.started) : "New night"}</div>
-          <h2>The lineup</h2>
+          <div class="head-row"><h2>The lineup</h2><span class="status-chip${n.started ? " live" : ""}">${n.started ? "In progress · " + fmtDate(n.started) : "New night"}</span></div>
           <div class="muted">Everyone picks ${n.perPlayer} games. Then you take turns spinning to see what gets played next.</div>
         </div>
-        <div class="row">
+        <div class="row setup-actions">
           <label class="field" style="width:130px">Games each <input type="number" id="perPlayer" min="1" max="25" value="${n.perPlayer}"></label>
           <button class="btn" type="button" id="addPlayer">Add player</button>
           <button class="btn" type="button" id="shuffleOrder">Shuffle turn order</button>
@@ -4769,13 +4850,13 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   $("#tvBtn").addEventListener("click", async () => {
     const root = document.documentElement, on = !root.classList.contains("tv");
     root.classList.toggle("tv", on);
-    $("#tvBtn").textContent = on ? "Exit TV mode" : "TV mode";
+    $("#tvBtn .lbl").textContent = on ? "Exit TV mode" : "TV mode";
     try { if (on && root.requestFullscreen) await root.requestFullscreen(); else if (!on && document.fullscreenElement) await document.exitFullscreen(); } catch { /* fullscreen not allowed here */ }
     setTab("spin");
     setTimeout(() => mainWheel.resize(), 300);
   });
   document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement && document.documentElement.classList.contains("tv")) { document.documentElement.classList.remove("tv"); $("#tvBtn").textContent = "TV mode"; renderAll(); setTimeout(() => mainWheel.resize(), 300); }
+    if (!document.fullscreenElement && document.documentElement.classList.contains("tv")) { document.documentElement.classList.remove("tv"); $("#tvBtn .lbl").textContent = "TV mode"; renderAll(); setTimeout(() => mainWheel.resize(), 300); }
   });
 
   function renderRoundLog() {
@@ -5306,12 +5387,11 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const most = Math.max(...n.players.map((p) => t[p.id].shots));
     const topWins = Math.max(...n.players.map((p) => t[p.id].wins));
     $("#view-scores").innerHTML = `
-      <div class="panel row" style="justify-content:space-between">
-        <div class="stack" style="gap:4px">
-          <div class="eyebrow">${n.started ? "Started " + fmtDate(n.started) : "Not started yet"}</div>
-          <h2>Shot board</h2>
+      <div class="panel row board-head" style="justify-content:space-between">
+        <div class="stack" style="gap:6px">
+          <div class="head-row"><h2>Shot board</h2><span class="status-chip${n.started ? " live" : ""}">${n.started ? "Started " + fmtDate(n.started) : "Not started"}</span></div>
         </div>
-        <div class="stack" style="gap:8px;justify-items:end">
+        <div class="stack board-tools" style="gap:8px;justify-items:end">
           <div class="muted num">${fmtShots(Object.values(t).reduce((a, x) => a + x.shots, 0))} shots poured · ${n.rounds.filter((r) => r.gameId).length} games played</div>
           <div class="row">
             <button class="btn small" type="button" data-sheet="finale">${n.finale?.champion ? "👑 Finale" : "Finale bracket"}</button>
@@ -5878,7 +5958,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function syncUI() {
     const b = $("#syncBtn"); if (!b) return;
     const on = !!S.sync, n = Sync.peers.size;
-    b.textContent = !on ? "📡 Sync" : Sync.status === "on" ? `📡 ${n} phone${n === 1 ? "" : "s"}` : "📡 Reconnecting…";
+    b.querySelector(".lbl").textContent = !on ? "Sync" : Sync.status === "on" ? `${n} phone${n === 1 ? "" : "s"}` : "Reconnecting…";
     b.setAttribute("aria-pressed", String(on)); b.classList.toggle("sync-live", on && Sync.status === "on");
     if (sheetKind === "sync" && !$("#sheet").contains(document.activeElement)) renderSheet();
   }
@@ -6952,7 +7032,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     const n = N();
     $("#endBtn").hidden = !n.started;
     const pending = n.pending ? 1 : 0;
-    $("#tab-spin").innerHTML = `Spin${pending ? '<span class="badge">1</span>' : ""}`;
+    { const t = $("#tab-spin"); let bd = t.querySelector(".badge"); if (pending && !bd) { bd = document.createElement("span"); bd.className = "badge"; bd.textContent = "1"; t.append(bd); } else if (!pending && bd) bd.remove(); }
     if (S.tab === "setup") renderSetup();
     if (S.tab === "spin") renderSpin();
     if (S.tab === "scores") renderScores();
@@ -7107,7 +7187,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
   function syncVoiceBtn() {
     const b = $("#voiceHdrBtn"); if (!b) return;
     b.hidden = !canSpeak && !xiKey();
-    b.setAttribute("aria-pressed", String(!!S.voice)); b.textContent = S.voice ? "🎙️ On" : "🎙️ Off";
+    b.setAttribute("aria-pressed", String(!!S.voice));
     b.title = S.voice ? "Announcer on. Tap to mute." : "Announcer off. Tap to turn on.";
   }
   function setVoice(on) {
@@ -7116,7 +7196,7 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
     else { try { if (canSpeak) speechSynthesis.cancel(); xiAudio.pause(); } catch { /* nothing playing */ } }
   }
   $("#voiceHdrBtn").addEventListener("click", () => { setVoice(!S.voice); toast(S.voice ? "🎙️ Announcer on" : "🎙️ Announcer off"); if (S.tab === "history") renderHistory(); });
-  function syncMusicBtn() { const b = $("#musicBtn"); b.setAttribute("aria-pressed", String(!!S.music)); b.textContent = S.music ? "♪ Music on" : "♪ Music off"; }
+  function syncMusicBtn() { const b = $("#musicBtn"); b.setAttribute("aria-pressed", String(!!S.music)); b.title = S.music ? "Music on. Tap to stop." : "Music off. Tap to play."; }
   function toggleMusic() { S.music = !S.music; save(); applyMusic(); syncMusicBtn(); }
   $("#musicBtn").addEventListener("click", toggleMusic);
   // typing a name updates the link in place (no re-render, so the keyboard stays up)
