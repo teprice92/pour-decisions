@@ -1730,17 +1730,13 @@ button.chip:not(.now):hover { border-color: var(--accent); }
 #themeArt { position: fixed; inset: -4%; z-index: -1; pointer-events: none; display: none; background-position: center top; background-size: cover; background-repeat: no-repeat; }
 /* painted backgrounds drift slowly, with motes of the theme's accent color floating up (off with reduced motion or in Settings) */
 #themeArt { animation: artDrift 48s ease-in-out infinite alternate; }
-/* Each mote pattern is its own layer, taller than the screen by one tile, and moves with transform.
-   Animating background-position instead repainted the whole screen on every frame. */
-#themeArt::before, #themeArt::after { content: ""; position: absolute; left: 0; right: 0; top: 0; opacity: .55; mix-blend-mode: screen; will-change: transform; }
-#themeArt::before { bottom: -240px; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, #fff) 0 1.5px, transparent 2.5px) 0 0 / 180px 240px; animation: artMotesA 30s linear infinite; }
-#themeArt::after { bottom: -300px; background: radial-gradient(circle, color-mix(in srgb, var(--accent-2) 60%, #fff) 0 1px, transparent 2px) 90px 120px / 260px 300px; animation: artMotesB 30s linear infinite; }
+#themeArt::after { content: ""; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, #fff) 0 1.5px, transparent 2.5px), radial-gradient(circle, color-mix(in srgb, var(--accent-2) 60%, #fff) 0 1px, transparent 2px);
+  background-size: 180px 240px, 260px 300px; background-position: 0 0, 90px 120px; animation: artMotes 30s linear infinite; mix-blend-mode: screen; }
 @keyframes artDrift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.07) translate(-1.5%, -1.2%); } }
-@keyframes artMotesA { to { transform: translateY(-240px); } }
-@keyframes artMotesB { to { transform: translateY(-300px); } }
-html.still-art #themeArt, html.still-art #themeArt::before, html.still-art #themeArt::after { animation: none; }
-html.still-art #themeArt::before, html.still-art #themeArt::after { display: none; }
-@media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::before, #themeArt::after { animation: none; } #themeArt::before, #themeArt::after { display: none; } }
+@keyframes artMotes { from { background-position: 0 0, 90px 120px; } to { background-position: 40px -240px, 50px -180px; } }
+html.still-art #themeArt, html.still-art #themeArt::after { animation: none; }
+html.still-art #themeArt::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::after { animation: none; } #themeArt::after { display: none; } }
 /* a drink sloshes as it lands in the glass */
 .glass .tilt { transform-box: view-box; transform-origin: 50px 0; rotate: var(--tilt, 0deg); }
 .glass.slosh .tilt { animation: slosh 1.3s cubic-bezier(.3,.6,.3,1); }
@@ -1955,7 +1951,9 @@ footer { text-align: center; font-size: .8rem; color: var(--muted); padding-top:
 }
 
 /* browser surfaces take the theme's colors instead of defaults */
-html { accent-color: var(--accent); scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent; }
+html { accent-color: var(--accent); }
+/* only with a mouse or trackpad: on phones a styled scrollbar can stop the GPU from moving it, so every scroll step repaints */
+@media (hover: hover) and (pointer: fine) { html { scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent; } }
 ::selection { background: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--fg); }
 input, textarea { caret-color: var(--accent); }
 :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -3828,6 +3826,13 @@ input, textarea { caret-color: var(--accent); }
     renderAll();
   }
   $$(".tab").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+  // On phones the tabs are a fixed bottom bar. Inside the sticky header, a fixed element gets
+  // re-placed on every scroll frame (Safari especially), so it lives directly in <body> there.
+  {
+    const list = $(".tab-list"), home = list.parentNode, after = list.nextSibling, phone = matchMedia("(max-width: 679px)");
+    const place = () => { if (phone.matches) { if (list.parentNode !== document.body) document.body.append(list); } else if (list.parentNode !== home) home.insertBefore(list, after); };
+    place(); phone.addEventListener?.("change", place);
+  }
 
   // ---------- Lineup (setup) ----------
   const playerColor = (i) => skinColors()[i % skinColors().length];
