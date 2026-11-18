@@ -1730,13 +1730,17 @@ button.chip:not(.now):hover { border-color: var(--accent); }
 #themeArt { position: fixed; inset: -4%; z-index: -1; pointer-events: none; display: none; background-position: center top; background-size: cover; background-repeat: no-repeat; }
 /* painted backgrounds drift slowly, with motes of the theme's accent color floating up (off with reduced motion or in Settings) */
 #themeArt { animation: artDrift 48s ease-in-out infinite alternate; }
-#themeArt::after { content: ""; position: absolute; inset: 0; opacity: .55; background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, #fff) 0 1.5px, transparent 2.5px), radial-gradient(circle, color-mix(in srgb, var(--accent-2) 60%, #fff) 0 1px, transparent 2px);
-  background-size: 180px 240px, 260px 300px; background-position: 0 0, 90px 120px; animation: artMotes 30s linear infinite; mix-blend-mode: screen; }
+/* Each mote pattern is its own layer, taller than the screen by one tile, and moves with transform.
+   Animating background-position instead repainted the whole screen on every frame. */
+#themeArt::before, #themeArt::after { content: ""; position: absolute; left: 0; right: 0; top: 0; opacity: .55; mix-blend-mode: screen; will-change: transform; }
+#themeArt::before { bottom: -240px; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 70%, #fff) 0 1.5px, transparent 2.5px) 0 0 / 180px 240px; animation: artMotesA 30s linear infinite; }
+#themeArt::after { bottom: -300px; background: radial-gradient(circle, color-mix(in srgb, var(--accent-2) 60%, #fff) 0 1px, transparent 2px) 90px 120px / 260px 300px; animation: artMotesB 30s linear infinite; }
 @keyframes artDrift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.07) translate(-1.5%, -1.2%); } }
-@keyframes artMotes { from { background-position: 0 0, 90px 120px; } to { background-position: 40px -240px, 50px -180px; } }
-html.still-art #themeArt, html.still-art #themeArt::after { animation: none; }
-html.still-art #themeArt::after { display: none; }
-@media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::after { animation: none; } #themeArt::after { display: none; } }
+@keyframes artMotesA { to { transform: translateY(-240px); } }
+@keyframes artMotesB { to { transform: translateY(-300px); } }
+html.still-art #themeArt, html.still-art #themeArt::before, html.still-art #themeArt::after { animation: none; }
+html.still-art #themeArt::before, html.still-art #themeArt::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #themeArt, #themeArt::before, #themeArt::after { animation: none; } #themeArt::before, #themeArt::after { display: none; } }
 /* a drink sloshes as it lands in the glass */
 .glass .tilt { transform-box: view-box; transform-origin: 50px 0; rotate: var(--tilt, 0deg); }
 .glass.slosh .tilt { animation: slosh 1.3s cubic-bezier(.3,.6,.3,1); }
@@ -1974,8 +1978,9 @@ input, textarea { caret-color: var(--accent); }
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px;
     padding: 6px max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
-    background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line); box-shadow: 0 -10px 30px rgba(0, 0, 0, .35);
+    /* nearly solid instead of blurred: a blur here re-renders every frame over the drifting theme art */
+    background: color-mix(in srgb, var(--bg) 97%, transparent);
+    border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(0, 0, 0, .3);
   }
   .tab, html[data-skin] .tab {
     flex-direction: column; justify-content: center; gap: 4px; min-height: 54px; padding: 6px 0;
