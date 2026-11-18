@@ -1992,7 +1992,10 @@ input, textarea { caret-color: var(--accent); }
   .hdr-actions { width: 100%; flex-wrap: nowrap; gap: 6px; }
   .hdr-actions .lbl, .hdr-actions .share-word { display: none; }
   .hdr-actions .btn.ghost { width: 38px; min-height: 40px; padding: 0; flex: none; }
-  .hdr-actions #callGame, .hdr-actions #openRng, .hdr-actions #endBtn { flex: 1 1 0; min-height: 40px; padding: 0 6px; font-size: .82rem; white-space: nowrap; min-width: 0; }
+  .hdr-actions #endBtn { width: 38px; min-height: 40px; padding: 0; flex: none; }
+  /* during a night End night takes Share's place, so the row still fits (Share is also in the install sheet) */
+  .hdr-actions:has(#endBtn:not([hidden])) #shareAppBtn { display: none; }
+  .hdr-actions #callGame, .hdr-actions #openRng { flex: 1 1 0; min-height: 40px; padding: 0 6px; font-size: .82rem; white-space: nowrap; min-width: 0; }
   .hdr-actions #callGame { margin-left: auto; }
   .toast { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
   .mini-player { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
@@ -2002,6 +2005,35 @@ input, textarea { caret-color: var(--accent); }
   .board-tools { justify-items: start !important; width: 100%; }
   .board-tools .row { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
   .board-tools .row > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* ---------- Stats & Games polish ---------- */
+.meta-line { color: var(--muted); font-weight: 700; font-size: .9rem; }
+/* number strip instead of a grid of boxed tiles; zeros step back so the real numbers lead */
+.stat-tiles { gap: 0; border-block: 1px solid var(--line); }
+.stat-tiles .tile { border: 0; border-radius: 0; background: none; padding: 12px 14px; box-shadow: inset 1px 0 0 var(--line); }
+.stat-tiles .tile .tl { margin-top: 2px; }
+.stat-tiles .tile:first-child { box-shadow: none; }
+.stat-tiles .tile.zero .tv { color: var(--muted); opacity: .7; }
+.cat-console-select { display: none; }
+.cat-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+@media (max-width: 679px) {
+  .stat-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stat-tiles .tile { padding: 10px 8px; }
+  .stat-tiles .tile:nth-child(3n + 1) { box-shadow: none; }
+  .stat-tiles .tile:nth-child(n + 4) { border-top: 1px solid var(--line); }
+  .stat-tiles .tile .tv { font-size: 1.35rem; }
+  .stat-tiles .tile .tl { font-size: .68rem; letter-spacing: .06em; }
+  /* wide tables: the name column stays put while the numbers scroll sideways */
+  .table-wrap th, .table-wrap td { padding: 8px 8px; }
+  .table-wrap th { letter-spacing: .05em; }
+  .table-wrap th:first-child, .table-wrap td:first-child { position: sticky; left: 0; z-index: 1; background: linear-gradient(var(--panel), var(--panel)), var(--bg); box-shadow: inset -1px 0 0 var(--line); }
+  /* a rank column (#) alone isn't worth pinning */
+  .table-wrap:has(thead th.n:first-child) :is(th, td):first-child { position: static; background: none; box-shadow: none; }
+  .cat-console-select { display: block; width: 100%; font-weight: 700; }
+  .cat-families { display: none; }
+  .cat-filters { gap: 6px; }
+  .cat-filters .pick > span { padding: 7px 11px; font-size: .85rem; }
 }
 </style>
 </head>
@@ -2052,7 +2084,7 @@ input, textarea { caret-color: var(--accent); }
       <button class="btn small ghost tv-toggle" id="tvBtn" type="button"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/></svg><span class="lbl">TV mode</span></button>
       <button class="btn small" id="callGame" type="button">Log a game</button>
       <button class="btn small primary" id="openRng" type="button">Chaos roll</button>
-      <button class="btn small" id="endBtn" type="button" hidden>🏁 End night</button>
+      <button class="btn small" id="endBtn" type="button" hidden aria-label="End night" title="End night"><svg class="ti" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></svg><span class="lbl">End night</span></button>
       </div>
     </nav>
   </div>
@@ -2474,6 +2506,7 @@ input, textarea { caret-color: var(--accent); }
     if (!whole && !frac) return "0";
     return (whole ? String(whole) : "") + frac;
   };
+  const isZero = (v) => v === 0 || v === "0" || v === "0%" || v === "0m" || v === "–";
   const fmtDate = (t) => new Date(t).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -4103,8 +4136,8 @@ input, textarea { caret-color: var(--accent); }
     $("#view-games").innerHTML = `
       <div class="panel cat-head">
         <div class="cat-top">
-          <div class="stack" style="gap:4px;min-width:0"><div class="eyebrow">${CATALOG.length} consoles · ${catTotal().toLocaleString()} games</div><h2>Game catalog</h2>
-            <div class="muted">Every game we have a list for, from single-player one-offs to party games. Tap a game to add it to a player's lineup.</div></div>
+          <div class="stack" style="gap:6px;min-width:0"><h2>Game catalog</h2>
+            <div class="muted"><span class="num">${catTotal().toLocaleString()}</span> games across ${CATALOG.length} consoles, from single-player one-offs to party games. Tap a game to add it to a player's lineup.</div></div>
           <div class="cat-who">
             <label class="field" for="catPlayer">Adding to</label>
             <select id="catPlayer">${n.players.map((p) => `<option value="${p.id}" ${who && p.id === who.id ? "selected" : ""}>${esc(pname(p))}</option>`).join("")}</select>
@@ -4113,6 +4146,10 @@ input, textarea { caret-color: var(--accent); }
         </div>
         <div class="cat-section">
           <div class="eyebrow">Console</div>
+          <select id="catConsoleSel" class="cat-console-select" aria-label="Console">
+            <option value="all" ${catConsole === "all" ? "selected" : ""}>All consoles</option>
+            ${fams.map((f) => `<optgroup label="${esc(f)}">${CATALOG.filter((c) => c.family === f).map((c) => `<option value="${c.id}" ${catConsole === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</optgroup>`).join("")}
+          </select>
           <div class="cat-families">
             <span class="fam">All</span>
             <div class="chips"><button type="button" class="btn small ${catConsole === "all" ? "primary" : ""}" data-console="all">All consoles</button></div>
@@ -4243,6 +4280,7 @@ input, textarea { caret-color: var(--accent); }
   $("#view-games").addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "catCustom") { e.preventDefault(); $("#catCustomAdd").click(); } });
   $("#view-games").addEventListener("change", (e) => {
     if (e.target.id === "catPlayer") { activeId = e.target.value; refreshSlots(); renderCatList(); }
+    if (e.target.id === "catConsoleSel") { catConsole = e.target.value; catLimit = 150; renderGames(); $("#catConsoleSel")?.focus(); }
     if (e.target.id === "catSuffix") { catSuffix = e.target.checked; renderCatList(); }
     if (e.target.id === "catParty") { catPartyOnly = e.target.checked; catLimit = 150; renderCatList(); }
     if (e.target.id === "catFav") { catFav = e.target.checked; catLimit = 150; renderCatList(); }
@@ -6403,14 +6441,15 @@ input, textarea { caret-color: var(--accent); }
         if (id === r.winner) x.w++; else x.l++;
       });
     });
+    // columns nobody has anything in tonight are left out
+    const hasPen = rows.some((x) => x.pen), hasBets = rows.some((x) => x.bets);
     const tiles = [["Games", games.length], ["Shots poured", fmtShots(poured)], ["Shots / game", games.length ? fmtShots(q4(poured / games.length)) : "–"], ["Ties", ties], ["Penalty shots", fmtShots(rows.reduce((a, x) => a + x.pen, 0))], ["Time in", dur]];
     return `
       <div class="panel stack tonight">
-        <div class="eyebrow">Tonight · started ${esc(fmtDate(n.started))}</div>
-        <h2>Tonight's scoreboard</h2>
-        <div class="stat-tiles">${tiles.map(([l, v]) => `<div class="tile"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}</div>
-        ${games.length ? `<div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Played</th><th class="n">Win rate</th><th class="n">Shots</th><th class="n">Penalty shots</th><th class="n">Best streak</th><th class="n">Bets won</th></tr></thead><tbody>
-          ${rows.map((x, i) => `<tr><td>${pnameHTML(x.p)}${i === 0 && x.wins ? " 👑" : ""}${st[x.p.id] >= 3 ? " 🔥" : ""}</td><td class="n">${x.wins}</td><td class="n">${x.played}</td><td class="n">${x.played ? Math.round((x.wins / x.played) * 100) + "%" : "–"}</td><td class="n">${fmtShots(x.shots)}</td><td class="n">${x.pen ? fmtShots(x.pen) : "–"}</td><td class="n">${x.best || "–"}</td><td class="n">${x.bets || "–"}</td></tr>`).join("")}
+        <div class="head-row"><h2>Tonight's scoreboard</h2><span class="status-chip live" title="${esc(fmtDate(n.started))}">Started ${esc(new Date(n.started).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }))}</span></div>
+        <div class="stat-tiles">${tiles.map(([l, v]) => `<div class="tile${isZero(v) ? " zero" : ""}"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}</div>
+        ${games.length ? `<div class="table-wrap"><table><thead><tr><th>Player</th><th class="n">Wins</th><th class="n">Played</th><th class="n">Win rate</th><th class="n">Shots</th>${hasPen ? `<th class="n">Penalty shots</th>` : ""}<th class="n">Best streak</th>${hasBets ? `<th class="n">Bets won</th>` : ""}</tr></thead><tbody>
+          ${rows.map((x, i) => `<tr><td>${pnameHTML(x.p)}${i === 0 && x.wins ? " 👑" : ""}${st[x.p.id] >= 3 ? " 🔥" : ""}</td><td class="n">${x.wins}</td><td class="n">${x.played}</td><td class="n">${x.played ? Math.round((x.wins / x.played) * 100) + "%" : "–"}</td><td class="n">${fmtShots(x.shots)}</td>${hasPen ? `<td class="n">${x.pen ? fmtShots(x.pen) : "–"}</td>` : ""}<td class="n">${x.best || "–"}</td>${hasBets ? `<td class="n">${x.bets || "–"}</td>` : ""}</tr>`).join("")}
         </tbody></table></div>
         ${hl.length ? `<div class="tonight-hl">${hl.map((h) => `<div>${h}</div>`).join("")}</div>` : ""}` : `<div class="muted">No games recorded yet tonight. Spin the wheel and this fills in as you play.</div>`}
       </div>
@@ -6475,8 +6514,8 @@ input, textarea { caret-color: var(--accent); }
 
     box.innerHTML = tonightHTML() + `
       <div class="panel stats-head">
-        <div class="eyebrow">${st.nights.length} night${st.nights.length === 1 ? "" : "s"} · ${totalGames} games · ${roster.length} players</div>
         <h2>All-time stats &amp; bragging rights</h2>
+        <div class="meta-line num">${st.nights.length} night${st.nights.length === 1 ? "" : "s"} · ${totalGames} games · ${roster.length} players</div>
         <div class="muted">Ratings start at 1000 per game. Beat someone and you take points from them, more for beating someone who's better.</div>
       </div>
       <div class="stats-grid">
@@ -6493,7 +6532,7 @@ input, textarea { caret-color: var(--accent); }
         <div class="eyebrow">Player</div>
         <div class="stats-players">${roster.map((p) => `<button type="button" class="btn small ${p.key === statsPlayer ? "primary" : ""}" data-splayer="${esc(p.key)}">${plName(p)}</button>`).join("")}</div>
         <div class="stat-tiles">
-          ${[["Nights", me.nights], ["Games", me.games], ["Wins", me.wins], ["Win rate", winRate + "%"], ["Shots", fmtShots(me.shots)], ["Shots / night", fmtShots(me.shots / Math.max(1, me.nights))]].map(([l, v]) => `<div class="tile"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}
+          ${[["Nights", me.nights], ["Games", me.games], ["Wins", me.wins], ["Win rate", winRate + "%"], ["Shots", fmtShots(me.shots)], ["Shots / night", fmtShots(me.shots / Math.max(1, me.nights))]].map(([l, v]) => `<div class="tile${isZero(v) ? " zero" : ""}"><div class="tv num">${v}</div><div class="tl">${l}</div></div>`).join("")}
         </div>
         <div class="stats-two">
           <div class="stack" style="gap:6px">
